@@ -1,25 +1,13 @@
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
-
-export default App;
+// "use strict";
+// var __importDefault = (this && this.__importDefault) || function (mod) {
+//     return (mod && mod.__esModule) ? mod : { "default": mod };
+// };
+// Object.defineProperty(exports, "__esModule", { value: true });
+// const react_1 = __importDefault(require("react"));
+// require("./App.css");
+// const LeafletMap_js_1 = __importDefault(require("./components/LeafletMap.js"));
+// function App() {
+//     return (react_1.default.createElement("div", { id: "container" },
+//         react_1.default.createElement(LeafletMap_js_1.default, null)));
+// }
+// exports.default = App;
