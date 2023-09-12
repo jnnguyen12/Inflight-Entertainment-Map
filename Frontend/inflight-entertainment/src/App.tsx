@@ -1,7 +1,8 @@
-import logo from './logo.svg';
+const logo = require("./logo.svg") as string;
 import React, { Component } from "react";
 import './App.css';
-import LeafletMap from "./src/components/LeafletMap.tsx";
+
+import { LeafletMap } from "./components/LeafletMap"
 
 function App() {
   return (
