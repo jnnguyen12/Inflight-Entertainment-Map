@@ -1,13 +1,16 @@
-// import logo from './logo.svg';
 import React, { Component } from "react";
 import './App.css';
 import LeafletMap from "./components/test";
 
 function App() {
+  console.log("Loaded")
   return (
+    <>
+    <p>hello</p>
     <div id="container">
-        <LeafletMap />
-      </div>
+    </div>
+    <LeafletMap/>
+    </>
   );
 }
 

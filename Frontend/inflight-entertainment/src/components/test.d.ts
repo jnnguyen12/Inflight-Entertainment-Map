@@ -2,12 +2,22 @@ import React from 'react';
 import '../App.css';
 import L from "leaflet";
 import 'leaflet-offline';
+
 interface LeafletMapState {
     lat: number;
     lng: number;
     zoom: number;
     maxZoom: number;
 }
+
+interface LeafletMapProps  {
+    id: number
+    lat: number
+    lng: number
+    position: L.LatLngExpression
+    icon: L.Icon
+}
+
 declare class LeafletMap extends React.Component<{}, LeafletMapState> {
     constructor(props: any);
     componentDidMount(): void;

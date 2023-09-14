@@ -3,12 +3,13 @@ import { MapContainer, Marker, Popup, TileLayer, ZoomControl } from 'react-leafl
 import '../App.css';
 import {LatLng} from "leaflet";
 import L from "leaflet";
+// import "react-leaflet-markercluster";
 import MarkerClusterGroup from "react-leaflet-markercluster";
-import MarkerClusterGroupProps from "react-leaflet-markercluster"
+// import MarkerClusterGroupProps from "react-leaflet-markercluster"
 // import { MarkerClusterGroupProps } from "react-leaflet-markercluster"; 
 // import { MarkerClusterGroup, MarkerClusterGroupProps } from 'react-leaflet-markercluster';
 import localforage from 'localforage';
-import 'leaflet-offline';
+// import O from 'leaflet-offline';
 import  TileLayerOffline  from 'leaflet-offline';
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 import { LatLngExpression } from 'leaflet';
@@ -18,7 +19,8 @@ import MakeTileLayerOffline from './functions/TileLayerOfline'
 
 const markerList = [
     {
-        lat: 17.441013,
+      LatLng: [17.441013,78.391796],
+      lat: 17.441013,
         lng: 78.391796,
         name: "ABC Hospitals",
         info: 10
@@ -62,9 +64,11 @@ interface LeafletMapProps  {
     icon: L.Icon
 }
 
+// const x = '../assets/plane.jpng';
 //Defining the custom marker with an hospital building icon
 const customMarker = new L.Icon({
-    iconUrl: require('../assets/plane.jpng'),
+    
+    // iconUrl: require(x),
     iconSize: new L.Point(35, 46),
     // iconAnchor:   [22, 94],
 });
@@ -119,11 +123,12 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     renderPopup = (index: number) => {
         return (
 
-            <Popup
+            <Popup position={[markerList[index].lng,markerList[index].lat]}
+
             // tipSize={5}
             // anchor="bottom-right"
             // longitude={markerList[index].lng}
-            // latitude={markerList[index].lat}
+            // latitude={markerList[index].lat}}
             >
                 <p>
                     <strong>{markerList[index].name}</strong>
@@ -136,8 +141,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
 //render the map
   render() {
-    // const position = [this.state.lat, this.state.lng];
-    // console.log(position);
+    console.log("HERE");
     
     return (
       <div id="map-id">
@@ -149,21 +153,22 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
           url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
         />
+        {/* <MarkerClusterGroup iconCreateFunction={this.customIconCreateFunction}></MarkerClusterGroup> */}
 
-         {/* <MarkerClusterGroup
-          showCoverageOnHover={true}
-          spiderfyDistanceMultiplier={2}
-          iconCreateFunction={this.customIconCreateFunction}
-        >
-          {markerList.map((marker, index) => {
-            let post = [marker.lat, marker.lng];
+         {/* <MarkerClusterGroup> </MarkerClusterGroup> */}
+          {/* // showCoverageOnHover={true}
+          // spiderfyDistanceMultiplier={2}
+          // iconCreateFunction={this.customIconCreateFunction} */}
+         
+          
+          {/* {markerList.map((marker, index) => {
             return (
-              <Marker key={index} position={post} icon={customMarker} >
+              <Marker key={index} position={marker[index].LatLng } icon={customMarker} >
                 {this.renderPopup(index)}
               </Marker>
             );
-          })}
-        </MarkerClusterGroup> */}
+          })}  */}
+        {/* </MarkerClusterGroup> */}
       </MapContainer >
       </div>
     );
