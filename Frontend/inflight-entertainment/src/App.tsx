@@ -1,7 +1,7 @@
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import React, { Component } from "react";
 import './App.css';
-import LeafletMap from "./src/components/LeafletMap.tsx";
+import LeafletMap from "./components/test";
 
 function App() {
   return (
