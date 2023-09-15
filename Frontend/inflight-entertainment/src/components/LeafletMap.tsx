@@ -1,23 +1,28 @@
+//Imports
+//React
 import React from 'react';
-import { MapContainer, Marker, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import '../App.css';
-import { LatLng } from "leaflet";
+
+// Leaflet
 import L from "leaflet";
-import MarkerClusterGroup from 'react-leaflet-markercluster';
+import { MapContainer, Marker, Popup, TileLayer, ZoomControl } from 'react-leaflet';
+import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
+
+// Offine 
+import MakeTileLayerOffline from './functions/TileLayerOfline'
 import localforage from 'localforage';
 import TileLayerOffline from 'leaflet-offline';
-import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
-import { LatLngExpression } from 'leaflet';
-import MakeTileLayerOffline from './functions/TileLayerOfline'
 
-import CreateAircraftIcons from './aircraft'
-import CreateAirportIcons from './airport'
+// Icons
+import CreateAircraftIcons from './Aircraft'
+import CreateAirportIcons from './Airport'
+
 
 const aircraftMarkerList = [
   {
     id: 1,
     name: "plane",
-    info: "plane status",
+    info: "plane status (Can be changed)",
     lat: 41.76345,
     lng: -93.64245
   }
@@ -27,14 +32,14 @@ const airportMarkerList = [
   {
     id: 1,
     name: "Des Moines International Airport",
-    info: "Departed at: ",
+    info: "Departed at: (Can be changed individually)",
     lat: 41.5341,
     lng: -93.6634
   },
   {
     id: 2,
     name: "Ames airport ",
-    info: "Z",
+    info: "Estimated arrival: (Can be changed individually)",
     lat: 41.9928,
     lng: -93.6215 
   },
@@ -54,20 +59,18 @@ interface LeafletMapState {
 const searchControl = GeoSearchControl({ //geosearch object
   provider: new OpenStreetMapProvider(),
   // style: 'none',
-  // showMarker: true,
-  // autoComplete: true,
-  // showPopup: false,
-  // autoClose: true,
+  showMarker: true,
+  autoComplete: true,
+  showPopup: false,
+  autoClose: true,
   retainZoomLevel: false,
   animateZoom: true,
-  // keepResult: false,
-  // searchLabel: 'search'
+  keepResult: false,
+  searchLabel: 'search'
 });
 
-
-//The Map definition
+//The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
-  // class LeafletMap extends React.Component<{}> {
   constructor(props: any) {
     super(props)
     this.state = {
@@ -88,16 +91,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     map.zoomControl.remove();
     map.addControl(searchControl);
   }
-
-  // //Defining the custom icon for clusters 
-  // //Potintal additon
-  // customIconCreateFunction(cluster: any) {
-  //   return L.divIcon({
-  //     html: `<span>${cluster.getChildCount()}</span>`,
-  //     className: "marker-cluster-custom",
-  //     iconSize: L.point(40, 40, true)
-  //   });
-  // }
 
   //render the map
   render() {

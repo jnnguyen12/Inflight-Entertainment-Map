@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapContainer, Marker, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import L from "leaflet";
-import CreateMapIcons from './mapIcons'
+import CreateMapIcons from './MapIcons'
 
 import plane from './assets/plane.png';
 

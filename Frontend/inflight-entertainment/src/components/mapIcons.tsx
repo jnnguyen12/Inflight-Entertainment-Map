@@ -25,6 +25,17 @@ interface LeafletMapProps {
       this.imageSizeY = 46;
     }
 
+    
+  // //Defining the custom icon for clusters 
+  // //Potintal additon
+  // customIconCreateFunction(cluster: any) {
+  //   return L.divIcon({
+  //     html: `<span>${cluster.getChildCount()}</span>`,
+  //     className: "marker-cluster-custom",
+  //     iconSize: L.point(40, 40, true)
+  //   });
+  // }
+
     // this is the settings for the icon
     makeIcon(image: string){
       return new L.Icon({

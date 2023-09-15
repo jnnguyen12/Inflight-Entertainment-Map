@@ -1,13 +1,13 @@
 import React, { Component } from "react";
 import './App.css';
-import LeafletMap from "./components/test";
+import LeafletMap from "./components/LeafletMap";
 
 
 function App() {
   console.log("Loaded")
   return (
     <>
-    <p>hello</p>
+    <h1>Demo 1</h1>
     <div id="container">
     </div>
     <LeafletMap/>
