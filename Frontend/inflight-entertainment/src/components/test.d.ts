@@ -10,6 +10,7 @@ interface LeafletMapState {
     maxZoom: number;
 }
 
+
 interface LeafletMapProps  {
     id: number
     lat: number
@@ -17,6 +18,7 @@ interface LeafletMapProps  {
     position: L.LatLngExpression
     icon: L.Icon
 }
+
 
 declare class LeafletMap extends React.Component<{}, LeafletMapState> {
     constructor(props: any);
