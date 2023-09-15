@@ -11,14 +11,6 @@ interface LeafletMapState {
 }
 
 
-interface LeafletMapProps  {
-    id: number
-    lat: number
-    lng: number
-    position: L.LatLngExpression
-    icon: L.Icon
-}
-
 
 declare class LeafletMap extends React.Component<{}, LeafletMapState> {
     constructor(props: any);
