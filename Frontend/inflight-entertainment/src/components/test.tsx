@@ -13,7 +13,6 @@ import MakeTileLayerOffline from './functions/TileLayerOfline'
 import CreateAircraftIcons from './aircraft'
 import CreateAirportIcons from './airport'
 
-
 const aircraftMarkerList = [
   {
     id: 1,
@@ -51,18 +50,18 @@ interface LeafletMapState {
   maxZoom: number;
 }
 
-//Defining the geo search control 
+//Defining the geo search control needs work
 const searchControl = GeoSearchControl({ //geosearch object
   provider: new OpenStreetMapProvider(),
-  // style: 'button',
-  showMarker: true,
-  autoComplete: true,
-  showPopup: false,
-  autoClose: true,
+  // style: 'none',
+  // showMarker: true,
+  // autoComplete: true,
+  // showPopup: false,
+  // autoClose: true,
   retainZoomLevel: false,
   animateZoom: true,
   // keepResult: false,
-  searchLabel: 'search'
+  // searchLabel: 'search'
 });
 
 
@@ -72,15 +71,16 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   constructor(props: any) {
     super(props)
     this.state = {
-      aircraftMarkerList,
-      airportMarkerList,
-      lat: 41.76345,
-      lng: -93.64245,
-      zoom: 15,
-      maxZoom: 30
+      aircraftMarkerList,   // The Aircrafts
+      airportMarkerList,    // The Airports
+      lat: 41.76345,        // Cameras initial lat
+      lng: -93.64245,       // Cameras initial lng
+      zoom: 15,             // Needs tuning
+      maxZoom: 30           // Needs tuning
     }
   }
 
+  // Offline functionality needs work
   componentDidMount() {
     //Defining the offline layer for the map
     const map = L.map('map-id');
@@ -89,15 +89,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     map.addControl(searchControl);
   }
 
-
-  //Defining the custom icon for clusters
-  customIconCreateFunction(cluster: any) {
-    return L.divIcon({
-      html: `<span>${cluster.getChildCount()}</span>`,
-      className: "marker-cluster-custom",
-      iconSize: L.point(40, 40, true)
-    });
-  }
+  // //Defining the custom icon for clusters 
+  // //Potintal additon
+  // customIconCreateFunction(cluster: any) {
+  //   return L.divIcon({
+  //     html: `<span>${cluster.getChildCount()}</span>`,
+  //     className: "marker-cluster-custom",
+  //     iconSize: L.point(40, 40, true)
+  //   });
+  // }
 
   //render the map
   render() {
