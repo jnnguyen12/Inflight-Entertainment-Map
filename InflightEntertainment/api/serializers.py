@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Flight, FlightRecord
+from .models import Flight, FlightRecord, CameraPosition
 
 class FlightRecordSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,3 +12,8 @@ class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
         fields = ['hex', 'flight', 'r', 't', 'records']
+
+class CameraPositionSerializer(serializers.Serializer):
+    lat = serializers.FloatField()
+    lng = serializers.FloatField()
+    zoom = serializers.IntegerField()

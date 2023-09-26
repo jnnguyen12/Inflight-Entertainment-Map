@@ -7,5 +7,7 @@ urlpatterns = [
     path('', views.getRoutes, name="routes"),
     path('flights/', views.getFlights, name="flights"),
     path('flights/<str:pk>/', views.getFlight, name="flights"),
-    path('flights/<str:identifier>/simulate/', views.simulateFlight, name="flights")
+    path('flights/<str:identifier>/simulate/', views.simulateFlight, name="flights"),
+    path('flyToMarkerPayload/', views.flyToMarkerPayload, name="fly")
+
 ]

@@ -16,19 +16,19 @@ interface LeafletMapState {
 }
 
 interface LeafletMarker {
-  id: number;
+  id: string;
   marker: L.Marker;
 }
 
 interface MakeMaker {
-  id: number;
+  id: string;
   type: string;
   coords: LatLngExpression;
   element: JSX.Element;
 }
 
 interface MoveMarker {
-  movingMarkerId: number;
+  movingMarkerId: string;
   newCoords: LatLngExpression;
 }
 

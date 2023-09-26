@@ -2,8 +2,10 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Flight, FlightRecord
-from .serializers import FlightSerializer, FlightRecordSerializer
+from .models import Flight, FlightRecord, CameraPosition
+from .serializers import FlightSerializer, FlightRecordSerializer, CameraPositionSerializer
+from django.core.management import call_command
+
 
 @api_view(['GET'])
 def getRoutes(request):
@@ -37,4 +39,13 @@ def simulateFlight(request, identifier):
     
     return Response(records_serializer.data)
 
-
+@api_view(['FETCH', 'GET', 'POST'])
+def flyToMarkerPayload(request):
+    if request.method == 'POST':
+        call_command('create_camera_pos', )
+        return
+    else:
+        pos = CameraPosition.objects.get()
+        ser = CameraPositionSerializer(pos)
+        print("Backend sent flyToPosition: ", str(ser.data))
+        return Response(ser.data)

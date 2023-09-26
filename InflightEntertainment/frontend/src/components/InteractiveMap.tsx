@@ -35,21 +35,27 @@ class InteractiveMap extends React.Component {
 
         // This is were we are calling function to load stuff from the back end
         setInterval(this.handleFlyToLocation, 5000);
-        setInterval(this.handleAddMarker, 5000);
-        setInterval(this.handleUpdateMarker, 5000);
-        setInterval(this.handleRemoveMarker, 5000);
-        setInterval(this.handleClearMapMarkers, 5000);
+        // setInterval(this.handleAddMarker, 5000);
+        // setInterval(this.handleUpdateMarker, 5000);
+        // setInterval(this.handleRemoveMarker, 5000);
+        // setInterval(this.handleClearMapMarkers, 5000);
     }
 
     handleFlyToLocation = async () => {
         try {
             const response = await fetch('/api/flyToMarkerPayload');
             const data = await response.json();
-            this.mapRef.current?.flyTo({
+
+            const x = {
                 lat: data.lat,  
                 lng: data.lng,
                 zoom: data.zoom
-            });
+            }
+            console.log("Frontend received flyToLocation: (data) " + data);
+
+            console.log("Frontend received flyToLocation: " + x.lat + " " + x.lng);
+            this.mapRef.current?.flyTo(x);
+            
         } catch (error) {
             console.error('Error:', error);
         }
