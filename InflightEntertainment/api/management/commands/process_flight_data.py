@@ -10,11 +10,9 @@ class Command(BaseCommand):
     help = 'Process .json.gz flight data files'
     
     def handle(self, *args, **options):
-            # Print the current working directory for debugging
         cwd = os.getcwd()
         print("Current Working Directory: ", cwd)
         
-        # Adjust the relative path based on the current working directory
         directory_path = os.path.join(cwd, 'Flight_Data')
         if not os.path.exists(directory_path):
             self.stdout.write(self.style.ERROR(f'Directory not found: {directory_path}'))
