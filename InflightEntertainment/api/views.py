@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Flight
-from .serializers import FlightSerializer
+from .models import Flight, FlightRecord
+from .serializers import FlightSerializer, FlightRecordSerializer
 
 @api_view(['GET'])
 def getRoutes(request):
@@ -29,7 +30,11 @@ def getFlight(request, pk):
     return Response(serializer.data)
 
 @api_view(['GET'])
-def simulateFlight(request, pk):
-    flight = Flight.objects.get(flight_id=pk)
-    serializer = FlightSerializer(flight, many=False)
-    return Response(serializer.data)
+def simulateFlight(request, identifier):
+    flight = get_object_or_404(Flight, Q(hex=identifier) | Q(flight=identifier))
+    records = FlightRecord.objects.filter(flight=flight).order_by('timestamp')
+    records_serializer = FlightRecordSerializer(records, many=True)
+    
+    return Response(records_serializer.data)
+
+

@@ -40,27 +40,27 @@ type FlightRecord = {
 };
 
 const TestBackend = () => {
+  const [flightRecords, setFlightRecords] = React.useState<FlightRecord[]>([]);
 
-  let [flights, setFlights] = React.useState<Flight[]>([]);
-
-  React.useEffect(() => {
-    getFlights();
-  }, []);
-
-  let getFlights = async () => {
-    let response = await fetch("/api/flights/");
+  const getFlightRecords = async (flightId: number) => {
+    let response = await fetch('/api/flights/ASA184/simulate/');
     let data = await response.json();
-    setFlights(data);
+    setFlightRecords(data);
   }
 
+  React.useEffect(() => {
+    const flightId = 1;  // Replace with actual flight id you want to simulate
+    getFlightRecords(flightId);
+  }, []);
+
   return (
-    <div className="flights">
-      {flights.map((flight) => (
-        <div key={flight.hex} className="flight">
-          <p>Flight: {flight.flight}</p>
-          <p>Hex: {flight.hex}</p>
-          <p>Registration: {flight.r}</p>
-          <p>Type: {flight.t}</p>
+    <div className="flightRecords">
+      {flightRecords.map((record) => (
+        <div key={record.timestamp} className="flightRecord">
+          <p>Timestamp: {record.timestamp}</p>
+          <p>Latitude: {record.lat}</p>
+          <p>Longitude: {record.lon}</p>
+          {/* Render other flight record data as needed */}
         </div>
       ))}
     </div>
