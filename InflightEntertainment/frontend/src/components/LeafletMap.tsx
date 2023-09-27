@@ -41,10 +41,11 @@ interface flyToPosition {
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
-  private map: L.Map | null
+  private map: L.Map | null;
 
   constructor(props) {
     super(props)
+    // constructing a new map with zoom restraints
     this.map = null;
     this.mapRef = React.createRef();
     this.state = {
@@ -62,6 +63,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
       scrollWheelZoom: true, // This makes it look bad
+      minZoom: 3,
+      maxZoom: 7
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys
