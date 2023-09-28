@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Flight, FlightRecord, CameraPosition, FlightMarker
-from .serializers import FlightSerializer, FlightRecordSerializer, CameraPositionSerializer, FlightMarkerSerializer
+from .models import Flight, FlightRecord, CameraPosition, FlightMarker, Airport
+from .serializers import FlightSerializer, FlightRecordSerializer, CameraPositionSerializer, FlightMarkerSerializer, AirportSerializer
 from django.core.management import call_command
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -72,7 +72,7 @@ def addFlightMarker(request, identifier):
     print(f"addFlight call: creating marker {ser}, {ser.data}")
     return Response(ser.data)
 
-
+# This updates marker based on FlightRecords from json
 @api_view(['GET'])
 def updateFlightMarker(request, identifier):
     flight_key = get_object_or_404(Flight, Q(hex=identifier) | Q(flight=identifier))
@@ -92,3 +92,57 @@ def updateFlightMarker(request, identifier):
     ser = FlightMarkerSerializer(marker)
 
     return Response(ser.data)
+
+
+
+global lat_step
+global lng_step
+lat_step = 0
+lng_step = 0
+
+# This simulates a flight without using FlightRecords
+@api_view(['GET'])
+def updateDemo(request):
+    flight_key = get_object_or_404(Flight, Q(hex='DEMO') | Q(flight='DEMO'))
+    marker = get_object_or_404(FlightMarker, Q(flight=flight_key))
+    global lat_step
+    global lng_step
+    if(marker.lat < 41.9928 and marker.lng < -93.6215):
+        marker.lat += lat_step
+        marker.lng += lng_step
+    marker.timestamp = datetime.now()
+    marker.save(update_fields=["lat", "lng", "timestamp"])
+    ser = FlightMarkerSerializer(marker)
+    print(f'lat diff: {lat_step}, lng diff: {lng_step}')
+    return Response(ser.data)
+
+@api_view(['GET'])
+def startDemo(request):
+    flight = Flight(hex='DEMO', flight="DEMO")
+    flight.save()
+    timestamp = datetime.now()
+    marker = FlightMarker(id=3, lat=41.5341, lng=-93.6634, flight=flight, timestamp=timestamp)
+    a1 = Airport(id=1, name="Des Moines Airport", lat=41.5341, lng=-93.6634)
+    a2 = Airport(id=2, name="Ames Airport", lat=41.9928, lng=-93.6215)
+    a1.save()
+    a2.save()
+    marker.save()
+    s1 = AirportSerializer(a1)
+    s2 = AirportSerializer(a2)
+    s3 = FlightMarkerSerializer(marker)
+
+    lat1 = 41.5341
+    lat2 = 41.9928
+    lng1 = -93.6634
+    lng2 = -93.6215
+    lat_diff = lat2 - lat1
+    lng_diff = lng2 - lng1
+    global lat_step
+    global lng_step
+    lat_step = lat_diff / 20
+    lng_step = lng_diff / 20
+    print(f'startDemo: {lat_step}, {lng_step}')
+
+    response = [s1.data, s2.data, s3.data]
+    return Response(response)
+

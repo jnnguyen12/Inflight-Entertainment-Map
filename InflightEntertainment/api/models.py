@@ -36,6 +36,7 @@ class CameraPosition(models.Model):
         return "lat: " + str(self.lat) + "    lng: " + str(self.lng) + "   zoom: " + str(self.zoom)
     
 class FlightMarker(models.Model):
+    id = models.IntegerField(primary_key=True)
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()  # Timestamp of the record
     lat = models.FloatField()
@@ -43,6 +44,15 @@ class FlightMarker(models.Model):
 
     def __str__(self):
         return f"{self.flight}, lat: {self.lat}, lng: {self.lng}"
+
+class Airport(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=20)
+    lat = models.FloatField()
+    lng = models.FloatField()
+
+    def __str__(self):
+        return f"id: {self.id}, name: {self.name}, lat: {self.lat}, lng: {self.lng}"
 
 # TO DO -- need dataset
 # class AirportMarker(models.Model):
