@@ -63,8 +63,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
       scrollWheelZoom: true, // This makes it look bad
-      minZoom: 3,
-      maxZoom: 7
+      minZoom: 3,             // minimum zoom is visible to country name
+      maxZoom: 7              // maximum zoom where they can't zoom past city names.
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys

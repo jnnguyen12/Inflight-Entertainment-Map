@@ -52,7 +52,7 @@ class InteractiveMap extends React.Component {
             }
             this.mapRef.current?.addMarkers(markerDataPayload);
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error:', error); 
         }
     };
 
@@ -81,9 +81,7 @@ class InteractiveMap extends React.Component {
 
     render() {
         return (
-            <div>
-                <LeafletMap ref={this.mapRef} />
-            </div>
+            <LeafletMap ref={this.mapRef} />
         );
     }
 }
