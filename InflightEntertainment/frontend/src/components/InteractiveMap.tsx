@@ -34,13 +34,18 @@ class InteractiveMap extends React.Component {
         // this.mapRef.current.flyTo(payload)
 
         // This is were we are calling function to load stuff from the back end
-        setInterval(this.handleFlyToLocation, 5000);
-        // setInterval(this.handleAddMarker, 5000);
-        // setInterval(this.handleUpdateMarker, 5000);
+        //setInterval(this.handleFlyToLocation, 5000);
+        //setInterval(this.handleAddMarker, 5000);
+        
         // setInterval(this.handleRemoveMarker, 5000);
         // setInterval(this.handleClearMapMarkers, 5000);
+        this.handleAddMarker('ASA184');
+        setInterval(this.handleUpdateMarker.bind(null, 'ASA184'), 5000);
+        //setInterval( function() { this.handleUpdateMarker('ASA184'); }, 5000);
+
     }
 
+    // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
             const response = await fetch('/api/flyToMarkerPayload');
@@ -61,14 +66,15 @@ class InteractiveMap extends React.Component {
         }
     };
 
-    handleAddMarker = async () => {
+    handleAddMarker = async (flight: string) => {
         try {
-            const response = await fetch('/api/markerDataPayload');
+            //var flight = 'ASA184';
+            const response = await fetch('/api/' + flight + '/addMarker/');
             const data = await response.json();
             const markerDataPayload = {
-                id: data.id,          // marker type
-                type: data.type,        // aircraft or airport
-                coords: data.coords,     // [lat, lng]
+                id: data.flight,          // marker id -- currently using flight id as marker id
+                type: 'aircraft',        // aircraft or airport -- currently only have aircraft
+                coords: [data.lat, data.lng],     // [lat, lng]
                 element: data?.info          // info or ""
             }
             this.mapRef.current?.addMarkers(markerDataPayload);
@@ -77,13 +83,13 @@ class InteractiveMap extends React.Component {
         }
     };
 
-    handleUpdateMarker = async () => {
+    handleUpdateMarker = async (flight) => {
         try {
-            const response = await fetch('/api/moveMarkerPayload');
+            const response = await fetch('/api/' + flight + '/updateMarker/');
             const data = await response.json();
             this.mapRef.current?.moveMarkers({
-                movingMarkerId: data.id,  // marker Id
-                newCoords: data.coords      // [lat, lng]
+                movingMarkerId: data.flight,  // marker Id
+                newCoords: [data.lat, data.lng]      // [lat, lng]
             });
         } catch (error) {
             console.error('Error:', error);

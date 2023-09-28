@@ -15,7 +15,7 @@ class FlightRecord(models.Model):
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()  # Timestamp of the record
     lat = models.FloatField()  # Latitude
-    lon = models.FloatField()  # Longitude
+    lng = models.FloatField()  # Longitude
     alt_baro = models.IntegerField(null=True, blank=True)  # Barometric Altitude
     alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
     track = models.FloatField(null=True, blank=True)  # Track
@@ -34,3 +34,16 @@ class CameraPosition(models.Model):
 
     def __str__(self):
         return "lat: " + str(self.lat) + "    lng: " + str(self.lng) + "   zoom: " + str(self.zoom)
+    
+class FlightMarker(models.Model):
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField()  # Timestamp of the record
+    lat = models.FloatField()
+    lng = models.FloatField()
+
+    def __str__(self):
+        return f"{self.flight}, lat: {self.lat}, lng: {self.lng}"
+
+# TO DO -- need dataset
+# class AirportMarker(models.Model):
+#     airport = models.ForeignKey()
