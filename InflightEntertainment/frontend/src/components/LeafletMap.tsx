@@ -7,6 +7,10 @@ import '../App.css';
 import L, { LatLngExpression } from "leaflet";
 // import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import BuildMarker from './functions/BuildMarker';
+import { GestureHandling } from "leaflet-gesture-handling"; // handles moving the warapper around and user need to use both fingers to move the actual map
+
+import "leaflet/dist/leaflet.css";
+import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 
 interface LeafletMapState {
   markers: LeafletMarker[];
@@ -54,9 +58,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lng: 0,
       zoom: 0,
     };
+    L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
   }
-
+  
   componentDidMount() {
+    L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
     // Makes the map 
     this.map = L.map('map', {
       zoomControl: false,     // Removes defaults 
@@ -64,8 +70,12 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       fadeAnimation: true,    // Makes it look better
       scrollWheelZoom: true, // This makes it look bad
       minZoom: 3,             // minimum zoom is visible to country name
-      maxZoom: 7              // maximum zoom where they can't zoom past city names.
+      maxZoom: 7,              // maximum zoom where they can't zoom past city names.
+      zoom: 5
+      gestureHandling: true
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
+
+    this.map.gestureHandling.enable();
 
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

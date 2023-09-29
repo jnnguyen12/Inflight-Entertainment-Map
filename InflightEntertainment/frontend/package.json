@@ -12,6 +12,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "leaflet": "^1.9.4",
+    "leaflet-gesture-handling": "^1.2.2",
     "localforage": "^1.10.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
