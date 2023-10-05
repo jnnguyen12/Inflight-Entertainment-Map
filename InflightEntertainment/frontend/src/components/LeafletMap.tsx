@@ -69,7 +69,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
-    // Add offine part here !
+  // Offline implementation
+  //  L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
+  //{    maxZoom: 7  }).addTo(this.map);
 
   }
 
