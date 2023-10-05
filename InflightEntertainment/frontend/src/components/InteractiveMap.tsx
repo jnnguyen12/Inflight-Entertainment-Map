@@ -12,26 +12,40 @@ class InteractiveMap extends React.Component {
     componentDidMount() {
 
         // This is just to reder stuff on the map like Demo one
-        // const markers = [
-        //     { id: 1, type: "aircraft", coords: { lat: 41.76345, lng: -93.64245, alt: 100 } },
-        //     { id: 2, type: "airport", coords: { lat: 41.5341, lng: -93.6634 }, element: <p>To</p> },
-        //     { id: 3, type: "airport", coords: { lat: 41.9928, lng: -93.6215 }, element: <p>From</p> }
-        // ]
-        // const payload = {
-        //     lat: 41.76345,        // Cameras initial lat
-        //     lng: -93.64245,       // Cameras initial lng
-        //     zoom: 10,             // Cameras initial zoom
-        // }
-        // for (let i = 0; i < markers.length; i++) {
-        //     const markerDataPayload =
-        //         this.mapRef.current.addMarkers({
-        //             id: markers[i].id,          // marker type
-        //             type: markers[i].type,
-        //             coords: markers[i].coords,     // [lat, lng]
-        //             element: markers[i].element         // info or ""
-        //         })
-        // }
-        // this.mapRef.current.flyTo(payload)
+        const markers = [
+            { id: "1", type: "aircraft", coords: { lat: 41.76345, lng: -93.64245, alt: 100 } },
+            { id: "2", type: "airport", coords: { lat: 41.5341, lng: -93.6634 }, element: <p>To</p> },
+            { id: "3", type: "airport", coords: { lat: 41.9928, lng: -93.6215 }, element: <p>From</p> }
+        ]
+        const payload = {
+            lat: 41.76345,        // Cameras initial lat
+            lng: -93.64245,       // Cameras initial lng
+            zoom: 10,             // Cameras initial zoom
+        }
+        for (let i = 0; i < markers.length; i++) {
+            const markerDataPayload =
+                this.mapRef.current.addMarkers({
+                    id: markers[i].id,          // marker type
+                    type: markers[i].type,
+                    coords: markers[i].coords,     // [lat, lng]
+                    element: markers[i].element         // info or ""
+                })
+        }
+        this.mapRef.current.flyTo(payload)
+
+        const x = {
+            aircraftId: "1",
+            airportId: "2",
+            polyLineId: "1"
+        }
+
+        this.mapRef.current.drawPolyLine(x)
+        // this.mapRef.current.removePolyLine(1)
+
+
+
+
+
 
         // This is were we are calling function to load stuff from the back end
         setInterval(this.handleFlyToLocation, 5000);
