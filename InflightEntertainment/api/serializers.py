@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Flight, FlightRecord, CameraPosition, FlightMarker, Airport
+from .models import Flight, FlightRecord, CameraPosition, Marker, Airport
 
 class FlightRecordSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,15 +18,18 @@ class CameraPositionSerializer(serializers.Serializer):
     lng = serializers.FloatField()
     zoom = serializers.IntegerField()
 
-class FlightMarkerSerializer(serializers.ModelSerializer):
-    flight = FlightSerializer(many=False, read_only=True)
-    
-    class Meta:
-        model = FlightMarker
-        fields = ['id', 'flight', 'timestamp', 'lat', 'lng']
-
 class AirportSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    ident = serializers.CharField()
+    type = serializers.CharField()
     name = serializers.CharField()
     lat = serializers.FloatField()
     lng = serializers.FloatField()
+
+class MarkerSerializer(serializers.ModelSerializer):
+    flight = FlightSerializer(many=False, read_only=True)
+    airport = AirportSerializer(many=False, read_only=True)
+    
+    class Meta:
+        model = Marker
+        fields = ['id', 'flight', 'airport', 'type', 'timestamp', 'lat', 'lng']

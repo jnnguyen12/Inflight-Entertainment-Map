@@ -9,8 +9,8 @@ urlpatterns = [
     path('flights/<str:pk>/', views.getFlight, name="flights"),
     path('flights/<str:identifier>/simulate/', views.simulateFlight, name="flights"),
     path('flyToMarkerPayload/', views.flyToMarkerPayload, name="fly"), # change name?
-    path('<str:identifier>/addMarker/', views.addFlightMarker, name="addMarker"),
-    path('<str:identifier>/updateMarker/', views.updateFlightMarker, name="updateMarker"),
+    path('<str:type>/<str:identifier>/addMarker/', views.addMarker, name="addMarker"),
+    path('<str:identifier>/updateMarker/', views.updateMarker, name="updateMarker"),
     path('startDemo/', views.startDemo, name="startDemo"),
     path('updateDemo/', views.updateDemo, name="updateDemo")
 ]
