@@ -35,6 +35,7 @@ class CameraPosition(models.Model):
     def __str__(self):
         return "lat: " + str(self.lat) + "    lng: " + str(self.lng) + "   zoom: " + str(self.zoom)
     
+# TODO: Convert to generic marker
 class FlightMarker(models.Model):
     id = models.IntegerField(primary_key=True)
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
@@ -47,6 +48,8 @@ class FlightMarker(models.Model):
 
 class Airport(models.Model):
     id = models.IntegerField(primary_key=True)
+    ident = models.CharField(max_length=10)
+    type = models.CharField(max_length=20)
     name = models.CharField(max_length=20)
     lat = models.FloatField()
     lng = models.FloatField()

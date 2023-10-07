@@ -146,3 +146,7 @@ def startDemo(request):
     response = [s1.data, s2.data, s3.data]
     return Response(response)
 
+# TODO: Add API call for drawing the line (based on flight ID / airports, return line coords)
+@api_view(['GET'])
+def getLine(request, flightID):
+    flight_key = get_object_or_404(Flight, Q(hex=flightID) | Q(flight=flightID))
