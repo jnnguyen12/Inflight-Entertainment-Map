@@ -27,13 +27,13 @@ class FlightRecord(models.Model):
     def __str__(self):
         return f"{self.flight.flight} - {self.timestamp}"
 
-class CameraPosition(models.Model):
-    lat = models.FloatField()
-    lng = models.FloatField()
-    zoom = models.IntegerField()
+# class CameraPosition(models.Model):
+#     lat = models.FloatField()
+#     lng = models.FloatField()
+#     zoom = models.IntegerField()
 
-    def __str__(self):
-        return "lat: " + str(self.lat) + "    lng: " + str(self.lng) + "   zoom: " + str(self.zoom)
+#     def __str__(self):
+#         return "lat: " + str(self.lat) + "    lng: " + str(self.lng) + "   zoom: " + str(self.zoom)
 
 class Airport(models.Model):
     id = models.AutoField(primary_key=True)

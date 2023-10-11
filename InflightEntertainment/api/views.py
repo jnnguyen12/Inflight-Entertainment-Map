@@ -2,11 +2,12 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Flight, FlightRecord, CameraPosition, Marker, Airport
-from .serializers import FlightSerializer, FlightRecordSerializer, CameraPositionSerializer, MarkerSerializer, AirportSerializer
+from .models import Flight, FlightRecord, Marker, Airport
+from .serializers import FlightSerializer, FlightRecordSerializer, MarkerSerializer, AirportSerializer
 from django.core.management import call_command
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django.http import HttpResponse
 
 
 @api_view(['GET'])
@@ -41,13 +42,21 @@ def simulateFlight(request, identifier):
     
     return Response(records_serializer.data)
 
-# Need to change CameraPosition to marker
-@api_view(['FETCH', 'GET'])
-def flyToMarkerPayload(request, markerID):
+@api_view(['GET'])
+def flyToMarkerID(request, markerID):
     marker = get_object_or_404(Marker, Q(id=markerID))
     ser = MarkerSerializer(marker)
-    print("Backend sent flyToPosition: ", str(ser.data))
+    print("Backend sent flyToMarkerID: ", str(ser.data))
     return Response(ser.data)
+
+@api_view(['GET'])
+def flyToLastMarker(request):
+    marker = get_object_or_404(Marker)
+    ser = MarkerSerializer(marker)
+    temp = ser.data
+    temp["zoom"] = 11
+    print("Backend flyToLastMarker: ", str(temp))
+    return Response(temp)
     
 # Need to add marker ID -- or just use the flight as ID?
 @api_view(['FETCH', 'GET'])
@@ -98,7 +107,19 @@ def updateMarker(request, identifier):
 
     return Response(ser.data)
 
+# Not sure what to return on these
+@api_view(['GET'])
+def removeMarker(request, identifier):
+    marker = get_object_or_404(Marker, Q(id=identifier))
+    Marker.objects.get(id=identifier).delete()
+    data = "Marker ", identifier, " removed successfully"
+    return HttpResponse(data)
 
+@api_view(['GET'])
+def clearMarkers(request):
+    Marker.objects.all().delete()
+    data = "Deleted all markers"
+    return HttpResponse(data)
 
 global lat_step
 global lng_step
@@ -121,20 +142,27 @@ def updateDemo(request):
     print(f'lat diff: {lat_step}, lng diff: {lng_step}')
     return Response(ser.data)
 
+
 @api_view(['GET'])
 def startDemo(request):
     flight = Flight(hex='DEMO', flight="DEMO")
-    flight.save()
     timestamp = datetime.now()
-    marker = Marker(type='aircraft', lat=41.5341, lng=-93.6634, flight=flight, timestamp=timestamp)
+    markerFlight = Marker(type='aircraft', lat=41.5341, lng=-93.6634, flight=flight, timestamp=timestamp)
     a1 = Airport(id=1, name="Des Moines Airport", lat=41.5341, lng=-93.6634)
+    markerA1 = Marker(type='airport', lat=41.5341, lng=-93.6634, airport=a1, timestamp=timestamp)
     a2 = Airport(id=2, name="Ames Airport", lat=41.9928, lng=-93.6215)
+    markerA2 = Marker(type='airport', lat=41.9928, lng=-93.6215, airport=a2, timestamp=timestamp)
+
     a1.save()
+    markerA1.save()
     a2.save()
-    marker.save()
-    s1 = AirportSerializer(a1)
-    s2 = AirportSerializer(a2)
-    s3 = MarkerSerializer(marker)
+    markerA2.save()
+    flight.save()
+    markerFlight.save()
+
+    s1 = MarkerSerializer(markerA1)
+    s2 = MarkerSerializer(markerA2)
+    s3 = MarkerSerializer(markerFlight)
 
     lat1 = 41.5341
     lat2 = 41.9928
@@ -151,7 +179,9 @@ def startDemo(request):
     response = [s1.data, s2.data, s3.data]
     return Response(response)
 
+
+
 # TODO: Add API call for drawing the line (based on flight ID / airports, return line coords)
-@api_view(['GET'])
-def getLine(request, flightID):
-    flight_key = get_object_or_404(Flight, Q(hex=flightID) | Q(flight=flightID))
+# @api_view(['GET'])
+# def getLine(request, flightID):
+    

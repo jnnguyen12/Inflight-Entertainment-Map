@@ -41,8 +41,8 @@ class InteractiveMap extends React.Component {
         // setInterval(this.handleClearMapMarkers, 5000);
         // this.handleAddMarker('ASA184');
         this.startDemo();
-        this.handleFlyToLocation()
         setInterval(this.handleUpdateMarker, 2500);
+        this.handleFlyToLocation()
         // setInterval(this.handleUpdateMarker, 5000)
         // setInterval(this.handleAddMarker, 5000)
         
@@ -56,6 +56,16 @@ class InteractiveMap extends React.Component {
     //     const response = await fetch('/api/startDemo');
     //     const data = await response.json();
     // }
+
+    // runDemo = async function() {
+    //     return new Promise(function(resolve)) {
+    //         var id = await this.startDemo()
+    //         setTimeout(function() {
+    //             resolve(["id"])
+    //         }, 2000);
+    //     });
+    // }
+    
 
     startDemo = async () => {
         try {
@@ -81,7 +91,7 @@ class InteractiveMap extends React.Component {
                 element: data[i]?.info              // info or ""
             }
             this.mapRef.current?.addMarkers(markerDataPayload);
-            
+            // return resolve(markerDataPayload.id);
 
             // Testing for sending an array of data from the back to the front
             // const data = await response.json();
@@ -94,6 +104,7 @@ class InteractiveMap extends React.Component {
             //     }
             //     this.mapRef.current?.addMarkers(markerDataPayload);
             // }
+            
         } catch (error) {
             console.error('Error:', error);
         }
@@ -102,7 +113,7 @@ class InteractiveMap extends React.Component {
     // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
-            const response = await fetch('/api/flyToMarkerPayload');
+            const response = await fetch('/api/flyToLastMarker');
             const data = await response.json();
 
             const x = {
@@ -137,9 +148,9 @@ class InteractiveMap extends React.Component {
         }
     };
 
-    handleUpdateMarker = async () => {
+    handleUpdateMarker = async (markerID) => {
         try {
-            const response = await fetch('/api/updateDemo/');
+            const response = await fetch('/api/' + markerID + '/updateDemo/');
             const data = await response.json();
             this.mapRef.current?.moveMarkers({
                 movingMarkerId: data.id,  // marker Id
@@ -150,9 +161,9 @@ class InteractiveMap extends React.Component {
         }
     };
 
-    handleRemoveMarker = async () => {
+    handleRemoveMarker = async (markerID) => {
         try {
-            const response = await fetch('/api/removeMarkerPayload');
+            const response = await fetch('/api/' + markerID + '/removeMarkerPayload');
             const data = await response.json();
             this.mapRef.current?.removeMarker(data.id);
         } catch (error) {
