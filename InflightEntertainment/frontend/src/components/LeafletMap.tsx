@@ -8,11 +8,27 @@ import L, { LatLngExpression, marker } from "leaflet";
 // import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import BuildMarker from './functions/BuildMarker';
 
+
+
+import 'l.movemarker'
+
+//Styling
+import './MapStyling.css';
+
+
+
 interface LeafletMapState {
+  layers: L.LayerGroup[]
   markers: LeafletMarker[];
+  polylines: LeafletPolyline[];
   lat: number;
   lng: number;
   zoom: number;
+}
+
+interface LeafletPolyline {
+  id: string;
+  polyline: L.Polyline;
 }
 
 interface LeafletMarker {
@@ -21,7 +37,6 @@ interface LeafletMarker {
 }
 
 interface MakeMaker {
-  id: string;
   type: string;
   coords: LatLngExpression;
   element: JSX.Element;
@@ -38,6 +53,12 @@ interface flyToPosition {
   zoom: number
 }
 
+interface PolyLineMaker {
+  aircraftId: string
+  airportId: string
+  polyLineId: string
+}
+
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
@@ -48,7 +69,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.map = null;
     this.mapRef = React.createRef();
     this.state = {
+      layers: [],
       markers: [],
+      polylines: [],
       lat: 0,
       lng: 0,
       zoom: 0,
@@ -57,6 +80,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   componentDidMount() {
     // Makes the map 
+
+
     this.map = L.map('map', {
       zoomControl: false,     // Removes defaults 
       zoomAnimation: true,    // Enable smooth zoom animation
@@ -69,9 +94,40 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
-    // Add offine part here !
 
+
+    // Add offine part here !
   }
+
+  drawPolyLine(payload: PolyLineMaker) {
+    const aircraft = this.state.markers.find(marker => marker.id === payload.aircraftId).marker;
+    const airport = this.state.markers.find(marker => marker.id === payload.airportId).marker;
+    if(aircraft && airport){
+      const newPolyline: LeafletPolyline = {
+        id: payload.polyLineId,
+        polyline: L.polyline([aircraft.getLatLng(), airport.getLatLng()],{ 
+                                dashArray: [10],
+                                interactive: false,
+                                stroke: true,
+                                color: 'black',
+                                smoothFactor: 100,
+                                opacity: 2
+                            })
+      }
+      newPolyline.polyline.addTo(this.map)
+      this.state.polylines.push(newPolyline);
+    }
+  }
+
+  removePolyLine(polyLineId) {
+    const lineIndex = this.state.polylines.findIndex(line => line.id === polyLineId);
+    if (lineIndex !== -1) {
+      const polyline = this.state.polylines[lineIndex];
+      this.state.polylines.splice(lineIndex, 1);
+      this.map!.removeLayer(polyline.polyline);
+    }
+  }
+
 
   // Cleanup removes map
   componentWillUnmount() {
@@ -86,7 +142,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.map.flyTo([payload.lat, payload.lng], payload.zoom, {
       animate: false,
     });
+    this.setState({
+      lat: payload.lat,
+      lng: payload.lng,
+      zoom: payload.zoom
+    })
   }
+
 
   // We have the markers on initializatoion now we need to add them to the map
   addMarkers(newMarkerProps: MakeMaker | any) {
@@ -113,17 +175,14 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   // Moveing a marker based on its index
   moveMarkers(payload: MoveMarker) {
-    const marker = this.state.markers.find(marker => marker.id === payload.movingMarkerId);
-    console.log("Move " + payload.movingMarkerId + " marker to: " + payload.newCoords);
-    console.log(marker.id);
+    const marker = this.state.markers.find(marker => marker.id === payload.movingMarkerId).marker;
     if (marker) {
-      console.log("MoveMarkers found marker");
-      marker.marker.setLatLng(payload.newCoords);
+      marker.setLatLng(payload.newCoords);
       console.log("moved");
     }
   }
   // removing a marker based on its index
-  removeMarker(markerId){
+  removeMarker(markerId) {
     const markerIndex = this.state.markers.findIndex(marker => marker.id === markerId);
     if (markerIndex !== -1) {
       const marker = this.state.markers[markerIndex];
@@ -132,10 +191,22 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+
+
   //render the map
   render() {
     return (
-      <div id="map" ref={this.mapRef}></div>
+
+      <>
+      <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
+
+      {/* <style>
+          .<icon-class> {
+            transition: all 1s;
+          }
+      </style> */}
+      </>
+      
     );
   }
 }
