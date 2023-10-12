@@ -48,112 +48,35 @@ class InteractiveMap extends React.Component {
 
 
         // This is were we are calling function to load stuff from the back end
-        //setInterval(this.handleFlyToLocation, 5000);
-        //setInterval(this.handleAddMarker, 5000);
-        
-        // setInterval(this.handleRemoveMarker, 5000);
-        // setInterval(this.handleClearMapMarkers, 5000);
-        // this.handleAddMarker('ASA184');
-        this.startDemo();
-        setInterval(this.handleUpdateMarker, 2500);
-        this.handleFlyToLocation()
-        // setInterval(this.handleUpdateMarker, 5000)
-        // setInterval(this.handleAddMarker, 5000)
-        
-        
-        //setInterval(this.handleUpdateMarker.bind(null, 'ASA184'), 5000);
-        //setInterval( function() { this.handleUpdateMarker('ASA184'); }, 5000);
-
+        setInterval(this.handleFlyToLocation, 5000);
+        setInterval(this.handleAddMarker, 5000);
+        setInterval(this.handleUpdateMarker, 5000);
+        setInterval(this.handleRemoveMarker, 5000);
+        setInterval(this.handleClearMapMarkers, 5000);
     }
 
-    // updateDemo = async () => {
-    //     const response = await fetch('/api/startDemo');
-    //     const data = await response.json();
-    // }
-
-    // runDemo = async function() {
-    //     return new Promise(function(resolve)) {
-    //         var id = await this.startDemo()
-    //         setTimeout(function() {
-    //             resolve(["id"])
-    //         }, 2000);
-    //     });
-    // }
-    
-
-    startDemo = async () => {
-        try {
-            //var flight = 'ASA184';
-            const response = await fetch('/api/startDemo');
-            const data = await response.json();
-
-            for(var i = 0; i < 2; i++) {
-                // Get airports
-                let markerDataPayload = {
-                    id: data[i].id,                 // marker id -- currently using flight id as marker id
-                    type: 'airport',                    // aircraft or airport -- currently only have aircraft
-                    coords: [data[i].lat, data[i].lng],     // [lat, lng]
-                    element: data[i]?.info              // info or ""
-                }
-                this.mapRef.current?.addMarkers(markerDataPayload);
-            }
-
-            let markerDataPayload = {
-                id: data[i].id,                 // marker id -- currently using flight id as marker id
-                type: 'aircraft',                    // aircraft or airport -- currently only have aircraft
-                coords: [data[i].lat, data[i].lng],     // [lat, lng]
-                element: data[i]?.info              // info or ""
-            }
-            this.mapRef.current?.addMarkers(markerDataPayload);
-            // return resolve(markerDataPayload.id);
-
-            // Testing for sending an array of data from the back to the front
-            // const data = await response.json();
-            // for(let i = 0; i< data.length; i++){
-            //     let markerDataPayload = {
-            //         id: data[i].flight,          // marker id -- currently using flight id as marker id
-            //         type: data[i].type,        // aircraft or airport -- currently only have aircraft
-            //         coords: [data[i].lat, data[i].lng],     // [lat, lng]
-            //         element: data[i]?.info          // info or ""
-            //     }
-            //     this.mapRef.current?.addMarkers(markerDataPayload);
-            // }
-            
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    };
-
-    // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
-            const response = await fetch('/api/flyToLastMarker');
+            const response = await fetch('/api/flyToMarkerPayload');
             const data = await response.json();
-
-            const x = {
+            this.mapRef.current?.flyTo({
                 lat: data.lat,  
                 lng: data.lng,
                 zoom: data.zoom
-            }
-            console.log("Frontend received flyToLocation: (data) " + data);
-
-            console.log("Frontend received flyToLocation: " + x.lat + " " + x.lng);
-            this.mapRef.current?.flyTo(x);
-            
+            });
         } catch (error) {
             console.error('Error:', error);
         }
     };
 
-    handleAddMarker = async (flight: string) => {
+    handleAddMarker = async () => {
         try {
-            //var flight = 'ASA184';
-            const response = await fetch('/api/' + flight + '/addMarker/');
+            const response = await fetch('/api/markerDataPayload');
             const data = await response.json();
             const markerDataPayload = {
-                id: data.flight,          // marker id -- currently using flight id as marker id
-                type: 'aircraft',        // aircraft or airport -- currently only have aircraft
-                coords: [data.lat, data.lng],     // [lat, lng]
+                id: data.id,          // marker type
+                type: data.type,        // aircraft or airport
+                coords: data.coords,     // [lat, lng]
                 element: data?.info          // info or ""
             }
             this.mapRef.current?.addMarkers(markerDataPayload);
@@ -162,22 +85,22 @@ class InteractiveMap extends React.Component {
         }
     };
 
-    handleUpdateMarker = async (markerID) => {
+    handleUpdateMarker = async () => {
         try {
-            const response = await fetch('/api/' + markerID + '/updateDemo/');
+            const response = await fetch('/api/moveMarkerPayload');
             const data = await response.json();
             this.mapRef.current?.moveMarkers({
                 movingMarkerId: data.id,  // marker Id
-                newCoords: [data.lat, data.lng]      // [lat, lng]
+                newCoords: data.coords      // [lat, lng]
             });
         } catch (error) {
             console.error('Error:', error);
         }
     };
 
-    handleRemoveMarker = async (markerID) => {
+    handleRemoveMarker = async () => {
         try {
-            const response = await fetch('/api/' + markerID + '/removeMarkerPayload');
+            const response = await fetch('/api/removeMarkerPayload');
             const data = await response.json();
             this.mapRef.current?.removeMarker(data.id);
         } catch (error) {

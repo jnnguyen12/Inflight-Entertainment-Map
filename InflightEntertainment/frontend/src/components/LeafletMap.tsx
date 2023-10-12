@@ -4,7 +4,7 @@ import React from 'react';
 import '../App.css';
 
 // Leaflet
-import L, { LatLngExpression, marker } from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 // import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import BuildMarker from './functions/BuildMarker';
 
@@ -156,7 +156,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       id: newMarkerProps.id,
       marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
     }
-    console.log("Adding marker " + newMarker.id);
     newMarker.marker.addTo(this.map!);
     this.state.markers.push(newMarker)
   }
