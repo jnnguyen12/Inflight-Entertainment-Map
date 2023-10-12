@@ -10,7 +10,7 @@ import BuildMarker from './functions/BuildMarker';
 
 
 
-import 'l.movemarker'
+// import 'l.movemarker'
 
 //Styling
 import './MapStyling.css';
