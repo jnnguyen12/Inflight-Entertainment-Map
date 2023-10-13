@@ -14,14 +14,14 @@ urlpatterns = [
     # Markers
     path('<str:markerID>/flyToMarkerID/', views.flyToMarkerID, name="fly"),
     path('flyToLastMarker/', views.flyToLastMarker, name="fly"),
-    path('<str:type>/<str:identifier>/addMarker/', views.addMarker, name="addMarker"),
-    path('<str:identifier>/updateMarker/', views.updateMarker, name="updateMarker"),
+    path('addMarker/', views.addMarker, name="addMarker"),
+    path('updateMarker/', views.updateMarker, name="updateMarker"),
     path('<str:identifier>/removeMarker/', views.removeMarker, name="removeMarker"),
     path('clearMarkers/', views.clearMarkers, name='clearMarkers'),
     
 
     # Demo
-    path('startDemo/', views.startDemo, name="startDemo"),
-    path('updateDemo/', views.updateDemo, name="updateDemo"),
+    # path('startDemo/', views.startDemo, name="startDemo"),
+    # path('updateDemo/', views.updateDemo, name="updateDemo"),
     
 ]
