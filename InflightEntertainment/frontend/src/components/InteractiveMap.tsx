@@ -10,13 +10,14 @@ class InteractiveMap extends React.Component {
 
     // On load function
     componentDidMount() {
-        setInterval(this.handleFlyToLocation, 2500); // This is a one time thing
-        setInterval(this.handleAddMarker, 2500);
-        setInterval(this.handleRemoveMarker, 2500);
-        setInterval(this.handleUpdateMarker, 5000);
-        setInterval(this.handleAddPolyline, 2500);
-        setInterval(this.handleRemovePolyline, 2500);
-        setInterval(this.handleClearMap, 10000);
+        this.handleFlyToLocation();
+        this.handleAddMarker();
+        this.handleRemoveMarker();
+        this.handleUpdateMarker();
+        this.handleAddPolyline();
+        this.handleRemovePolyline();
+        this.handleClearMap();
+        this.handleResponseWellnessCheck();
     }
 
     // Move camera to given coords and zoom
@@ -35,6 +36,8 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+
+        setTimeout(() => { this.handleFlyToLocation(); }, 1500);
     };
 
     handleAddMarker = async () => {
@@ -61,6 +64,8 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+
+        setTimeout(() => { this.handleAddMarker(); }, 1500);
     };
 
     handleRemoveMarker = async () => {
@@ -83,6 +88,7 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+        setTimeout(() => { this.handleRemoveMarker(); }, 1500);
     };
 
     handleUpdateMarker = async () => {
@@ -105,6 +111,7 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+        setTimeout(() => { this.handleUpdateMarker(); }, 1500);
     };
 
     handleAddPolyline = async () => {
@@ -129,6 +136,8 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+
+        setTimeout(() => { this.handleAddPolyline(); }, 1000);
     };
 
     handleRemovePolyline = async () => {
@@ -145,6 +154,7 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+        setTimeout(() => { this.handleRemovePolyline(); }, 1000);
     };
 
     handleClearMap = async () => {
@@ -157,6 +167,27 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
+        setTimeout(() => { this.handleClearMap(); }, 2500);
+    };
+
+    handleResponseWellnessCheck = async () => {
+        try {
+            const response = await fetch('/api/WellnessCheck/');
+            const responseData = await response.json();
+            const valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
+            if (responseData.message in valid){
+                const sendResponse = await fetch('/api/FrontEndData/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.mapRef.current?.sendData(responseData.message)),
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
+        setTimeout(() => { this.handleResponseWellnessCheck(); }, 1000);
     };
 
     render() {
