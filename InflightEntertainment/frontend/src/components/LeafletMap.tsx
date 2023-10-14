@@ -4,19 +4,16 @@ import React from 'react';
 import '../App.css';
 
 // Leaflet
-import L, { LatLngExpression, marker } from "leaflet";
-// import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
-import BuildMarker from './functions/BuildMarker';
+import L, { LatLngExpression, Marker } from "leaflet";
+import {BuildMarker, MovingMarker} from './functions/BuildMarker';
 
 //Styling
 import './MapStyling.css';
 
-
-
 interface LeafletMapState {
-  airports: { [key: string]: L.Marker };
-  aircrafts: { [key: string]: L.Marker };
-  landmarks: { [key: string]: L.Marker };
+  airports: { [key: string]: Marker };
+  aircrafts: { [key: string]: Marker };
+  landmarks: { [key: string]: Marker };
   polylines: { [key: string]: LeafletPolyline };
   lat: number;
   lng: number;
@@ -61,7 +58,6 @@ interface PolyLineMaker {
   airportIdFrom: string
 }
 
-
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
@@ -96,6 +92,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
 
     // Add offine part here !
+
   }
 
   componentDidMount() {
@@ -207,6 +204,10 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   moveMarkers(payload: MoveMarker) {
     if (!this.state.aircrafts.hasOwnProperty(payload.movingMarkerId)) return;
     this.state.aircrafts[payload.movingMarkerId].setLatLng(payload.newCoords);
+    
+    // Requires testing
+    // this.state.aircrafts[payload.movingMarkerId] = MovingMarker(this.state.aircrafts[payload.movingMarkerId], payload.newCoords);
+
     if (!this.state.polylines.hasOwnProperty(payload.movingMarkerId)) return;
     const polyline = this.state.polylines[payload.movingMarkerId]
     if (!this.state.airports.hasOwnProperty(polyline.airportIdTo)) return;

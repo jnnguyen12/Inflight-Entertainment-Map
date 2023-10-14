@@ -30,13 +30,10 @@ class InteractiveMap extends React.Component {
                 lng: data.lng,
                 zoom: data.zoom
             }
-            console.log("Frontend received flyToLocation: (data) " + data);
-            console.log("Frontend received flyToLocation: " + fly.lat + " " + fly.lng);
             this.mapRef.current?.flyTo(fly);
         } catch (error) {
             console.error('Error:', error);
         }
-
         setTimeout(() => { this.handleFlyToLocation(); }, 1500);
     };
 

@@ -1,5 +1,4 @@
-import L from "leaflet";
-
+// Credit goes to https://github.com/ewoken/Leaflet.MovingMarker.git
 
 L.interpolatePosition = function(p1, p2, duration, t) {
     var k = t/duration;
@@ -305,5 +304,3 @@ L.Marker.MovingMarker = L.Marker.extend({
 L.Marker.movingMarker = function (latlngs, duration, options) {
     return new L.Marker.MovingMarker(latlngs, duration, options);
 };
-
-
