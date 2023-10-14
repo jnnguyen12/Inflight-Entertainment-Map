@@ -22,7 +22,7 @@ class InteractiveMap extends React.Component {
     // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
-            const response = await fetch('/api/flyToLastMarker');
+            const response = await fetch('/api/flyToLastMarker/');
             const data = await response.json();
             const fly = {
                 lat: data.lat,
@@ -41,6 +41,15 @@ class InteractiveMap extends React.Component {
         try {
             const response = await fetch('/api/addMarker/');
             const data = await response.json();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.addMarkers({
+                    id: data.id,                         // marker id -- currently using flight id as marker id
+                    type: data.type,                     // aircraft or airport -- currently only have aircraft
+                    coords: [data.lat, data.lng],        // [lat, lng]
+                    element: data?.info                  // info or ""
+                });
+                return;
+            }
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.addMarkers({
                     id: data[index].id,                         // marker id -- currently using flight id as marker id
@@ -56,10 +65,20 @@ class InteractiveMap extends React.Component {
 
     handleRemoveMarker = async () => {
         try {
-            const response = await fetch('/api/removeMarkerPayload');
+            const response = await fetch('/api/removeMarkerPayload/');
             const data = await response.json();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.removeMarker({
+                    id: data.id,
+                    type: data.type
+                });
+                return;
+            }
             for (var index = 0; index < data.length; index++) {
-                this.mapRef.current?.removeMarker(data[index].id);
+                this.mapRef.current?.removeMarker({
+                    id: data[index].id,
+                    type: data[index].type
+                });
             }
         } catch (error) {
             console.error('Error:', error);
@@ -70,6 +89,13 @@ class InteractiveMap extends React.Component {
         try {
             const response = await fetch('/api/updateMarker/');
             const data = await response.json();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.moveMarkers({
+                    movingMarkerId: data.id,                 // marker Id
+                    newCoords: [data.lat, data.lng]   // [lat, lng]
+                });
+                return;
+            }
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.moveMarkers({
                     movingMarkerId: data[index].id,                 // marker Id
@@ -83,13 +109,21 @@ class InteractiveMap extends React.Component {
 
     handleAddPolyline = async () => {
         try {
-            const response = await fetch('/api/addPolylinePayload');
+            const response = await fetch('/api/addPolylinePayload/');
             const data = await response.json();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.drawPolyLine({
+                    aircraftId: data.aircraftId,
+                    airportIdTo: data.airportIdTo,
+                    airportIdFrom: data?.airportIdFrom,
+                });
+                return;
+            }
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data[index].aircraftId,
-                    airportId: data[index].airportId,
-                    polyLineId: data[index].polyLineId
+                    airportIdTo: data[index].airportIdTo,
+                    airportIdFrom: data[index]?.airportIdFrom,
                 });
             }
         } catch (error) {
@@ -99,8 +133,12 @@ class InteractiveMap extends React.Component {
 
     handleRemovePolyline = async () => {
         try {
-            const response = await fetch('/api/removePolylinePayload');
+            const response = await fetch('/api/removePolylinePayload/');
             const data = await response.json();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.removePolyLine(data.id);
+                return;
+            }
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.removePolyLine(data[index].id);
             }
@@ -111,7 +149,7 @@ class InteractiveMap extends React.Component {
 
     handleClearMap = async () => {
         try {
-            const response = await fetch('/api/ClearMapPayload');
+            const response = await fetch('/api/ClearMapPayload/');
             const data = await response.json();
             if (data.ClearSwitch) {
                 this.mapRef.current?.clearMap();
