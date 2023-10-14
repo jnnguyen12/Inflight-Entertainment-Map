@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from api.models import Flight, Airport, Marker, FlightRecord
+from api.models import Flight, Airport, Marker, FlightRecord, Polyline
 from django.utils import timezone
 
 from datetime import datetime
@@ -19,12 +19,16 @@ class Command(BaseCommand):
         flight = get_object_or_404(Flight, Q(hex='DEMO') | Q(flight='DEMO'))
         a1 = get_object_or_404(Airport, Q(name='Ames Airport'))
         a2 = get_object_or_404(Airport, Q(name='Des Moines Airport'))
-        Marker.objects.filter(flight=flight).delete()
-        Marker.objects.filter(airport=a1).delete()
-        Marker.objects.filter(airport=a2).delete()
+
+        markers = Marker.objects.filter(Q(flight=flight) | Q(airport=a1) | Q(airport=a2))
+        for m in markers:
+            m.toRemove = True
+            m.save()
+
         a1.delete()
         a2.delete()
         flight.delete()
+        Polyline.objects.all().delete()
 
     def loopDemo(self):
         print("Looping through demo flight path")
@@ -47,7 +51,7 @@ class Command(BaseCommand):
 
         flight = Flight(hex='DEMO', flight="DEMO")
         timestamp = datetime.now()
-        markerFlight = Marker(type='aircraft', lat=41.5341, lng=-93.6634, flight=flight, timestamp=timestamp)
+        markerFlight = Marker(type='aircraft', lat=41.5341, lng=-93.6634, flight=flight, timestamp=timestamp, flyTo=True)
         a1 = Airport(id=1, name="Des Moines Airport", lat=41.5341, lng=-93.6634)
         markerA1 = Marker(type='airport', lat=41.5341, lng=-93.6634, airport=a1, timestamp=timestamp)
         a2 = Airport(id=2, name="Ames Airport", lat=41.9928, lng=-93.6215)
@@ -60,13 +64,16 @@ class Command(BaseCommand):
         flight.save()
         markerFlight.save()
 
+        polyline = Polyline(mark_aircraft=markerFlight, mark_airport=markerA2)
+        polyline.save()
+
         lat1 = 41.5341
         lat2 = 41.9928
         lng1 = -93.6634
         lng2 = -93.6215
         lat_diff = lat2 - lat1
         lng_diff = lng2 - lng1
-        self.lat_step = lat_diff / 20
-        self.lng_step = lng_diff / 20
+        self.lat_step = lat_diff / 10
+        self.lng_step = lng_diff / 10
 
         self.loopDemo()

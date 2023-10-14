@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from api.models import Flight, Airport, Marker
+from api.models import Flight, Airport, Marker, Polyline
 from django.utils import timezone
 
 class Command(BaseCommand):
@@ -15,3 +15,4 @@ class Command(BaseCommand):
         a1.delete()
         a2.delete()
         flight.delete()
+        Polyline.objects.all().delete()

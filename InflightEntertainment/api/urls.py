@@ -16,9 +16,12 @@ urlpatterns = [
     path('flyToLastMarker/', views.flyToLastMarker, name="fly"),
     path('addMarker/', views.addMarker, name="addMarker"),
     path('updateMarker/', views.updateMarker, name="updateMarker"),
-    path('<str:identifier>/removeMarker/', views.removeMarker, name="removeMarker"),
+    path('removeMarker/', views.removeMarker, name="removeMarker"),
     path('clearMarkers/', views.clearMarkers, name='clearMarkers'),
     
+    # Polylines
+    path('addPolylinePayload/', views.addPolyline, name="addPolyline"),
+    path('removePolylinePayload/', views.removePolyline, name="removePolyline"),
 
     # Demo
     # path('startDemo/', views.startDemo, name="startDemo"),
