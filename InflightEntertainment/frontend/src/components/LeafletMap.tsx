@@ -58,11 +58,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lng: 0,
       zoom: 0,
     };
-    L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
+    
   }
   
   componentDidMount() {
+    
     L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
+
     // Makes the map 
     this.map = L.map('map', {
       zoomControl: false,     // Removes defaults 
@@ -71,11 +73,21 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       scrollWheelZoom: true, // This makes it look bad
       minZoom: 3,             // minimum zoom is visible to country name
       maxZoom: 7,              // maximum zoom where they can't zoom past city names.
-      zoom: 5
-      gestureHandling: true
-    }).setView([this.state.lat, this.state.lng], this.state.zoom)
+      zoom: 5,
+      // eslint-disable-next-line
+      // gestureHandling: true
+      dragging: false,
+      tap: false
+    }).setView([this.state.lat, this.state.lng], this.state.zoom);
+    
+    this.map.addHandler("gestureHandling", GestureHandling)
 
-    this.map.gestureHandling.enable();
+    // L.control.gestureHandling().addTo(this.map)
+    // this.map.
+    
+    /* eslint-disable */
+    // this.map.GestureHandling.enable();
+    /* eslint-enable */
 
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -83,6 +95,16 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }).addTo(this.map);
 
     // Add offine part here !
+
+    // const h = (this.map as any)._handlers
+    // for (const eventType in h){
+    //   if(h.hasOwnProperty(eventType)){
+    //     const events = h[eventType]
+    //     for(const hand of events){
+    //       console.log(hand)
+    //     }
+    //   }
+    // }
 
   }
 
