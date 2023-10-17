@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import InteractiveMap from "./components/InteractiveMap"
 
@@ -7,12 +7,13 @@ function App() {
   // This represents the componet that they wanted
   return (
     // To test the backend uncomment the following lines and comment out the InteractiveMap.
-    // <div className="App">
-    //   <TestBackend />
-    // </div>
-    <>
-      <InteractiveMap />
-    </>
+    <div className="App">
+      {/* <TestBackend /> */}
+      <TestWebsocket />
+    </div>
+    // <>
+    //   <InteractiveMap />
+    // </>
   );
 }
 
@@ -60,6 +61,67 @@ const TestBackend = () => {
     </div>
   );
 };
+
+const TestWebsocket: React.FC = () => {
+  const [inputMessage, setInputMessage] = useState<string>('');
+  const [messages, setMessages] = useState<string[]>([]);
+  const chatSocketRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    const url = `ws://${window.location.host}/ws/socket-server/`;
+    chatSocketRef.current = new WebSocket(url);
+
+    chatSocketRef.current.onmessage = (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      console.log('Data:', data);
+      if (data.type === 'chat') {
+        setMessages((prevMessages) => [...prevMessages, data.message]);
+      }
+    };
+
+    return () => {
+      if (chatSocketRef.current) {
+        chatSocketRef.current.close();
+      }
+    };
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (chatSocketRef.current) {
+      chatSocketRef.current.send(JSON.stringify({
+        message: inputMessage,
+      }));
+    }
+    setInputMessage('');
+  };
+
+  return (
+    <div>
+      <h1>Test</h1>
+
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="message"
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+        />
+        <button type="submit">Send</button>
+      </form>
+
+      <div>
+        {messages.map((message, index) => (
+          <div key={index}>
+            <p>{message}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 export default App;
 
 
