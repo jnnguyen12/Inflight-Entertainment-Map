@@ -20,6 +20,16 @@ class InteractiveMap extends React.Component {
         this.handleResponseWellnessCheck();
     }
 
+    componentWillUnmount() {
+        fetch('/api/PageReload/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"Page": "Refreshed"}),
+        });
+    }
+
     // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
