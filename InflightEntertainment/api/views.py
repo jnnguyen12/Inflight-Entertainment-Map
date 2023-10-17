@@ -131,6 +131,7 @@ def addPolyline(request):
         p.save(update_fields=["onMap"])
         ser = PolylineSerializer(p)
         data.append(ser.data)
+        print(ser.data)
     return Response(data)
 
 @api_view(['GET'])

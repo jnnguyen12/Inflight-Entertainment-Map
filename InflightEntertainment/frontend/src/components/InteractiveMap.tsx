@@ -14,7 +14,7 @@ class InteractiveMap extends React.Component {
         setInterval(this.handleAddMarker, 2500);
         setInterval(this.handleRemoveMarker, 2500);
         setInterval(this.handleUpdateMarker, 5000);
-        setInterval(this.handleAddPolyline, 2500);
+        setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
         setInterval(this.handleClearMap, 10000);
     }
@@ -105,18 +105,18 @@ class InteractiveMap extends React.Component {
         try {
             const response = await fetch('/api/addPolylinePayload/');
             const data = await response.json();
-            console.log("aircraft: %d, airport: %d", data.mark_aircraft.id, data.mark_airport.id);
+            console.log("aircraft: %d, airport: %d", data.aircraftID, data.airportID);
             if (!Array.isArray(data)) {
                 this.mapRef.current?.drawPolyLine({
-                    aircraftId: data.mark_aircraft.id,
-                    airportId: data.mark_airport.id,
+                    aircraftId: data.aircraftID,
+                    airportId: data.airportID,
                 });
                 return;
             }
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.drawPolyLine({
-                    aircraftId: data[index].mark_aircraft.id,
-                    airportId: data[index].mark_airport.id,
+                    aircraftId: data[index].aircraftID,
+                    airportId: data[index].airportID,
                 });
             }
         } catch (error) {

@@ -20,7 +20,8 @@ class Command(BaseCommand):
         a1 = get_object_or_404(Airport, Q(name='Ames Airport'))
         a2 = get_object_or_404(Airport, Q(name='Des Moines Airport'))
 
-        markers = Marker.objects.filter(Q(flight=flight) | Q(airport=a1) | Q(airport=a2))
+        #markers = Marker.objects.filter(Q(flight=flight) | Q(airport=a1) | Q(airport=a2))
+        markers = Marker.objects.all()
         for m in markers:
             m.toRemove = True
             m.save()
@@ -64,7 +65,7 @@ class Command(BaseCommand):
         flight.save()
         markerFlight.save()
 
-        polyline = Polyline(mark_aircraft=markerFlight, mark_airport=markerA2)
+        polyline = Polyline(aircraftID=markerFlight.id, airportID=markerA2.id)
         polyline.save()
 
         lat1 = 41.5341

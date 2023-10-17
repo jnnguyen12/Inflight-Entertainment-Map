@@ -35,9 +35,7 @@ class MarkerSerializer(serializers.ModelSerializer):
         fields = ['id', 'flight', 'airport', 'type', 'timestamp', 'lat', 'lng']
 
 class PolylineSerializer(serializers.ModelSerializer):
-    mark_aircraft = MarkerSerializer(many=False, read_only=True)
-    mark_airport = MarkerSerializer(many=False, read_only=True)
-
+    
     class Meta:
         model = Polyline
-        fields = ['mark_aircraft', 'mark_airport']
+        fields = ['aircraftID', 'airportID']

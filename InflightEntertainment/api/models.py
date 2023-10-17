@@ -64,8 +64,8 @@ class Marker(models.Model):
         return f"{self.id}, type: {self.type}, lat: {self.lat}, lng: {self.lng}"
     
 class Polyline(models.Model):
-    mark_aircraft = models.ForeignKey(Marker, on_delete=models.SET_NULL, null=True, related_name='Aircraft')
-    mark_airport = models.ForeignKey(Marker, on_delete=models.SET_NULL, null=True, related_name='Airport')
+    aircraftID = models.IntegerField(null=True)
+    airportID = models.IntegerField(null=True)
     onMap = models.BooleanField(default=False)
     toRemove = models.BooleanField(default=False)
 
