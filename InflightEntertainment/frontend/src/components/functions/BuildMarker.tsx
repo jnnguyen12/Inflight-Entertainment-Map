@@ -3,7 +3,7 @@ import airport from '../assets/airport.png'
 import aircraft from '../assets/plane.png';
 import ReactDOMServer from 'react-dom/server';
 import React from "react";
-import './functions/MovingMarker'
+// import './functions/MovingMarker'
 
 function JSXToHTMLElement(element: JSX.Element): HTMLElement {
   const htmlString = ReactDOMServer.renderToString(element);
@@ -12,9 +12,9 @@ function JSXToHTMLElement(element: JSX.Element): HTMLElement {
   return container.firstChild as HTMLElement;
 }
 
-export function MovingMarker(marker: L.Marker, newCoords: L.LatLngExpression){
-  return L.Marker.movingMarker([marker.getLatLng(), newCoords], [1000], {autostart: true}).setIcon(marker.getIcon()).bindPopup(marker.getPopup())
-}
+// export function MovingMarker(marker: L.Marker, newCoords: L.LatLngExpression){
+//   return L.Marker.movingMarker([marker.getLatLng(), newCoords], [1000], {autostart: true}).setIcon(marker.getIcon()).bindPopup(marker.getPopup())
+// }
 
 export function BuildMarker(type: string, position: L.LatLngExpression, popupContent?: JSX.Element){
   let icon;

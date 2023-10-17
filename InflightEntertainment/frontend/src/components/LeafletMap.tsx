@@ -5,7 +5,7 @@ import '../App.css';
 
 // Leaflet
 import L, { LatLngExpression, Marker } from "leaflet";
-import {BuildMarker, MovingMarker} from './functions/BuildMarker';
+import {BuildMarker} from './functions/BuildMarker';
 
 //Styling
 import './MapStyling.css';
@@ -200,11 +200,28 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+  // moveMarkers(payload: MoveMarker) {
+  //   const aircraft = this.state.markers.find(marker => marker.id === payload.movingMarkerId).marker;
+  //   if (aircraft) {
+  //     aircraft.setLatLng(payload.newCoords);
+  //     console.log("moved");
+  //     const polyline = this.state.polylines.find(line => line.aircraftId === payload.movingMarkerId);
+  //     if (polyline) {
+  //       const airport = this.state.markers.find(marker => marker.id === polyline.airportId).marker;
+  //       if (airport) {
+  //         console.log("Update Polyline");
+  //         polyline.polyline.setLatLngs([aircraft.getLatLng(), airport.getLatLng()]);
+  //       }
+  //     }
+  //   }
+  // }
+
   // Moveing a marker based on its index
   moveMarkers(payload: MoveMarker) {
     if (!this.state.aircrafts.hasOwnProperty(payload.movingMarkerId)) return;
-    this.state.aircrafts[payload.movingMarkerId].setLatLng(payload.newCoords);
-    
+    const aircraft = this.state.aircrafts[payload.movingMarkerId];
+    aircraft.setLatLng(payload.newCoords)
+    console.log("moved");
     // Requires testing
     // this.state.aircrafts[payload.movingMarkerId] = MovingMarker(this.state.aircrafts[payload.movingMarkerId], payload.newCoords);
 
@@ -212,8 +229,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     const polyline = this.state.polylines[payload.movingMarkerId]
     if (!this.state.airports.hasOwnProperty(polyline.airportIdTo)) return;
     polyline.polylineTo.setLatLngs([this.state.aircrafts[payload.movingMarkerId].getLatLng(), this.state.airports[polyline.airportIdTo].getLatLng()]);
-    if (!polyline.polylineFrom) return;
-    polyline.polylineFrom.setLatLngs([this.state.aircrafts[payload.movingMarkerId].getLatLng(), this.state.airports[polyline.airportIdFrom].getLatLng()]);
+    if (polyline.polylineFrom) polyline.polylineFrom.setLatLngs([this.state.aircrafts[payload.movingMarkerId].getLatLng(), this.state.airports[polyline.airportIdFrom].getLatLng()]);
   }
 
   drawPolyLine(payload: PolyLineMaker) {

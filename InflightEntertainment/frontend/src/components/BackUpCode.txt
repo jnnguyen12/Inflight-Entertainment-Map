@@ -14,31 +14,16 @@
 
 
 
-// How to get data from back end
-// fetchData = async () => {
-//     try {
-//         const response = await fetch('http://your-backend-url'); // Replace with backend URL
-//         const data: IData[] = await response.json();
-//         this.setState({ data });
-//     } catch (error) {
-//         console.error('Error fetching data:', error);
-//     }
-// };
+    // How to get data from back end
+    // fetchData = async () => {
+    //     try {
+    //         const response = await fetch('http://your-backend-url'); // Replace with backend URL
+    //         const data: IData[] = await response.json();
+    //         this.setState({ data });
+    //     } catch (error) {
+    //         console.error('Error fetching data:', error);
+    //     }
+    // };
 
 
-// THIS IS FOR EXTRA STUFF in Build marker function to really customize the icons
-// const I = L.divIcon({
-//   iconSize: [24, 24], // icon size must same with element size
-//   className: 'position-relative rotate--marker',
-//   html: ReactDOMServer.renderToString(
-//     <>
-//       <div>
-//         <img
-//           style={{ width: '24px' }}
-//           src="https://cdn-icons-png.flaticon.com/512/876/876828.png"
-//           // icon by flaticon.com
-//         />
-//       </div>
-//     </>
-//   ),
-// })
+    

@@ -17,18 +17,18 @@ class InteractiveMap extends React.Component {
         this.handleAddPolyline();
         this.handleRemovePolyline();
         this.handleClearMap();
-        this.handleResponseWellnessCheck();
+        // this.handleResponseWellnessCheck();
     }
 
-    componentWillUnmount() {
-        fetch('/api/PageReload/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({"Page": "Refreshed"}),
-        });
-    }
+    // componentWillUnmount() {
+    //     fetch('/api/PageReload/', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({"Page": "Refreshed"}),
+    //     });
+    // }
 
     // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
@@ -177,25 +177,25 @@ class InteractiveMap extends React.Component {
         setTimeout(() => { this.handleClearMap(); }, 2500);
     };
 
-    handleResponseWellnessCheck = async () => {
-        try {
-            const response = await fetch('/api/WellnessCheck/');
-            const responseData = await response.json();
-            const valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
-            if (responseData.message in valid){
-                const sendResponse = await fetch('/api/FrontEndData/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(this.mapRef.current?.sendData(responseData.message)),
-                });
-            }
-        } catch (error) {
-            console.error(error);
-        }
-        setTimeout(() => { this.handleResponseWellnessCheck(); }, 1000);
-    };
+    // handleResponseWellnessCheck = async () => {
+    //     try {
+    //         const response = await fetch('/api/WellnessCheck/');
+    //         const responseData = await response.json();
+    //         const valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
+    //         if (responseData.message in valid){
+    //             const sendResponse = await fetch('/api/FrontEndData/', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify(this.mapRef.current?.sendData(responseData.message)),
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    //     setTimeout(() => { this.handleResponseWellnessCheck(); }, 1000);
+    // };
 
     render() {
         return (
