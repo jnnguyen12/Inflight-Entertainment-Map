@@ -67,7 +67,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
     // Makes the map 
     this.map = L.map('map', {
-      zoomControl: false,     // Removes defaults 
+      zoomControl: false,     // Removes zoom controls on the left 
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
       scrollWheelZoom: true, // This makes it look bad
@@ -75,24 +75,17 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       maxZoom: 7,              // maximum zoom where they can't zoom past city names.
       zoom: 5,
       // eslint-disable-next-line
-      // gestureHandling: true
+      // gestureHandling: true,
       dragging: false,
       tap: false
     }).setView([this.state.lat, this.state.lng], this.state.zoom);
-    
-    this.map.addHandler("gestureHandling", GestureHandling)
-
-    // L.control.gestureHandling().addTo(this.map)
-    // this.map.
-    
-    /* eslint-disable */
-    // this.map.GestureHandling.enable();
-    /* eslint-enable */
+    this.map.addHandler("gestureHandling", GestureHandling);
 
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
+
 
     // Add offine part here !
 
