@@ -17,6 +17,9 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
+    # Add script for updating flight
+
+
 
 if __name__ == "__main__":
     main()

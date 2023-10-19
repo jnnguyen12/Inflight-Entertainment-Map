@@ -50,7 +50,7 @@ class Command(BaseCommand):
                     flight=flight,
                     timestamp=timestamp,
                     lat=aircraft.get('lat'),
-                    lon=aircraft.get('lon'),
+                    lng=aircraft.get('lon'),
                     alt_baro=alt_baro,
                     alt_geom=aircraft.get('alt_geom'),
                     track=aircraft.get('track'),

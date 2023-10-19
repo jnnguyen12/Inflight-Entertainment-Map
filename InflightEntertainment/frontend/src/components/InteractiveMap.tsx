@@ -10,46 +10,28 @@ class InteractiveMap extends React.Component {
 
     // On load function
     componentDidMount() {
-
-        // This is just to reder stuff on the map like Demo one
-        // const markers = [
-        //     { id: 1, type: "aircraft", coords: { lat: 41.76345, lng: -93.64245, alt: 100 } },
-        //     { id: 2, type: "airport", coords: { lat: 41.5341, lng: -93.6634 }, element: <p>To</p> },
-        //     { id: 3, type: "airport", coords: { lat: 41.9928, lng: -93.6215 }, element: <p>From</p> }
-        // ]
-        // const payload = {
-        //     lat: 41.76345,        // Cameras initial lat
-        //     lng: -93.64245,       // Cameras initial lng
-        //     zoom: 10,             // Cameras initial zoom
-        // }
-        // for (let i = 0; i < markers.length; i++) {
-        //     const markerDataPayload =
-        //         this.mapRef.current.addMarkers({
-        //             id: markers[i].id,          // marker type
-        //             type: markers[i].type,
-        //             coords: markers[i].coords,     // [lat, lng]
-        //             element: markers[i].element         // info or ""
-        //         })
-        // }
-        // this.mapRef.current.flyTo(payload)
-
-        // This is were we are calling function to load stuff from the back end
-        setInterval(this.handleFlyToLocation, 5000);
-        setInterval(this.handleAddMarker, 5000);
+        setInterval(this.handleFlyToLocation, 2500); // This is a one time thing
+        setInterval(this.handleAddMarker, 2500);
+        setInterval(this.handleRemoveMarker, 2500);
         setInterval(this.handleUpdateMarker, 5000);
-        setInterval(this.handleRemoveMarker, 5000);
-        setInterval(this.handleClearMapMarkers, 5000);
+        setInterval(this.handleAddPolyline, 7000);
+        setInterval(this.handleRemovePolyline, 2500);
+        setInterval(this.handleClearMap, 10000);
     }
 
+    // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
-            const response = await fetch('/api/flyToMarkerPayload');
+            const response = await fetch('/api/flyToLastMarker');
             const data = await response.json();
-            this.mapRef.current?.flyTo({
-                lat: data.lat,  
+            const fly = {
+                lat: data.lat,
                 lng: data.lng,
                 zoom: data.zoom
-            });
+            }
+            console.log("Frontend received flyToLocation: (data) " + data);
+            console.log("Frontend received flyToLocation: " + fly.lat + " " + fly.lng);
+            this.mapRef.current?.flyTo(fly);
         } catch (error) {
             console.error('Error:', error);
         }
@@ -57,28 +39,25 @@ class InteractiveMap extends React.Component {
 
     handleAddMarker = async () => {
         try {
-            const response = await fetch('/api/markerDataPayload');
+            const response = await fetch('/api/addMarker/');
             const data = await response.json();
-            const markerDataPayload = {
-                id: data.id,          // marker type
-                type: data.type,        // aircraft or airport
-                coords: data.coords,     // [lat, lng]
-                element: data?.info          // info or ""
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.addMarkers({
+                    id: data.id,                         // marker id -- currently using flight id as marker id
+                    type: data.type,                     // aircraft or airport -- currently only have aircraft
+                    coords: [data.lat, data.lng],        // [lat, lng]
+                    element: data?.info                  // info or ""
+                });
+                return;
             }
-            this.mapRef.current?.addMarkers(markerDataPayload);
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    };
-
-    handleUpdateMarker = async () => {
-        try {
-            const response = await fetch('/api/moveMarkerPayload');
-            const data = await response.json();
-            this.mapRef.current?.moveMarkers({
-                movingMarkerId: data.id,  // marker Id
-                newCoords: data.coords      // [lat, lng]
-            });
+            for (var index = 0; index < data.length; index++) {
+                this.mapRef.current?.addMarkers({
+                    id: data[index].id,                         // marker id -- currently using flight id as marker id
+                    type: data[index].type,                     // aircraft or airport -- currently only have aircraft
+                    coords: [data[index].lat, data[index].lng], // [lat, lng]
+                    element: data[index]?.info                  // info or ""
+                });
+            }
         } catch (error) {
             console.error('Error:', error);
         }
@@ -86,20 +65,87 @@ class InteractiveMap extends React.Component {
 
     handleRemoveMarker = async () => {
         try {
-            const response = await fetch('/api/removeMarkerPayload');
+            const response = await fetch('/api/removeMarker/');
             const data = await response.json();
-            this.mapRef.current?.removeMarker(data.id);
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.removeMarker(data.id);
+                return;
+            }
+            for (var index = 0; index < data.length; index++) {
+                this.mapRef.current?.removeMarker(data[index].id);
+            }
         } catch (error) {
             console.error('Error:', error);
         }
     };
 
-    handleClearMapMarkers = async () => {
+    handleUpdateMarker = async () => {
         try {
-            const response = await fetch('/api/ClearMarkerPayload');
+            const response = await fetch('/api/updateMarker/');
             const data = await response.json();
-            if(data.ClearSwitch){
-                this.mapRef.current?.clearMarkers();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.moveMarkers({
+                    movingMarkerId: data.id,                 // marker Id
+                    newCoords: [data.lat, data.lng]   // [lat, lng]
+                });
+                return;
+            }
+            for (var index = 0; index < data.length; index++) {
+                this.mapRef.current?.moveMarkers({
+                    movingMarkerId: data[index].id,                 // marker Id
+                    newCoords: [data[index].lat, data[index].lng]   // [lat, lng]
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleAddPolyline = async () => {
+        try {
+            const response = await fetch('/api/addPolylinePayload/');
+            const data = await response.json();
+            console.log("aircraft: %d, airport: %d", data.aircraftID, data.airportID);
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.drawPolyLine({
+                    aircraftId: data.aircraftID,
+                    airportId: data.airportID,
+                });
+                return;
+            }
+            for (var index = 0; index < data.length; index++) {
+                this.mapRef.current?.drawPolyLine({
+                    aircraftId: data[index].aircraftID,
+                    airportId: data[index].airportID,
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleRemovePolyline = async () => {
+        try {
+            const response = await fetch('/api/removePolylinePayload/');
+            const data = await response.json();
+            if (!Array.isArray(data)) {
+                this.mapRef.current?.removePolyLine(data.mark_aircraft.id);
+                return;
+            }
+            for (var index = 0; index < data.length; index++) {
+                this.mapRef.current?.removePolyLine(data[index].mark_aircraft.id);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleClearMap = async () => {
+        try {
+            const response = await fetch('/api/ClearMapPayload');
+            const data = await response.json();
+            if (data.ClearSwitch) {
+                this.mapRef.current?.clearMap();
             }
         } catch (error) {
             console.error('Error:', error);
