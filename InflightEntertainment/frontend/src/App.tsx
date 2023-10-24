@@ -63,8 +63,7 @@ const TestBackend = () => {
 };
 
 const TestWebsocket: React.FC = () => {
-  const [inputMessage, setInputMessage] = useState<string>('');
-  const [messages, setMessages] = useState<string[]>([]);
+  const [flightRecords, setFlightRecords] = useState<FlightRecord[]>([]);
   const chatSocketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -74,8 +73,13 @@ const TestWebsocket: React.FC = () => {
     chatSocketRef.current.onmessage = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       console.log('Data:', data);
-      if (data.type === 'chat') {
-        setMessages((prevMessages) => [...prevMessages, data.message]);
+
+      if (data.type === 'new_flight_record' || data.type === 'add_flight_record') {
+        const recordWithFlight = {
+          ...data.record,
+          flight: data.flight
+        };
+        setFlightRecords((prevRecords) => [...prevRecords, recordWithFlight]);
       }
     };
 
@@ -86,34 +90,16 @@ const TestWebsocket: React.FC = () => {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (chatSocketRef.current) {
-      chatSocketRef.current.send(JSON.stringify({
-        message: inputMessage,
-      }));
-    }
-    setInputMessage('');
-  };
-
   return (
     <div>
-      <h1>Test</h1>
-
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="message"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-        />
-        <button type="submit">Send</button>
-      </form>
-
+      <h1>Test Websocket</h1>
       <div>
-        {messages.map((message, index) => (
+        {flightRecords.map((record, index) => (
           <div key={index}>
-            <p>{message}</p>
+            <p>Flight: {record.flight.flight}</p>
+            <p>Timestamp: {record.timestamp}</p>
+            <p>Latitude: {record.lat}</p>
+            <p>Longitude: {record.lon}</p>
           </div>
         ))}
       </div>
@@ -121,7 +107,4 @@ const TestWebsocket: React.FC = () => {
   );
 }
 
-
 export default App;
-
-

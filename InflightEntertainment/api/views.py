@@ -36,5 +36,3 @@ def simulateFlight(request, identifier):
     records_serializer = FlightRecordSerializer(records, many=True)
     
     return Response(records_serializer.data)
-
-
