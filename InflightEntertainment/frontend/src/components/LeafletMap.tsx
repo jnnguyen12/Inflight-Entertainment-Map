@@ -8,6 +8,7 @@ import L, { LatLngExpression } from "leaflet";
 // import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import BuildMarker from './functions/BuildMarker';
 import { GestureHandling } from "leaflet-gesture-handling"; // handles moving the warapper around and user need to use both fingers to move the actual map
+import { Rnd, RndDragEvent, DraggableData } from "react-rnd";
 
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
@@ -46,6 +47,7 @@ interface flyToPosition {
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
   private map: L.Map | null;
+  private rnd: Rnd;
 
   constructor(props) {
     super(props)
@@ -86,7 +88,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
+    // this.map.addEventListener('touchstart', function(e) {
+    //   if(e.touches.length > 1) {
 
+    //   }
+    // })
     // Add offine part here !
 
     // const h = (this.map as any)._handlers
@@ -99,6 +105,17 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     //   }
     // }
 
+  }
+
+  disableTwoFingerDrag = (e: TouchEvent, d: DraggableData) => {
+    // this.rnd.onDragStart(e, d);
+
+    this.map.addEventListener('touchstart', () => {
+      if (e.touches.length > 1)
+      {
+        this.rnd.draggable = false;
+      }
+    })
   }
 
   // Cleanup removes map
@@ -159,7 +176,19 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   //render the map
   render() {
     return (
-      <div id="map" ref={this.mapRef}></div>
+      <Rnd 
+        className='rnd-container'
+        default={{
+          x: 0,
+          y: 0,
+          width: 320,
+          height: 200,
+        }}
+
+          onDragStart={this.disableTwoFingerDrag}
+        >
+          <div id="map" ref={this.mapRef}></div>
+    </Rnd>
     );
   }
 }

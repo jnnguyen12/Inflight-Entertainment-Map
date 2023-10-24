@@ -26,22 +26,22 @@ function App() {
 
   // This represents the componet that they wanted
   return (
-    // <>
-    //   <InteractiveMap />
-    // </>
-    <Rnd 
-    className='rnd-container'
-    default={{
-      x: 0,
-      y: 0,
-      width: 320,
-      height: 200,
-    }}
-
-      onDrag={disableTwoFingerDrag} 
-    >
+    <>
       <InteractiveMap />
-    </Rnd>
+    </>
+    // <Rnd 
+    // className='rnd-container'
+    // default={{
+    //   x: 0,
+    //   y: 0,
+    //   width: 320,
+    //   height: 200,
+    // }}
+
+    //   onDrag={disableTwoFingerDrag} 
+    // >
+    //   <InteractiveMap />
+    // </Rnd>
   );
 }
 
