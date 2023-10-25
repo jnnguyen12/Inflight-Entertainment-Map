@@ -10,6 +10,7 @@ import BuildMarker from './functions/BuildMarker';
 
 //Styling
 import './MapStyling.css';
+import { Rnd } from 'react-rnd';
 
 
 
@@ -80,9 +81,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
       scrollWheelZoom: true, // This makes it look bad
+      maxZoom: 12,
+      minZoom: 3,
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
-    // The maps propertys
+    // The maps properties
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
@@ -203,9 +206,19 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   //render the map
   render() {
     return (
-      <>
+      <Rnd 
+        default={{
+          x: 0,
+          y: 0,
+          // this is for full screen, dont try
+          // width: window.innerWidth,
+          // height: window.innerHeight
+
+          width: 300,
+          height: 200
+        }}>
         <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
-      </>
+      </Rnd>
     );
   }
 }
