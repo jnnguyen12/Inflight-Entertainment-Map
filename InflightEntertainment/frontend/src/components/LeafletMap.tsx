@@ -1,6 +1,6 @@
 //Imports
 //React
-import React from 'react';
+import React, { useState } from 'react';
 import '../App.css';
 
 // Leaflet
@@ -8,9 +8,14 @@ import L, { LatLngExpression, marker } from "leaflet";
 // import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import BuildMarker from './functions/BuildMarker';
 
+import { GestureHandling } from "leaflet-gesture-handling";
+import { Rnd } from 'react-rnd';
+
+
 //Styling
 import './MapStyling.css';
-import { Rnd } from 'react-rnd';
+import "leaflet/dist/leaflet.css";
+import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 
 
 
@@ -20,6 +25,8 @@ interface LeafletMapState {
   lat: number;
   lng: number;
   zoom: number;
+  stopMove: boolean;
+
 }
 
 interface LeafletPolyline {
@@ -60,7 +67,8 @@ interface PolyLineMaker {
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
   private map: L.Map | null
-
+  private gay: boolean = false;
+  
   constructor(props) {
     super(props)
     this.map = null;
@@ -71,10 +79,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lat: 0,
       lng: 0,
       zoom: 0,
+      stopMove: false,
     };
   }
-
+  
   componentDidMount() {
+    // L.Map.addInitHook("addHandler", "gestureHandling", GestureHandling);
+
     // Makes the map 
     this.map = L.map('map', {
       zoomControl: false,     // Removes defaults 
@@ -83,7 +94,10 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       scrollWheelZoom: true, // This makes it look bad
       maxZoom: 12,
       minZoom: 3,
+      // gestureHandling: true
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
+
+    
 
     // The maps properties
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -94,6 +108,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
     // Add offine part here !
   }
+  
 
   drawPolyLine(payload: PolyLineMaker) {
     const aircraft = this.state.markers.find(marker => marker.id === payload.aircraftId);
@@ -203,22 +218,33 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+  
+  
   //render the map
   render() {
     return (
-      <Rnd 
-        default={{
-          x: 0,
-          y: 0,
-          // this is for full screen, dont try
-          // width: window.innerWidth,
-          // height: window.innerHeight
+      <>
+        {/* <p>move: {this.state.stopMove} {this.gay}</p>
+        <Rnd 
+          default={{
+            x: 0,
+            y: 0,
+            // this is for full screen, dont try
+            // width: window.innerWidth,
+            // height: window.innerHeight
 
-          width: 300,
-          height: 200
-        }}>
-        <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
-      </Rnd>
+            width: 300,
+            height: 200
+          }}
+          // onDragStart={this.handleMapTouchStart.bind(this)}
+          // onDragStop={this.handleMapTouchEnd.bind(this)}
+          // disableDragging={this.state.stopMove}
+          // draggable={this.state.stopMove} 
+          >
+          <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
+      </Rnd> */}
+      <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
+      </>
     );
   }
 }
