@@ -30,7 +30,7 @@ class Command(BaseCommand):
         markers = Marker.objects.all()
         for m in markers:
             m.toRemove = True
-            m.save()
+            m.save(update_fields=['toRemove'])
 
         a1.delete()
         a2.delete()

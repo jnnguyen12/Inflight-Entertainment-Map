@@ -94,25 +94,6 @@ def updateMarker(request):
     ser = MarkerSerializer(marker)
     return Response(ser.data)
 
-# # This updates marker based on FlightRecords from json
-# @api_view(['GET'])
-# def updateMarker(request):
-#     marker = Marker.objects.all().filter(type='aircraft')
-#     ser = MarkerSerializer(marker)
-#     print(f"UPDATE MARKER: marker {marker}, ser {ser.data['timestamp']}")
-#     format = "%Y-%m-%dT%H:%M:%S.%fZ"
-#     new_time = datetime.strptime(ser.data['timestamp'], format) + timedelta(seconds=60)
-#     # Need to change this to not rely on matching timestamps
-#     # record = FlightRecord.objects.get(flight=marker.flight, 
-#     #                                            timestamp__gte=new_time - timedelta(seconds=1),
-#     #                                            timestamp__lte=new_time + timedelta(seconds=1))
-#     marker.timestamp = record.timestamp
-#     marker.lat = record.lat
-#     marker.lng = record.lng
-#     marker.save(update_fields=["lat", "lng", "timestamp"])
-#     ser = MarkerSerializer(marker)
-
-#     return Response(ser.data)
 
 # Not sure what to return on these
 @api_view(['GET'])
