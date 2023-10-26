@@ -8,4 +8,4 @@ from django.views import *
 class Command(BaseCommand):
     def handle(self, *args, **options):
         Marker.objects.all().filter(type='airport').delete()
-        # views.removeMarker()
+        Airport.objects.all().delete()

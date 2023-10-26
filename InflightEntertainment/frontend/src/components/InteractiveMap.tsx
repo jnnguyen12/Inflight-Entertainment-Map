@@ -16,7 +16,8 @@ class InteractiveMap extends React.Component {
         setInterval(this.handleUpdateMarker, 5000);
         setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
-        setInterval(this.handleClearMap, 10000);
+        // Need some logic for this bc the backend will delete all markers whenever its received
+        // setInterval(this.handleClearMap, 10000);
     }
 
     // Move camera to given coords and zoom
@@ -142,7 +143,7 @@ class InteractiveMap extends React.Component {
 
     handleClearMap = async () => {
         try {
-            const response = await fetch('/api/ClearMapPayload');
+            const response = await fetch('/api/clearMarkers/');
             const data = await response.json();
             if (data.ClearSwitch) {
                 this.mapRef.current?.clearMap();

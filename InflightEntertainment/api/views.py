@@ -51,20 +51,27 @@ def flyToMarkerID(request, markerID):
 
 @api_view(['GET'])
 def flyToLastMarker(request):
-    marker = Marker.objects.get(flyTo=True)
+    try:
+        marker = Marker.objects.get(flyTo=True)
+    except:
+        return HttpResponse(status=204) #No content
+    
     marker.flyTo = False
     marker.save()
-
     ser = MarkerSerializer(marker)
     temp = ser.data
     temp["zoom"] = 11
     print("Backend flyToLastMarker: ", str(temp))
     return Response(temp)
     
-# Need to add marker ID -- or just use the flight as ID?
+
 @api_view(['FETCH', 'GET'])
 def addMarker(request):
-    markers = Marker.objects.all().filter(onMap=False)
+    try:
+        markers = Marker.objects.all().filter(onMap=False)
+    except:
+        return HttpResponse(status=204)
+    
     data = []
     for m in markers:
         m.onMap = True
@@ -79,7 +86,11 @@ def addMarker(request):
 # Also need to re-implement the FlightRecord based approach (commented below)
 @api_view(['FETCH', 'GET'])
 def updateMarker(request):
-    marker = Marker.objects.get(type='aircraft')
+    try:
+        marker = Marker.objects.get(type='aircraft')
+    except:
+        return HttpResponse(status=204)
+    
     ser = MarkerSerializer(marker)
     return Response(ser.data)
 
@@ -124,6 +135,7 @@ def clearMarkers(request):
 # TODO: dont return marker objects just return their IDs
 @api_view(['GET'])
 def addPolyline(request):
+
     lines = Polyline.objects.all().filter(onMap=False)
     data = []
     for p in lines:
@@ -136,7 +148,11 @@ def addPolyline(request):
 
 @api_view(['GET'])
 def removePolyline(request):
-    lines = Polyline.objects.all().filter(toRemove=True)
+    try:
+        lines = Polyline.objects.all().filter(toRemove=True)
+    except:
+        return HttpResponse(status=204)
+    
     data = []
     for p in lines:
         ser = PolylineSerializer(p)
