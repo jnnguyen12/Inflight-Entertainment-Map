@@ -20,7 +20,7 @@ class Command(BaseCommand):
         
         files = os.listdir(directory_path)
         for file_name in sorted(files):
-            if file_name.endswith('.json.gz'):
+            if file_name.endswith('00Z.json.gz', 4): # this will only consider 1-minute intervals
                 file_path = os.path.join(directory_path, file_name)
                 self.parse_and_save(file_path)
                 self.stdout.write(self.style.SUCCESS(f'Done with: {file_path}'))
@@ -33,26 +33,47 @@ class Command(BaseCommand):
         
         for aircraft in data.get('aircraft', []):
             hex_code = aircraft.get('hex')
-            if hex_code == "a73d45":
-                flight, _ = Flight.objects.get_or_create(
-                    hex=hex_code,
-                    defaults={
-                        'flight': aircraft.get('flight').strip(),
-                        'r': aircraft.get('r'),
-                        't': aircraft.get('t')
-                    }
-                )
-                alt_baro = aircraft.get('alt_baro')
-                alt_baro = None if isinstance(alt_baro, str) else alt_baro
-                if FlightRecord.objects.filter(flight=flight, timestamp=timestamp).exists():
-                    continue  # Skip this record if it already exists
-                FlightRecord.objects.create(
-                    flight=flight,
-                    timestamp=timestamp,
-                    lat=aircraft.get('lat'),
-                    lng=aircraft.get('lon'),
-                    alt_baro=alt_baro,
-                    alt_geom=aircraft.get('alt_geom'),
-                    track=aircraft.get('track'),
-                    gs=aircraft.get('gs')
-                )
+            if hex_code == "71ba08":
+                try:
+                    flight, _ = Flight.objects.get_or_create(
+                        hex=hex_code,
+                        defaults={
+                            'flight': aircraft.get('flight').strip(),
+                            'r': aircraft.get('r'),
+                            't': aircraft.get('t')
+                        }
+                    )
+                    alt_baro = aircraft.get('alt_baro')
+                    alt_baro = None if isinstance(alt_baro, str) else alt_baro
+                
+                    if FlightRecord.objects.filter(flight=flight, timestamp=timestamp).exists():
+                        print(f"Skipping {timestamp}")
+                        continue  # Skip this record if it already exists
+                    if(aircraft.get('lat') is None):
+                        print("using predicted coordinates")
+                        FlightRecord.objects.create(
+                            flight=flight,
+                            timestamp=timestamp,
+                            lat=aircraft.get('rr_lat'),
+                            lng=aircraft.get('rr_lon'),
+                            alt_baro=alt_baro,
+                            alt_geom=None,
+                            track=None,
+                            ground_speed=None
+                        )
+                    else:
+                        FlightRecord.objects.create(
+                            flight=flight,
+                            timestamp=timestamp,
+                            lat=aircraft.get('lat'),
+                            lng=aircraft.get('lon'),
+                            alt_baro=alt_baro,
+                            alt_geom=aircraft.get('alt_geom'),
+                            track=aircraft.get('track'),
+                            ground_speed=aircraft.get('gs')
+                        )
+                    print(f"FlightRecord: {flight}, {timestamp}, {aircraft.get('lat')}, {aircraft.get('lon')}")
+                except Exception as e:
+                    print("Error: ", e)
+                    
+                    

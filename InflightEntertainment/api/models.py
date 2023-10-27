@@ -20,7 +20,7 @@ class FlightRecord(models.Model):
     alt_baro = models.IntegerField(null=True, blank=True)  # Barometric Altitude
     alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
     track = models.FloatField(null=True, blank=True)  # Track
-    gs = models.FloatField(null=True, blank=True)  # Ground Speed
+    ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
 
     class Meta:
         unique_together = ['flight', 'timestamp']  # Each record must be unique per flight and timestamp
@@ -28,17 +28,9 @@ class FlightRecord(models.Model):
     def __str__(self):
         return f"{self.flight.flight} - {self.timestamp}"
 
-# class CameraPosition(models.Model):
-#     lat = models.FloatField()
-#     lng = models.FloatField()
-#     zoom = models.IntegerField()
-
-#     def __str__(self):
-#         return "lat: " + str(self.lat) + "    lng: " + str(self.lng) + "   zoom: " + str(self.zoom)
-
 class Airport(models.Model):
     id = models.AutoField(primary_key=True)
-    ident = models.CharField(max_length=10)
+    identifier = models.CharField(max_length=10)
     type = models.CharField(max_length=20)
     name = models.CharField(max_length=20)
     lat = models.FloatField()
@@ -47,7 +39,6 @@ class Airport(models.Model):
     def __str__(self):
         return f"id: {self.id}, name: {self.name}, lat: {self.lat}, lng: {self.lng}"
     
-# TODO: Convert to generic marker
 class Marker(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20)
@@ -65,7 +56,8 @@ class Marker(models.Model):
     
 class Polyline(models.Model):
     aircraftID = models.IntegerField(null=True)
-    airportID = models.IntegerField(null=True)
+    airportIDTo = models.IntegerField(null=True)
+    airportIDFrom = models.IntegerField(null=True)
     onMap = models.BooleanField(default=False)
     toRemove = models.BooleanField(default=False)
 

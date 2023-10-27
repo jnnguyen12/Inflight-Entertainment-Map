@@ -18,14 +18,17 @@ class Command(BaseCommand):
         with open(directory_path, newline='') as csvfile:
             spamreader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
             for row in spamreader:
-                print(row['id'], row['name'], row['latitude_deg'], row['longitude_deg'])
-                if row['id'] != '':
-                    Airport.objects.create(
-                        id=row['id'],
-                        ident=row['ident'],
-                        name=row['name'],
-                        lat=row['latitude_deg'],
-                        lng=row['longitude_deg']
-                    )
+                try:
+                    print(row['id'], row['name'], row['latitude_deg'], row['longitude_deg'])
+                    if row['id'] != '':
+                        Airport.objects.create(
+                            id=row['id'],
+                            ident=row['ident'],
+                            name=row['name'],
+                            lat=row['latitude_deg'],
+                            lng=row['longitude_deg']
+                        )
+                except:
+                    print("Error: couldn't parse row ", row['id'])
 
             

@@ -51,20 +51,27 @@ def flyToMarkerID(request, markerID):
 
 @api_view(['GET'])
 def flyToLastMarker(request):
-    marker = Marker.objects.get(flyTo=True)
+    try:
+        marker = Marker.objects.get(flyTo=True)
+    except:
+        return HttpResponse(status=204) #No content
+    
     marker.flyTo = False
     marker.save()
-
     ser = MarkerSerializer(marker)
     temp = ser.data
     temp["zoom"] = 11
     print("Backend flyToLastMarker: ", str(temp))
     return Response(temp)
     
-# Need to add marker ID -- or just use the flight as ID?
+
 @api_view(['FETCH', 'GET'])
 def addMarker(request):
-    markers = Marker.objects.all().filter(onMap=False)
+    try:
+        markers = Marker.objects.all().filter(onMap=False)
+    except:
+        return HttpResponse(status=204)
+    
     data = []
     for m in markers:
         m.onMap = True
@@ -79,29 +86,14 @@ def addMarker(request):
 # Also need to re-implement the FlightRecord based approach (commented below)
 @api_view(['FETCH', 'GET'])
 def updateMarker(request):
-    marker = Marker.objects.get(type='aircraft')
+    try:
+        marker = Marker.objects.get(type='aircraft')
+    except:
+        return HttpResponse(status=204)
+    
     ser = MarkerSerializer(marker)
     return Response(ser.data)
 
-# # This updates marker based on FlightRecords from json
-# @api_view(['GET'])
-# def updateMarker(request):
-#     marker = Marker.objects.all().filter(type='aircraft')
-#     ser = MarkerSerializer(marker)
-#     print(f"UPDATE MARKER: marker {marker}, ser {ser.data['timestamp']}")
-#     format = "%Y-%m-%dT%H:%M:%S.%fZ"
-#     new_time = datetime.strptime(ser.data['timestamp'], format) + timedelta(seconds=60)
-#     # Need to change this to not rely on matching timestamps
-#     # record = FlightRecord.objects.get(flight=marker.flight, 
-#     #                                            timestamp__gte=new_time - timedelta(seconds=1),
-#     #                                            timestamp__lte=new_time + timedelta(seconds=1))
-#     marker.timestamp = record.timestamp
-#     marker.lat = record.lat
-#     marker.lng = record.lng
-#     marker.save(update_fields=["lat", "lng", "timestamp"])
-#     ser = MarkerSerializer(marker)
-
-#     return Response(ser.data)
 
 # Not sure what to return on these
 @api_view(['GET'])
@@ -121,12 +113,11 @@ def clearMarkers(request):
     return HttpResponse(data)
 
 
-# TODO: dont return marker objects just return their IDs
 @api_view(['GET'])
 def addPolyline(request):
-    lines = Polyline.objects.all().filter(onMap=False)
+    polylines = Polyline.objects.all().filter(onMap=False)
     data = []
-    for p in lines:
+    for p in polylines:
         p.onMap = True
         p.save(update_fields=["onMap"])
         ser = PolylineSerializer(p)
@@ -136,10 +127,21 @@ def addPolyline(request):
 
 @api_view(['GET'])
 def removePolyline(request):
-    lines = Polyline.objects.all().filter(toRemove=True)
+    try:
+        polylines = Polyline.objects.all().filter(toRemove=True)
+    except:
+        return HttpResponse(status=204)
+    
     data = []
-    for p in lines:
+    for p in polylines:
         ser = PolylineSerializer(p)
         data.append(ser.data)
         p.delete()
     return Response(data)
+
+# @api_view(['GET'])
+# def wellnessCheck(request):
+#     return Response("airports")
+
+# @api_view(['POST'])
+# def getFrontendData(request, data):

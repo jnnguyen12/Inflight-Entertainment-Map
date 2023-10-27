@@ -7,8 +7,8 @@ from django.utils import timezone
 class Command(BaseCommand):
     def handle(self, *args, **options):
         flight = get_object_or_404(Flight, Q(hex='DEMO') | Q(flight='DEMO'))
-        a1 = get_object_or_404(Airport, Q(name='Ames Airport'))
-        a2 = get_object_or_404(Airport, Q(name='Des Moines Airport'))
+        a1 = get_object_or_404(Airport, Q(name='Demo Airport 1'))
+        a2 = get_object_or_404(Airport, Q(name='Demo Airport 2'))
         Marker.objects.filter(flight=flight).delete()
         Marker.objects.filter(airport=a1).delete()
         Marker.objects.filter(airport=a2).delete()

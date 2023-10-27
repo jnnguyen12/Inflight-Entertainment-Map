@@ -23,8 +23,6 @@ urlpatterns = [
     path('addPolylinePayload/', views.addPolyline, name="addPolyline"),
     path('removePolylinePayload/', views.removePolyline, name="removePolyline"),
 
-    # Demo
-    # path('startDemo/', views.startDemo, name="startDemo"),
-    # path('updateDemo/', views.updateDemo, name="updateDemo"),
+#    path('WellnessCheck/', views.wellnessCheck, name="Wellness Check")
     
 ]

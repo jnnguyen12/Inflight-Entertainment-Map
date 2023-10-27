@@ -27,15 +27,8 @@ class InteractiveMap extends React.Component {
         setInterval(this.handleUpdateMarker, 5000);
         setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
-        setInterval(this.handleClearMap, 10000);
+        //setInterval(this.handleClearMap, 10000);
 
-        // this.handleFlyToLocation();
-        // this.handleAddMarker();
-        // this.handleRemoveMarker();
-        // this.handleUpdateMarker();
-        // this.handleAddPolyline();
-        // this.handleRemovePolyline();
-        // this.handleClearMap();
     }
 
     componentWillUnmount() {
@@ -65,7 +58,6 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleFlyToLocation(); }, 100);
     };
 
     handleAddMarker = async () => {
@@ -93,7 +85,6 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleAddMarker(); }, 100);
     };
 
     handleRemoveMarker = async () => {
@@ -117,7 +108,6 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleRemoveMarker(); }, 100);
     };
 
     handleUpdateMarker = async () => {
@@ -141,7 +131,6 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleUpdateMarker(); }, 100);
     };
 
     handleAddPolyline = async () => {
@@ -149,27 +138,28 @@ class InteractiveMap extends React.Component {
             const response = await fetch('/api/addPolylinePayload/');
             const data = parseText(await response.text())
             if(data == 0) return;
-            console.log("aircraft: %d, airport: %d", data.aircraftID, data.airportID);
+            console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data.aircraftID, data.airportIDFrom, data.airportIDTo);
             if (!Array.isArray(data)) {
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data.aircraftID,
-                    airportIdTo: data.airportID,
-                    airportIdFrom: "none"
+                    airportIdTo: data.airportIDTo,
+                    airportIdFrom: data.airportIDFrom
                 });
                 return;
             }
             for (var index = 0; index < data.length; index++) {
+                console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data[index].aircraftID, data[index].airportIDFrom, data[index].airportIDTo);
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data[index].aircraftID,
-                    airportIdTo: data[index].airportID,
-                    airportIdFrom: "none"
+                    airportIdTo: data[index].airportIDTo,
+                    airportIdFrom: data[index].airportIDFrom
                 });
             }
         } catch (error) {
             console.error('Error:', error);
         }
         // setTimeout(() => { this.handleAddPolyline(); }, 100);
-    };
+    }; 
 
     handleRemovePolyline = async () => {
         try {
@@ -186,7 +176,6 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleRemovePolyline(); }, 100);
     };
 
     handleClearMap = async () => {
@@ -200,28 +189,20 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleClearMap(); }, 2500);
     };
 
     handleResponseWellnessCheck = async () => {
         try {
             const response = await fetch('/api/WellnessCheck/');
+            const responseData = await response.json();
             const valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
-            const ExpectingData = parseText(await response.text())
-            if(ExpectingData == 0) return;
-            const payload = {}
-            if (!Array.isArray(ExpectingData)){
-                for(let index = 0; index < valid.size; index++){
-                    if(valid[index] in ExpectingData){
-                        payload[valid[index]] = this.mapRef.current?.sendData(valid[index])
-                    }
-                }
+            if (responseData.message in valid){
                 const sendResponse = await fetch('/api/FrontEndData/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(this.mapRef.current?.sendData(responseData.message)),
                 });
             }
         } catch (error) {
