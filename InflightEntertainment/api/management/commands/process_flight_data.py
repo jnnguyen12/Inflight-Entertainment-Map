@@ -49,16 +49,31 @@ class Command(BaseCommand):
                     if FlightRecord.objects.filter(flight=flight, timestamp=timestamp).exists():
                         print(f"Skipping {timestamp}")
                         continue  # Skip this record if it already exists
-                    FlightRecord.objects.create(
-                        flight=flight,
-                        timestamp=timestamp,
-                        lat=aircraft.get('lat'),
-                        lng=aircraft.get('lon'),
-                        alt_baro=alt_baro,
-                        alt_geom=aircraft.get('alt_geom'),
-                        track=aircraft.get('track'),
-                        gs=aircraft.get('gs')
-                    )
+                    if(aircraft.get('lat') is None):
+                        print("using predicted coordinates")
+                        FlightRecord.objects.create(
+                            flight=flight,
+                            timestamp=timestamp,
+                            lat=aircraft.get('rr_lat'),
+                            lng=aircraft.get('rr_lon'),
+                            alt_baro=alt_baro,
+                            alt_geom=None,
+                            track=None,
+                            ground_speed=None
+                        )
+                    else:
+                        FlightRecord.objects.create(
+                            flight=flight,
+                            timestamp=timestamp,
+                            lat=aircraft.get('lat'),
+                            lng=aircraft.get('lon'),
+                            alt_baro=alt_baro,
+                            alt_geom=aircraft.get('alt_geom'),
+                            track=aircraft.get('track'),
+                            ground_speed=aircraft.get('gs')
+                        )
                     print(f"FlightRecord: {flight}, {timestamp}, {aircraft.get('lat')}, {aircraft.get('lon')}")
-                except:
-                    print("Error: couldn't parse record")
+                except Exception as e:
+                    print("Error: ", e)
+                    
+                    
