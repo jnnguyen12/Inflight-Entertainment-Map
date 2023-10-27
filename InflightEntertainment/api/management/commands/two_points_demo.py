@@ -4,8 +4,9 @@ from django.db.models import Q
 from api.models import Flight, Airport, Marker, FlightRecord, Polyline
 from django.utils import timezone
 
-from datetime import datetime
+from django.utils import timezone
 import time
+import pytz
 
 # Creates flight between ames and des moines airports and updates DB
 class Command(BaseCommand):
@@ -40,22 +41,21 @@ class Command(BaseCommand):
     def loopDemo(self, **options):
         print("Looping through demo flight path")
         lat1 = options.get('lat1')
+        lng1 = options.get('lng1')
         lat2 = options.get('lat2')
         lng2 = options.get('lng2')
 
-        #Determine direction
-        y_dir = 1 if lat1 < lat2 else -1
-        x_dir = 1 if lng1 < lng2 else -1
-        
+        print(f"Start: {lat1}, {lng1}\nFinish: {lat2}, {lng2}")
+        print(f"lat_step: {self.lat_step}, lng_step: {self.lng_step}")
 
         flight_key = get_object_or_404(Flight, Q(hex='DEMO') | Q(flight='DEMO'))
         marker = get_object_or_404(Marker, Q(flight=flight_key))
         while(True):
-            time.sleep(3)
+            time.sleep(1)
             if(not(marker.lat > lat2 - 0.05 and marker.lat < lat2 + 0.05 and marker.lng > lng2 - 0.005 and marker.lng < lng2 + 0.005)):
-                marker.lat += self.lat_step * y_dir
-                marker.lng += self.lng_step * x_dir
-                marker.timestamp = datetime.now()
+                marker.lat += self.lat_step #* y_dir
+                marker.lng += self.lng_step #* x_dir
+                marker.timestamp = timezone.now()
                 marker.save(update_fields=["lat", "lng", "timestamp"])
             else:
                 self.clearDemo()
@@ -70,7 +70,7 @@ class Command(BaseCommand):
         lng2 = options.get('lng2')
 
         flight = Flight(hex='DEMO', flight="DEMO")
-        timestamp = datetime.now()
+        timestamp = timezone.now()
         markerFlight = Marker(type='aircraft', lat=lat1, lng=lng1, flight=flight, timestamp=timestamp, flyTo=True)
         a1 = Airport(id=1, name="Demo Airport 1", lat=lat1, lng=lng1)
         markerA1 = Marker(type='airport', lat=lat1, lng=lng1, airport=a1, timestamp=timestamp)
@@ -91,5 +91,6 @@ class Command(BaseCommand):
         lng_diff = lng2 - lng1
         self.lat_step = lat_diff / 20
         self.lng_step = lng_diff / 20
+        
 
         self.loopDemo(**options)
