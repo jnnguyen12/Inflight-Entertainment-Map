@@ -1,11 +1,21 @@
 import React from 'react';
 import LeafletMap from './LeafletMap';
+import RndHandler from './functions/RndHandler';
+
+interface InteractiveMapProps {
+    // passing a value from RndHandler whether leaflet is fucking moving
+    leafletMapMoving: boolean;
+}
 
 class InteractiveMap extends React.Component {
     private mapRef = React.createRef<LeafletMap>();
+    private leafletMapMoving: boolean;
 
-    constructor(props: {}) {
+    constructor(props) {
         super(props);
+        this.state = {
+            // mapMoving: this.props.leafletMapMoving
+        }
     }
 
     // On load function
@@ -152,10 +162,25 @@ class InteractiveMap extends React.Component {
         }
     };
 
+     /**
+   *  functions to expose the dragging functionality to parent's component.
+   */
+  disableDragging() {
+    this.mapRef.current.disableDragging();
+  };
+
+  enableDragging() {
+    this.mapRef.current.enableDragging();
+  }
+  
+    
+
     render() {
+        // const {mapMoving} = this.state;
         return (
             <div>
-                <LeafletMap ref={this.mapRef} />
+                {/* <LeafletMap ref={this.mapRef}/> */}
+                <LeafletMap ref={this.mapRef}/>
             </div>
         );
     }

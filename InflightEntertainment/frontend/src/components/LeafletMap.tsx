@@ -18,15 +18,15 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 
 
-
 interface LeafletMapState {
   markers: LeafletMarker[];
   polylines: LeafletPolyline[];
   lat: number;
   lng: number;
   zoom: number;
-  stopMove: boolean;
-
+  // stopMove: boolean;
+  dragging: boolean;
+  // onMapMove: () => void;
 }
 
 interface LeafletPolyline {
@@ -79,7 +79,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lat: 0,
       lng: 0,
       zoom: 0,
-      stopMove: false,
+      // stopMove: false,
+      dragging: true,
+      // onMapMove: this.enableDragging
     };
   }
   
@@ -94,6 +96,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       scrollWheelZoom: true, // This makes it look bad
       maxZoom: 12,
       minZoom: 3,
+      touchZoom: false,
       // gestureHandling: true
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
@@ -218,6 +221,16 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+  /**
+   *  functions to expose the dragging functionality to parent's component.
+   */
+  disableDragging() {
+    this.map.dragging.disable();
+  };
+
+  enableDragging() {
+    this.map.dragging.enable();
+  }
   
   
   //render the map
@@ -243,7 +256,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           >
           <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
       </Rnd> */}
-      <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
+      <div id="map" className="resizable-map-container" ref={this.mapRef} ></div>
       </>
     );
   }
