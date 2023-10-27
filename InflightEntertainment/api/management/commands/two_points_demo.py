@@ -41,7 +41,6 @@ class Command(BaseCommand):
         print("Looping through demo flight path")
         lat1 = options.get('lat1')
         lat2 = options.get('lat2')
-        lng1 = options.get('lng1')
         lng2 = options.get('lng2')
 
         #Determine direction
