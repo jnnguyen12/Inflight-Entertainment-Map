@@ -5,7 +5,7 @@ import '../App.css';
 
 // Leaflet
 import L, { LatLngExpression, Marker } from "leaflet";
-import {BuildMarker} from './functions/BuildMarker';
+import { BuildMarker } from './functions/BuildMarker';
 
 //Styling
 import './MapStyling.css';
@@ -128,7 +128,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     });
   }
 
-  sendData(dataType: string){
+  sendData(dataType: string) {
     switch (dataType) {
       case "aircraft":
         return this.state.aircrafts;
@@ -144,7 +144,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         }
       default:
         console.warn("sendData: type not found")
-        return {type: "Not found"};
+        return { type: "Not found" };
     }
   }
 
@@ -153,7 +153,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     let newMarker;
     switch (newMarkerProps.type) {
       case "aircraft":
-        if (this.state.aircrafts.hasOwnProperty(newMarkerProps.id)){
+        if (this.state.aircrafts.hasOwnProperty(newMarkerProps.id)) {
           console.warn("addMarkers: aircraft id already exists")
           return;
         }
@@ -162,7 +162,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         this.state.aircrafts[newMarkerProps.id] = newMarker
         return;
       case "airport":
-        if (this.state.airports.hasOwnProperty(newMarkerProps.id)){
+        if (this.state.airports.hasOwnProperty(newMarkerProps.id)) {
           console.warn("addMarkers: airport id already exists")
           return;
         }
@@ -171,7 +171,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         this.state.airports[newMarkerProps.id] = newMarker
         return;
       case "landmark":
-        if (this.state.landmarks.hasOwnProperty(newMarkerProps.id)){
+        if (this.state.landmarks.hasOwnProperty(newMarkerProps.id)) {
           console.warn("addMarkers: landmark id already exists")
           return;
         }
@@ -189,7 +189,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   removeMarker(payload: RemoveMarker) {
     switch (payload.type) {
       case "aircraft":
-        if (this.state.aircrafts.hasOwnProperty(payload.id)){
+        if (this.state.aircrafts.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find aircraft id")
           return;
         }
@@ -197,7 +197,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.aircrafts[payload.id];
         return;
       case "airport":
-        if (this.state.airports.hasOwnProperty(payload.id)){
+        if (this.state.airports.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find airport id")
           return;
         }
@@ -205,7 +205,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.airports[payload.id];
         return;
       case "landmark":
-        if (this.state.landmarks.hasOwnProperty(payload.id)){
+        if (this.state.landmarks.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find landmark id")
           return;
         }
@@ -220,7 +220,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   // Moveing a marker based on its index
   moveMarkers(payload: MoveMarker) {
-    if (!this.state.aircrafts.hasOwnProperty(payload.movingMarkerId)){
+    if (!this.state.aircrafts.hasOwnProperty(payload.movingMarkerId)) {
       console.warn("moveMarkers: Could not find aircraft Id");
       return;
     }
@@ -230,13 +230,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       return;
     }
     const polyline = this.state.polylines[payload.movingMarkerId]
-    if (!this.state.airports.hasOwnProperty(polyline.airportIdTo)){
+    if (!this.state.airports.hasOwnProperty(polyline.airportIdTo)) {
       console.warn("moveMarkers: Could not find airport To Id");
       return;
     }
     polyline.polylineTo.setLatLngs([this.state.aircrafts[payload.movingMarkerId].getLatLng(), this.state.airports[polyline.airportIdTo].getLatLng()]);
     if (!polyline.polylineFrom) return;
-    if (!this.state.airports.hasOwnProperty(polyline.airportIdFrom)){
+    if (!this.state.airports.hasOwnProperty(polyline.airportIdFrom)) {
       console.warn("moveMarkers: Could not find airport from Id");
       return;
     }
@@ -244,15 +244,19 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   }
 
   drawPolyLine(payload: PolyLineMaker) {
-    if (!this.state.aircrafts.hasOwnProperty(payload.aircraftId)){
+    if (!this.state.aircrafts.hasOwnProperty(payload.aircraftId)) {
       console.warn("drawPolyLine: Could not find aircraft id");
       return;
     }
-    if (!this.state.airports.hasOwnProperty(payload.airportIdTo)){
+    if (!this.state.airports.hasOwnProperty(payload.airportIdTo)) {
       console.warn("drawPolyLine: Could not find airportTo id");
       return;
     }
     if (payload.airportIdFrom) {
+      if (!this.state.airports.hasOwnProperty(payload.airportIdFrom)) {
+        console.warn("drawPolyLine: Could not find airportFrom id");
+        return;
+      }
       this.state.polylines[payload.aircraftId] = {
         airportIdTo: payload.airportIdTo,
         airportIdFrom: payload.airportIdFrom,
@@ -277,10 +281,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.log("Polylines: ", this.state.polylines);
     }
     else {
-      if (!this.state.airports.hasOwnProperty(payload.airportIdFrom)){
-        console.warn("drawPolyLine: Could not find airportFrom id");
-        //return;
-      } 
       this.state.polylines[payload.aircraftId] = {
         airportIdTo: payload.airportIdTo,
         airportIdFrom: payload.airportIdFrom,
@@ -296,19 +296,18 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       }
     }
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map)
-    
-    if(this.state.polylines.hasOwnProperty(payload.aircraftId)) {
+    if (this.state.polylines.hasOwnProperty(payload.aircraftId)) {
       console.warn("in dict!");
       console.log(this.state.polylines)
     }
   }
 
   removePolyLine(polyLineId: string) {
-    if (!this.state.polylines.hasOwnProperty(polyLineId)){ 
+    if (!this.state.polylines.hasOwnProperty(polyLineId)) {
       console.warn("removePolyLine: Could not find polyline id");
       return;
     }
-    if (this.state.polylines[polyLineId].polylineFrom) this.map!.removeLayer(this.state.polylines[polyLineId].polylineFrom);    
+    if (this.state.polylines[polyLineId].polylineFrom) this.map!.removeLayer(this.state.polylines[polyLineId].polylineFrom);
     this.map!.removeLayer(this.state.polylines[polyLineId].polylineTo)
     delete this.state.polylines[polyLineId];
   }
