@@ -4,40 +4,42 @@ import React from 'react';
 import '../App.css';
 
 // Leaflet
-import L, { LatLngExpression, marker } from "leaflet";
-// import { MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet';
-import BuildMarker from './functions/BuildMarker';
+import L, { LatLngExpression, Marker } from "leaflet";
+import {BuildMarker} from './functions/BuildMarker';
 
 //Styling
 import './MapStyling.css';
 
-
-
 interface LeafletMapState {
-  markers: LeafletMarker[];
-  polylines: LeafletPolyline[];
+  airports: { [key: string]: Marker };
+  aircrafts: { [key: string]: Marker };
+  landmarks: { [key: string]: Marker };
+  polylines: { [key: string]: LeafletPolyline };
   lat: number;
   lng: number;
   zoom: number;
 }
 
+// the key for the polyline is the aircraft key
 interface LeafletPolyline {
-  id: string;
-  aircraftId: string
-  airportId: string
-  polyline: L.Polyline;
-}
-
-interface LeafletMarker {
-  id: string;
-  marker: L.Marker;
+  airportIdTo: string
+  airportIdFrom: string
+  polylineTo: L.Polyline;
+  polylineFrom: L.Polyline | any
 }
 
 interface MakeMaker {
+  id: string;
   type: string;
   coords: LatLngExpression;
   element: JSX.Element;
 }
+
+interface RemoveMarker {
+  id: string;
+  type: string;
+}
+
 
 interface MoveMarker {
   movingMarkerId: string;
@@ -52,29 +54,30 @@ interface flyToPosition {
 
 interface PolyLineMaker {
   aircraftId: string
-  airportId: string
+  airportIdTo: string
+  airportIdFrom: string
 }
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
   private map: L.Map | null
-
   constructor(props) {
     super(props)
     this.map = null;
     this.mapRef = React.createRef();
     this.state = {
-      markers: [],
-      polylines: [],
+      airports: {},
+      aircrafts: {},
+      landmarks: {},
+      polylines: {},
       lat: 0,
       lng: 0,
       zoom: 0,
     };
   }
 
-  componentDidMount() {
-    // Makes the map 
+  makeMap() {
     this.map = L.map('map', {
       zoomControl: false,     // Removes defaults 
       zoomAnimation: true,    // Enable smooth zoom animation
@@ -87,46 +90,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
-
-
-    // Add offine part here !
   }
 
-  drawPolyLine(payload: PolyLineMaker) {
-    const aircraft = this.state.markers.find(marker => marker.id === payload.aircraftId);
-    const airport = this.state.markers.find(marker => marker.id === payload.airportId)
-    if (aircraft && airport) {
-      const newPolyline: LeafletPolyline = {
-        id: aircraft.id,
-        aircraftId: aircraft.id,
-        airportId: airport.id,
-        polyline: L.polyline([aircraft.marker.getLatLng(), airport.marker.getLatLng()], {
-          dashArray: [10],
-          interactive: false,
-          stroke: true,
-          color: 'black',
-          smoothFactor: 100,
-          opacity: 2
-        })
-      }
-      newPolyline.polyline.addTo(this.map)
-      this.state.polylines.push(newPolyline);
-    }
-  }
-
-  removePolyLine(polyLineId) {
-    const lineIndex = this.state.polylines.findIndex(line => line.id === polyLineId);
-    if (lineIndex !== -1) {
-      const polyline = this.state.polylines[lineIndex];
-      this.state.polylines.splice(lineIndex, 1);
-      this.map!.removeLayer(polyline.polyline);
-    }
+  componentDidMount() {
+    this.makeMap()
   }
 
   // Cleanup removes map
   componentWillUnmount() {
     if (this.map) {
-      this.clearMap()
       this.map.remove();
     }
   }
@@ -143,61 +115,196 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     })
   }
 
-  // We have the markers on initializatoion now we need to add them to the map
-  addMarkers(newMarkerProps: MakeMaker | any) {
-    const existingMarker = this.state.markers.find(marker => marker.id === newMarkerProps.id);
-    if (!existingMarker) {
-      const newMarker: LeafletMarker = {
-        id: newMarkerProps.id,
-        marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
-      }
-      console.log("Adding marker " + newMarker.id);
-      newMarker.marker.addTo(this.map!);
-      this.state.markers.push(newMarker)
+  // Cleanup
+  clearMap() {
+    // Just makes a new map
+    this.makeMap();
+    // Clears markerlist
+    this.setState({
+      airports: {},
+      aircrafts: {},
+      landmarks: {},
+      polylines: {}
+    });
+  }
+
+  sendData(dataType: string){
+    switch (dataType) {
+      case "aircraft":
+        return this.state.aircrafts;
+      case "airport":
+        return this.state.airports;
+      case "landmark":
+        return this.state.landmarks;
+      case "camera":
+        return {
+          lat: this.state.lat,
+          lng: this.state.lng,
+          zoom: this.state.zoom
+        }
+      default:
+        console.warn("sendData: type not found")
+        return {type: "Not found"};
     }
   }
 
-  // Cleanup
-  clearMap() {
-    // Removes all markers on map
-    this.state.markers.forEach((marker) => {
-      this.map!.removeLayer(marker.marker);
-    });
-    this.state.polylines.forEach((line) => {
-      this.map!.removeLayer(line.polyline);
-    })
-    // Clears markerlist
-    this.setState({
-      markers: [],
-      polylines: []
-    });
-  }
-
-  // Moveing a marker based on its index
-  moveMarkers(payload: MoveMarker) {
-    const aircraft = this.state.markers.find(marker => marker.id === payload.movingMarkerId).marker;
-    if (aircraft) {
-      aircraft.setLatLng(payload.newCoords);
-      console.log("moved");
-      const polyline = this.state.polylines.find(line => line.aircraftId === payload.movingMarkerId);
-      if (polyline) {
-        const airport = this.state.markers.find(marker => marker.id === polyline.airportId).marker;
-        if (airport) {
-          console.log("Update Polyline");
-          polyline.polyline.setLatLngs([aircraft.getLatLng(), airport.getLatLng()]);
+  // We have the markers on initializatoion now we need to add them to the map
+  addMarkers(newMarkerProps: MakeMaker) {
+    let newMarker;
+    switch (newMarkerProps.type) {
+      case "aircraft":
+        if (this.state.aircrafts.hasOwnProperty(newMarkerProps.id)){
+          console.warn("addMarkers: aircraft id already exists")
+          return;
         }
-      }
+        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+        newMarker.addTo(this.map!);
+        this.state.aircrafts[newMarkerProps.id] = newMarker
+        return;
+      case "airport":
+        if (this.state.airports.hasOwnProperty(newMarkerProps.id)){
+          console.warn("addMarkers: airport id already exists")
+          return;
+        }
+        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+        newMarker.addTo(this.map!);
+        this.state.airports[newMarkerProps.id] = newMarker
+        return;
+      case "landmark":
+        if (this.state.landmarks.hasOwnProperty(newMarkerProps.id)){
+          console.warn("addMarkers: landmark id already exists")
+          return;
+        }
+        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+        newMarker.addTo(this.map!);
+        this.state.landmarks[newMarkerProps.id] = newMarker
+        return;
+      default:
+        console.warn("addMarkers: type not found")
+        return;
     }
   }
 
   // removing a marker based on its index
-  removeMarker(markerId) {
-    const markerIndex = this.state.markers.findIndex(marker => marker.id === markerId);
-    if (markerIndex !== -1) {
-      const marker = this.state.markers[markerIndex];
-      this.state.markers.splice(markerIndex, 1);
-      this.map!.removeLayer(marker.marker);
+  removeMarker(payload: RemoveMarker) {
+    switch (payload.type) {
+      case "aircraft":
+        if (this.state.aircrafts.hasOwnProperty(payload.id)){
+          console.warn("removeMarker: Could not find aircraft id")
+          return;
+        }
+        this.map!.removeLayer(this.state.aircrafts[payload.id]);
+        delete this.state.aircrafts[payload.id];
+        return;
+      case "airport":
+        if (this.state.airports.hasOwnProperty(payload.id)){
+          console.warn("removeMarker: Could not find airport id")
+          return;
+        }
+        this.map!.removeLayer(this.state.airports[payload.id]);
+        delete this.state.airports[payload.id];
+        return;
+      case "landmark":
+        if (this.state.landmarks.hasOwnProperty(payload.id)){
+          console.warn("removeMarker: Could not find landmark id")
+          return;
+        }
+        this.map!.removeLayer(this.state.landmarks[payload.id]);
+        delete this.state.landmarks[payload.id];
+        return;
+      default:
+        console.warn("removeMarker: type not found")
+        return;
     }
+  }
+
+  // Moveing a marker based on its index
+  moveMarkers(payload: MoveMarker) {
+    if (!this.state.aircrafts.hasOwnProperty(payload.movingMarkerId)){
+      console.warn("moveMarkers: Could not find aircraft Id");
+      return;
+    }
+    this.state.aircrafts[payload.movingMarkerId].setLatLng(payload.newCoords)
+    if (!this.state.polylines.hasOwnProperty(payload.movingMarkerId)) {
+      console.warn("moveMarkers: Could not find polyline Id");
+      return;
+    }
+    const polyline = this.state.polylines[payload.movingMarkerId]
+    if (!this.state.airports.hasOwnProperty(polyline.airportIdTo)){
+      console.warn("moveMarkers: Could not find airport To Id");
+      return;
+    }
+    polyline.polylineTo.setLatLngs([this.state.aircrafts[payload.movingMarkerId].getLatLng(), this.state.airports[polyline.airportIdTo].getLatLng()]);
+    if (!polyline.polylineFrom) return;
+    if (!this.state.airports.hasOwnProperty(polyline.airportIdFrom)){
+      console.warn("moveMarkers: Could not find airport from Id");
+      return;
+    }
+    polyline.polylineFrom.setLatLngs([this.state.aircrafts[payload.movingMarkerId].getLatLng(), this.state.airports[polyline.airportIdFrom].getLatLng()]);
+  }
+
+  drawPolyLine(payload: PolyLineMaker) {
+    if (!this.state.aircrafts.hasOwnProperty(payload.aircraftId)){
+      console.warn("drawPolyLine: Could not find aircraft id");
+      return;
+    }
+    if (!this.state.airports.hasOwnProperty(payload.airportIdTo)){
+      console.warn("drawPolyLine: Could not find airportTo id");
+      return;
+    }
+    if (payload.airportIdFrom) {
+      this.state.polylines[payload.aircraftId] = {
+        airportIdTo: payload.airportIdTo,
+        airportIdFrom: payload.airportIdFrom,
+        polylineTo: L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdTo].getLatLng()], {
+          dashArray: [10],
+          interactive: false,
+          stroke: true,
+          color: 'red',
+          smoothFactor: 100,
+          opacity: 2
+        }),
+        polylineFrom: false
+      }
+    }
+    else {
+      if (!this.state.airports.hasOwnProperty(payload.airportIdFrom)){
+        console.warn("drawPolyLine: Could not find airportFrom id");
+        return;
+      } 
+      this.state.polylines[payload.aircraftId] = {
+        airportIdTo: payload.airportIdTo,
+        airportIdFrom: payload.airportIdFrom,
+        polylineTo: L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdTo].getLatLng()], {
+          dashArray: [10],
+          interactive: false,
+          stroke: true,
+          color: 'red',
+          smoothFactor: 100,
+          opacity: 2
+        }),
+        polylineFrom: L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdFrom].getLatLng()], {
+          dashArray: [10],
+          interactive: false,
+          stroke: true,
+          color: 'black',
+          smoothFactor: 100,
+          opacity: 2
+        })
+      }
+      this.state.polylines[payload.aircraftId].polylineFrom.addTo(this.map)
+    }
+    this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map)
+  }
+
+  removePolyLine(polyLineId: string) {
+    if (!this.state.polylines.hasOwnProperty(polyLineId)){ 
+      console.warn("removePolyLine: Could not find polyline id");
+      return;
+    }
+    if (this.state.polylines[polyLineId].polylineFrom) this.map!.removeLayer(this.state.polylines[polyLineId].polylineFrom);    
+    this.map!.removeLayer(this.state.polylines[polyLineId].polylineTo)
+    delete this.state.polylines[polyLineId];
   }
 
   //render the map

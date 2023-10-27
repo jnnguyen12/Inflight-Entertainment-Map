@@ -84,7 +84,7 @@ class Command(BaseCommand):
         flight.save()
         markerFlight.save()
 
-        polyline = Polyline(aircraftID=markerFlight.id, airportID=markerA2.id)
+        polyline = Polyline(aircraftID=markerFlight.id, airportIDTo=markerA2.id, airportIDFrom=markerA1.id)
         polyline.save()
 
         lat_diff = lat2 - lat1

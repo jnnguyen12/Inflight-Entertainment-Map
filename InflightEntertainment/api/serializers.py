@@ -38,4 +38,4 @@ class PolylineSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Polyline
-        fields = ['aircraftID', 'airportID']
+        fields = ['aircraftID', 'airportIDTo', 'airportIDFrom']

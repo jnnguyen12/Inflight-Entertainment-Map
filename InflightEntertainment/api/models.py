@@ -56,7 +56,8 @@ class Marker(models.Model):
     
 class Polyline(models.Model):
     aircraftID = models.IntegerField(null=True)
-    airportID = models.IntegerField(null=True)
+    airportIDTo = models.IntegerField(null=True)
+    airportIDFrom = models.IntegerField(null=False)
     onMap = models.BooleanField(default=False)
     toRemove = models.BooleanField(default=False)
 
