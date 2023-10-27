@@ -27,7 +27,7 @@ class InteractiveMap extends React.Component {
         setInterval(this.handleUpdateMarker, 5000);
         setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
-        setInterval(this.handleClearMap, 10000);
+        //setInterval(this.handleClearMap, 10000);
 
     }
 
@@ -138,9 +138,8 @@ class InteractiveMap extends React.Component {
             const response = await fetch('/api/addPolylinePayload/');
             const data = parseText(await response.text())
             if(data == 0) return;
-            
+            console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data.aircraftID, data.airportIDFrom, data.airportIDTo);
             if (!Array.isArray(data)) {
-                console.log("aircraft: %d, airport: %d", data.aircraftID, data.airportIDTo, data.airportIDFrom);
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data.aircraftID,
                     airportIdTo: data.airportIDTo,
@@ -149,10 +148,10 @@ class InteractiveMap extends React.Component {
                 return;
             }
             for (var index = 0; index < data.length; index++) {
-                console.log("aircraft: %d, airport: %d", data[index].aircraftID, data[index].airportIDTo, data[index].airportIDFrom);
+                console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data[index].aircraftID, data[index].airportIDFrom, data[index].airportIDTo);
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data[index].aircraftID,
-                    airportIdTo: data[index].airportID,
+                    airportIdTo: data[index].airportIDTo,
                     airportIdFrom: data[index].airportIDFrom
                 });
             }
@@ -160,7 +159,7 @@ class InteractiveMap extends React.Component {
             console.error('Error:', error);
         }
         // setTimeout(() => { this.handleAddPolyline(); }, 100);
-    };
+    }; 
 
     handleRemovePolyline = async () => {
         try {

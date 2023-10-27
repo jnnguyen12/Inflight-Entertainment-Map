@@ -4,7 +4,7 @@ from .models import Flight, FlightRecord, Marker, Airport, Polyline
 class FlightRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlightRecord
-        fields = ['lat', 'lng', 'timestamp', 'alt_baro', 'alt_geom', 'track', 'gs']
+        fields = ['lat', 'lng', 'timestamp', 'alt_baro', 'alt_geom', 'track', 'ground_speed']
 
 class FlightSerializer(serializers.ModelSerializer):
     records = FlightRecordSerializer(many=True, read_only=True)
@@ -20,7 +20,7 @@ class FlightSerializer(serializers.ModelSerializer):
 
 class AirportSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    ident = serializers.CharField()
+    identifier = serializers.CharField()
     type = serializers.CharField()
     name = serializers.CharField()
     lat = serializers.FloatField()

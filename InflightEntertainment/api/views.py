@@ -113,13 +113,11 @@ def clearMarkers(request):
     return HttpResponse(data)
 
 
-# TODO: dont return marker objects just return their IDs
 @api_view(['GET'])
 def addPolyline(request):
-
-    lines = Polyline.objects.all().filter(onMap=False)
+    polylines = Polyline.objects.all().filter(onMap=False)
     data = []
-    for p in lines:
+    for p in polylines:
         p.onMap = True
         p.save(update_fields=["onMap"])
         ser = PolylineSerializer(p)
@@ -130,13 +128,20 @@ def addPolyline(request):
 @api_view(['GET'])
 def removePolyline(request):
     try:
-        lines = Polyline.objects.all().filter(toRemove=True)
+        polylines = Polyline.objects.all().filter(toRemove=True)
     except:
         return HttpResponse(status=204)
     
     data = []
-    for p in lines:
+    for p in polylines:
         ser = PolylineSerializer(p)
         data.append(ser.data)
         p.delete()
     return Response(data)
+
+# @api_view(['GET'])
+# def wellnessCheck(request):
+#     return Response("airports")
+
+# @api_view(['POST'])
+# def getFrontendData(request, data):

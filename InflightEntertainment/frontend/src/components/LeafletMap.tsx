@@ -264,13 +264,22 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           smoothFactor: 100,
           opacity: 2
         }),
-        polylineFrom: false
+        polylineFrom: L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdFrom].getLatLng()], {
+          dashArray: [10],
+          interactive: false,
+          stroke: true,
+          color: 'black',
+          smoothFactor: 100,
+          opacity: 2
+        })
       }
+      this.state.polylines[payload.aircraftId].polylineFrom.addTo(this.map);
+      console.log("Polylines: ", this.state.polylines);
     }
     else {
       if (!this.state.airports.hasOwnProperty(payload.airportIdFrom)){
         console.warn("drawPolyLine: Could not find airportFrom id");
-        return;
+        //return;
       } 
       this.state.polylines[payload.aircraftId] = {
         airportIdTo: payload.airportIdTo,
@@ -283,18 +292,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           smoothFactor: 100,
           opacity: 2
         }),
-        polylineFrom: L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdFrom].getLatLng()], {
-          dashArray: [10],
-          interactive: false,
-          stroke: true,
-          color: 'black',
-          smoothFactor: 100,
-          opacity: 2
-        })
+        polylineFrom: false
       }
-      this.state.polylines[payload.aircraftId].polylineFrom.addTo(this.map)
     }
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map)
+    
+    if(this.state.polylines.hasOwnProperty(payload.aircraftId)) {
+      console.warn("in dict!");
+      console.log(this.state.polylines)
+    }
   }
 
   removePolyLine(polyLineId: string) {

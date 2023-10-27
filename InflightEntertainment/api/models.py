@@ -20,7 +20,7 @@ class FlightRecord(models.Model):
     alt_baro = models.IntegerField(null=True, blank=True)  # Barometric Altitude
     alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
     track = models.FloatField(null=True, blank=True)  # Track
-    gs = models.FloatField(null=True, blank=True)  # Ground Speed
+    ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
 
     class Meta:
         unique_together = ['flight', 'timestamp']  # Each record must be unique per flight and timestamp
@@ -30,7 +30,7 @@ class FlightRecord(models.Model):
 
 class Airport(models.Model):
     id = models.AutoField(primary_key=True)
-    ident = models.CharField(max_length=10)
+    identifier = models.CharField(max_length=10)
     type = models.CharField(max_length=20)
     name = models.CharField(max_length=20)
     lat = models.FloatField()
@@ -57,7 +57,7 @@ class Marker(models.Model):
 class Polyline(models.Model):
     aircraftID = models.IntegerField(null=True)
     airportIDTo = models.IntegerField(null=True)
-    airportIDFrom = models.IntegerField(null=False)
+    airportIDFrom = models.IntegerField(null=True)
     onMap = models.BooleanField(default=False)
     toRemove = models.BooleanField(default=False)
 
