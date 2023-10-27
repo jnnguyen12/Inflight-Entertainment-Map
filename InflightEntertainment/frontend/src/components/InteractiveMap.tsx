@@ -206,15 +206,22 @@ class InteractiveMap extends React.Component {
     handleResponseWellnessCheck = async () => {
         try {
             const response = await fetch('/api/WellnessCheck/');
-            const responseData = await response.json();
             const valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
-            if (responseData.message in valid){
+            const ExpectingData = parseText(await response.text())
+            if(ExpectingData == 0) return;
+            const payload = {}
+            if (!Array.isArray(ExpectingData)){
+                for(let index = 0; index < valid.size; index++){
+                    if(valid[index] in ExpectingData){
+                        payload[valid[index]] = this.mapRef.current?.sendData(valid[index])
+                    }
+                }
                 const sendResponse = await fetch('/api/FrontEndData/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(this.mapRef.current?.sendData(responseData.message)),
+                    body: JSON.stringify(payload),
                 });
             }
         } catch (error) {
