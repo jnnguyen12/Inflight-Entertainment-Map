@@ -95,7 +95,7 @@ class FlightConsumer(WebsocketConsumer):
                 {
                     'type': 'add_flight_record',
                     'flight': {
-                        'flight': flight.flight  # Use the flight object from the database
+                        'flight': flight.flight
                     },
                     'record': {
                         'timestamp': record_data['timestamp'],

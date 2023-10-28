@@ -69,9 +69,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
-  // Offline implementation
-  //  L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
-  //{    maxZoom: 7  }).addTo(this.map);
+    // Offline implementation
+    //  L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
+    //{    maxZoom: 7  }).addTo(this.map);
 
   }
 
@@ -97,7 +97,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
     }
     newMarker.marker.addTo(this.map!);
-    this.state.markers.push(newMarker)
+    this.setState(prevState => ({
+      markers: [...prevState.markers, newMarker]
+    }));
   }
 
   // Cleanup
@@ -120,14 +122,20 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.log("moved");
     }
   }
+  
   // removing a marker based on its index
-  removeMarker(markerId){
+  removeMarker(markerId) {
     const markerIndex = this.state.markers.findIndex(marker => marker.id === markerId);
     if (markerIndex !== -1) {
       const marker = this.state.markers[markerIndex];
       this.state.markers.splice(markerIndex, 1);
       this.map!.removeLayer(marker.marker);
     }
+  }
+
+  // Checks if a marker exists
+  markerExists(markerId: number): boolean {
+    return this.state.markers.some(marker => marker.id === markerId);
   }
 
   //render the map
