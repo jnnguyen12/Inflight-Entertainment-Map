@@ -67,9 +67,8 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     }
     
     componentDidUpdate(prevProps: InteractiveMapProps) {
-        // If the flightRecords prop has changed...
+        // If the flightRecords prop has changed add the new flight records as markers.
         if (this.props.flightRecords !== prevProps.flightRecords) {
-            // ... add the new flight records as markers.
             for (let record of this.props.flightRecords) {
                 if (!prevProps.flightRecords.includes(record)) {
                     this.addFlightRecordAsMarker(record);
@@ -156,7 +155,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     
         if (previousRecords.length > 0) {
             const prevRecord = previousRecords[previousRecords.length - 1];
-            rotationAngle = calculateBearing(prevRecord.lat, prevRecord.lon, record.lat, record.lon);
+            rotationAngle = calculateRotation(prevRecord.lat, prevRecord.lon, record.lat, record.lon);
         }
     
         const markerDataPayload = {
@@ -177,7 +176,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         );
     }
 }
-function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateRotation(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const radLat1 = toRadians(lat1);
     const radLat2 = toRadians(lat2);
     const diffLong = toRadians(lon2 - lon1);
