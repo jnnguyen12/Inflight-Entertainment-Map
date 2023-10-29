@@ -144,16 +144,26 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     };
 
     addFlightRecordAsMarker = (record: FlightRecord) => {
-        // Check if a marker with the same ID already exists
         if (this.mapRef.current?.markerExists(record.flight.id)) {
-            // Remove the existing marker
             this.mapRef.current?.removeMarker(record.flight.id);
         }
-
+        let rotationAngle;
+    
+        // Check if the previous record for the flight exists
+        const previousRecords = this.props.flightRecords.filter(
+            r => r.flight.id === record.flight.id && r.timestamp < record.timestamp
+        );
+    
+        if (previousRecords.length > 0) {
+            const prevRecord = previousRecords[previousRecords.length - 1];
+            rotationAngle = calculateBearing(prevRecord.lat, prevRecord.lon, record.lat, record.lon);
+        }
+    
         const markerDataPayload = {
             id: record.flight.id,
             type: "aircraft",
             coords: { lat: record.lat, lng: record.lon },
+            rotationAngle: rotationAngle,
             element: <p>{record.flight.flight}</p>
         }
         this.mapRef.current?.addMarkers(markerDataPayload);
@@ -166,6 +176,27 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
             </div>
         );
     }
+}
+function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const radLat1 = toRadians(lat1);
+    const radLat2 = toRadians(lat2);
+    const diffLong = toRadians(lon2 - lon1);
+  
+    const x = Math.atan2(
+        Math.sin(diffLong) * Math.cos(radLat2),
+        Math.cos(radLat1) * Math.sin(radLat2) -
+        Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLong)
+    );
+  
+    return (toDegrees(x) + 360) % 360;
+}
+  
+function toRadians(degree: number): number {
+    return degree * Math.PI / 180;
+}
+  
+function toDegrees(radians: number): number {
+    return radians * 180 / Math.PI;
 }
 
 export default InteractiveMap;

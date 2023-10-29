@@ -94,7 +94,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   addMarkers(newMarkerProps: MakeMaker | any) {
     const newMarker: LeafletMarker = {
       id: newMarkerProps.id,
-      marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+      marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps.rotationAngle, newMarkerProps?.element)
     }
     newMarker.marker.addTo(this.map!);
     this.setState(prevState => ({
