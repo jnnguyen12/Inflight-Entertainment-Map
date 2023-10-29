@@ -27,4 +27,4 @@ urlpatterns = [
     # path('startDemo/', views.startDemo, name="startDemo"),
     # path('updateDemo/', views.updateDemo, name="updateDemo"),
     
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

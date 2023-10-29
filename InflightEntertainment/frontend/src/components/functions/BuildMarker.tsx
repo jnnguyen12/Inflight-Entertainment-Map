@@ -4,6 +4,7 @@ import L from "leaflet";
 import airport from '../assets/airport.png'
 import aircraft from '../assets/plane.png';
 import ReactDOMServer from 'react-dom/server';
+import 'leaflet-rotatedmarker'; 
 // import { stringify } from 'querystring';
 
 function JSXToHTMLElement(element: JSX.Element): HTMLElement {
@@ -15,8 +16,7 @@ function JSXToHTMLElement(element: JSX.Element): HTMLElement {
 
 
 
-
-function BuildMarker(type: string, position: L.LatLngExpression, popupContent?: JSX.Element){
+function BuildMarker(type: string, position: L.LatLngExpression, rotationAngle?: number, popupContent?: JSX.Element){
   let image;
   switch(type){
     case "plane":
@@ -35,6 +35,12 @@ function BuildMarker(type: string, position: L.LatLngExpression, popupContent?: 
     iconSize: new L.Point(35, 46),
     transition: "0.5s"
   })
+  const marker = new L.Marker(position, { rotationAngle: rotationAngle } as any).setIcon(icon);
+  if(popupContent){
+      const popup = L.popup().setContent(JSXToHTMLElement(popupContent));
+      return marker.bindPopup(popup);
+  }
+  return marker;
 
 // </style>
   // THIS IS FOR EXTRA STUFF 
@@ -53,17 +59,6 @@ function BuildMarker(type: string, position: L.LatLngExpression, popupContent?: 
   //     </>
   //   ),
   // })
-
-
-
-  let marker = new L.Marker(position).setIcon(icon) 
-
-  if(popupContent){
-    const popup = L.popup().setContent(JSXToHTMLElement(popupContent));
-    marker = marker.bindPopup(popup)  
-  }
-
-  return marker
 }
 
 export default BuildMarker;

@@ -87,6 +87,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
+    // Offline implementation
+    //  L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
+    //{    maxZoom: 7  }).addTo(this.map);
 
 
     // Add offine part here !
@@ -145,16 +148,24 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   // We have the markers on initializatoion now we need to add them to the map
   addMarkers(newMarkerProps: MakeMaker | any) {
-    const existingMarker = this.state.markers.find(marker => marker.id === newMarkerProps.id);
-    if (!existingMarker) {
-      const newMarker: LeafletMarker = {
-        id: newMarkerProps.id,
-        marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
-      }
-      console.log("Adding marker " + newMarker.id);
-      newMarker.marker.addTo(this.map!);
-      this.state.markers.push(newMarker)
+    const newMarker: LeafletMarker = {
+      id: newMarkerProps.id,
+      marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps.rotationAngle, newMarkerProps?.element)
     }
+    newMarker.marker.addTo(this.map!);
+    this.setState(prevState => ({
+      markers: [...prevState.markers, newMarker]
+    }));
+    // const existingMarker = this.state.markers.find(marker => marker.id === newMarkerProps.id);
+    // if (!existingMarker) {
+    //   const newMarker: LeafletMarker = {
+    //     id: newMarkerProps.id,
+    //     marker: BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+    //   }
+    //   console.log("Adding marker " + newMarker.id);
+    //   newMarker.marker.addTo(this.map!);
+    //   this.state.markers.push(newMarker)
+    // }
   }
 
   // Cleanup
