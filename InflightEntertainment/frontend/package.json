@@ -12,6 +12,7 @@
     "@types/node": "^16.18.51",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "l.movemarker": "^0.0.12",
     "leaflet": "^1.9.4",
     "leaflet-rotatedmarker": "^0.2.0",
     "localforage": "^1.10.0",

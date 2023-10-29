@@ -36,7 +36,7 @@ class FlightConsumer(WebsocketConsumer):
                 flight=flight,
                 timestamp=datetime.fromisoformat(record_data['timestamp']),
                 lat=record_data['lat'],
-                lon=record_data['lon'],
+                lng=record_data['lng'],
                 alt_baro=record_data.get('alt_baro'),
                 alt_geom=record_data.get('alt_geom'),
                 track=record_data.get('track'),
@@ -53,7 +53,7 @@ class FlightConsumer(WebsocketConsumer):
                 'record': {
                     'timestamp': record_data['timestamp'],
                     'lat': record_data['lat'],
-                    'lon': record_data['lon']
+                    'lng': record_data['lng']
                 }
             }))
             async_to_sync(self.channel_layer.group_send)(
@@ -66,7 +66,7 @@ class FlightConsumer(WebsocketConsumer):
                     'record': {
                         'timestamp': record_data['timestamp'],
                         'lat': record_data['lat'],
-                        'lon': record_data['lon']
+                        'lng': record_data['lng']
                     }
                 }
             )
@@ -81,7 +81,7 @@ class FlightConsumer(WebsocketConsumer):
                 flight=flight,
                 timestamp=datetime.fromisoformat(record_data['timestamp']),
                 lat=record_data['lat'],
-                lon=record_data['lon'],
+                lng=record_data['lng'],
                 alt_baro=record_data.get('alt_baro'),
                 alt_geom=record_data.get('alt_geom'),
                 track=record_data.get('track'),
@@ -100,7 +100,7 @@ class FlightConsumer(WebsocketConsumer):
                     'record': {
                         'timestamp': record_data['timestamp'],
                         'lat': record_data['lat'],
-                        'lon': record_data['lon']
+                        'lng': record_data['lng']
                     }
                 }
             )
@@ -117,7 +117,7 @@ class FlightConsumer(WebsocketConsumer):
                 'record': {
                     'timestamp': record_data['timestamp'],
                     'lat': record_data['lat'],
-                    'lon': record_data['lon']
+                    'lng': record_data['lng']
                 }
             }))
 

@@ -30,7 +30,7 @@ type FlightRecord = {
   flight: Flight;
   timestamp: string;
   lat: number;
-  lon: number;
+  lng: number;
   alt_baro: number | null;
   alt_geom: number | null;
   track: number | null;
@@ -56,7 +56,7 @@ const TestBackend = () => {
         <div key={record.timestamp} className="flightRecord">
           <p>Timestamp: {record.timestamp}</p>
           <p>Latitude: {record.lat}</p>
-          <p>Longitude: {record.lon}</p>
+          <p>lnggitude: {record.lng}</p>
         </div>
       ))}
     </div>
@@ -100,7 +100,7 @@ const TestWebsocket: React.FC = () => {
             <p>Flight: {record.flight.flight}</p>
             <p>Timestamp: {record.timestamp}</p>
             <p>Latitude: {record.lat}</p>
-            <p>Longitude: {record.lon}</p>
+            <p>lnggitude: {record.lng}</p>
           </div>
         ))}
       </div>

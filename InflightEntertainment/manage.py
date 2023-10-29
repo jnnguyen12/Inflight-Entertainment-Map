@@ -2,6 +2,9 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import logging
+from django.db import connection
+
 
 
 def main():
@@ -16,6 +19,12 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
     execute_from_command_line(sys.argv)
+
+    # This makes django print the SQL stream to console
+    l = logging.getLogger('django.db.backends')
+    l.setLevel(logging.DEBUG)
+    l.addHandler(logging.StreamHandler())
+    connection.force_debug_cursor = True
 
 
 if __name__ == "__main__":
