@@ -12,53 +12,6 @@ function JSXToHTMLElement(element: JSX.Element): HTMLElement {
   return container.firstChild as HTMLElement;
 }
 
-/*
-export function BuildMarker(type: string, position: L.LatLngExpression, popupContent?: JSX.Element){
-  let icon;
-  switch(type){
-    case "plane":
-    case "aircraft":
-      icon = new L.Icon({ 
-        iconUrl: aircraft, 
-        iconSize: new L.Point(35, 46),
-        transition: "0.5s"
-      })
-      break;
-    case "airport": 
-      icon = new L.Icon({ 
-        iconUrl: airport, 
-        iconSize: new L.Point(35, 46),
-        transition: "0.5s"
-      })
-      break;
-    default:
-      icon = new L.DivIcon({
-        iconSize: [24, 24], // icon size must same with element size
-        className: 'position-relative rotate--marker',
-        html: ReactDOMServer.renderToString(
-          <>
-            <div>
-              <img
-                style={{ width: '24px' }}
-                src="https://cdn-icons-png.flaticon.com/512/876/876828.png"
-                // icon by flaticon.com
-              />
-            </div>
-          </>
-        ),
-      })
-  }
-  let marker = new L.Marker(position, {}).setIcon(icon) 
-  if(popupContent){
-    const popup = L.popup().setContent(JSXToHTMLElement(popupContent));
-    marker = marker.bindPopup(popup)  
-  }
-  return marker
-}
-*/
-
-
-
 function BuildMarker(type: string, position: L.LatLngExpression, rotationAngle?: number, popupContent?: JSX.Element){
   let image;
   switch(type){
@@ -78,30 +31,13 @@ function BuildMarker(type: string, position: L.LatLngExpression, rotationAngle?:
     iconSize: new L.Point(35, 46),
     transition: "0.5s"
   })
+  if(typeof rotationAngle !== 'number') rotationAngle = 0; // catch if none 
   const marker = new L.Marker(position, { rotationAngle: rotationAngle } as any).setIcon(icon);
   if(popupContent){
       const popup = L.popup().setContent(JSXToHTMLElement(popupContent));
       return marker.bindPopup(popup);
   }
   return marker;
-
-// </style>
-  // THIS IS FOR EXTRA STUFF 
-  // const I = L.divIcon({
-  //   iconSize: [24, 24], // icon size must same with element size
-  //   className: 'position-relative rotate--marker',
-  //   html: ReactDOMServer.renderToString(
-  //     <>
-  //       <div>
-  //         <img
-  //           style={{ width: '24px' }}
-  //           src="https://cdn-icons-png.flaticon.com/512/876/876828.png"
-  //           // icon by flaticon.com
-  //         />
-  //       </div>
-  //     </>
-  //   ),
-  // })
 }
 
 export default BuildMarker;

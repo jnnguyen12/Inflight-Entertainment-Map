@@ -106,6 +106,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
                     id: data.id,                         // marker id -- currently using flight id as marker id
                     type: data.type,                     // aircraft or airport -- currently only have aircraft
                     coords: [data.lat, data.lng],        // [lat, lng]
+                    rotation: data?.rotate,
                     element: data?.info                  // info or ""
                 });
                 return;
@@ -115,6 +116,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
                     id: data[index].id,                         // marker id -- currently using flight id as marker id
                     type: data[index].type,                     // aircraft or airport -- currently only have aircraft
                     coords: [data[index].lat, data[index].lng], // [lat, lng]
+                    rotation: data[index]?.rotate,
                     element: data[index]?.info                  // info or ""
                 });
             }
@@ -194,7 +196,6 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleAddPolyline(); }, 100);
     }; 
 
     handleRemovePolyline = async () => {
@@ -279,26 +280,36 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         );
     }
 }
+
+// Improved 
 function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const toRadians = (degree: number) => degree * (Math.PI / 180);
+    const toDegrees = (radians: number) => radians * (180 / Math.PI);
     const radLat1 = toRadians(lat1);
     const radLat2 = toRadians(lat2);
-    const diffLngg = toRadians(lng2 - lng1);
-  
-    const x = Math.atan2(
-        Math.sin(diffLngg) * Math.cos(radLat2),
-        Math.cos(radLat1) * Math.sin(radLat2) -
-        Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLngg)
-    );
-  
-    return (toDegrees(x) + 360) % 360;
+    const diffLng = toRadians(lng2 - lng1);
+    return (toDegrees(Math.atan2(
+        Math.sin(diffLng) * Math.cos(radLat2),
+        Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
+    )) + 360) % 360;
 }
-  
-function toRadians(degree: number): number {
-    return degree * Math.PI / 180;
-}
-  
-function toDegrees(radians: number): number {
-    return radians * 180 / Math.PI;
-}
+
+// function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
+//     const radLat1 = toRadians(lat1);
+//     const radLat2 = toRadians(lat2);
+//     const diffLngg = toRadians(lng2 - lng1);
+//     const x = Math.atan2(
+//         Math.sin(diffLngg) * Math.cos(radLat2),
+//         Math.cos(radLat1) * Math.sin(radLat2) -
+//         Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLngg)
+//     );
+//     return (toDegrees(x) + 360) % 360;
+// }
+// function toRadians(degree: number): number {
+//     return degree * Math.PI / 180;
+// }
+// function toDegrees(radians: number): number {
+//     return radians * 180 / Math.PI;
+// }
 
 export default InteractiveMap;
