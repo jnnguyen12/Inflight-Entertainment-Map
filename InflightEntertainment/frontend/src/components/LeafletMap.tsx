@@ -189,7 +189,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   removeMarker(payload: RemoveMarker) {
     switch (payload.type) {
       case "aircraft":
-        if (this.state.aircrafts.hasOwnProperty(payload.id)) {
+        if (!this.state.aircrafts.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find aircraft id")
           return;
         }
@@ -197,7 +197,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.aircrafts[payload.id];
         return;
       case "airport":
-        if (this.state.airports.hasOwnProperty(payload.id)) {
+        if (!this.state.airports.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find airport id")
           return;
         }
@@ -205,7 +205,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.airports[payload.id];
         return;
       case "landmark":
-        if (this.state.landmarks.hasOwnProperty(payload.id)) {
+        if (!this.state.landmarks.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find landmark id")
           return;
         }
@@ -213,7 +213,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.landmarks[payload.id];
         return;
       default:
-        console.warn("removeMarker: type not found")
+        console.warn("removeMarker: type not found: ", payload.type)
         return;
     }
   }
