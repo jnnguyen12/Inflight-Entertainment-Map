@@ -51,10 +51,10 @@ class Command(BaseCommand):
         flight_key = get_object_or_404(Flight, Q(hex='DEMO') | Q(flight='DEMO'))
         marker = get_object_or_404(Marker, Q(flight=flight_key))
         while(True):
-            time.sleep(1)
+            time.sleep(2)
             if(not(marker.lat > lat2 - 0.05 and marker.lat < lat2 + 0.05 and marker.lng > lng2 - 0.005 and marker.lng < lng2 + 0.005)):
-                marker.lat += self.lat_step #* y_dir
-                marker.lng += self.lng_step #* x_dir
+                marker.lat += self.lat_step
+                marker.lng += self.lng_step 
                 marker.timestamp = timezone.now()
                 marker.save(update_fields=["lat", "lng", "timestamp"])
             else:
@@ -84,13 +84,12 @@ class Command(BaseCommand):
         flight.save()
         markerFlight.save()
 
-        polyline = Polyline(aircraftID=markerFlight.id, airportID=markerA2.id)
+        polyline = Polyline(aircraftID=markerFlight.id, airportIDTo=markerA2.id, airportIDFrom=markerA1.id)
         polyline.save()
 
         lat_diff = lat2 - lat1
         lng_diff = lng2 - lng1
         self.lat_step = lat_diff / 20
         self.lng_step = lng_diff / 20
-        
 
         self.loopDemo(**options)

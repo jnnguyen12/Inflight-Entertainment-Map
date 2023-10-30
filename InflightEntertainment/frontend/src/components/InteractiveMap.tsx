@@ -1,5 +1,16 @@
+
 import React from 'react';
 import LeafletMap from './LeafletMap';
+
+function parseText(text: any){
+    if(text === "") return 0;
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        console.error('Error parsing JSON:', error);
+        return 0;
+    }
+}
 
 type Flight = {
     id: number;
@@ -33,43 +44,53 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
 
     // On load function
     componentDidMount() {
-        // setInterval(this.handleFlyToLocation, 2500); // This is a one time thing
-        // setInterval(this.handleAddMarker, 2500);
-        // setInterval(this.handleRemoveMarker, 2500);
-        // setInterval(this.handleUpdateMarker, 5000);
-        // setInterval(this.handleAddPolyline, 7000);
-        // setInterval(this.handleRemovePolyline, 2500);
-        // Need some logic for this bc the backend will delete all markers whenever its received
-        // setInterval(this.handleClearMap, 10000);
-        for (let record of this.props.flightRecords) {
-            this.addFlightRecordAsMarker(record);
-        }
+        setInterval(this.handleFlyToLocation, 2500); // This is a one time thing
+        setInterval(this.handleAddMarker, 2500);
+        setInterval(this.handleRemoveMarker, 2500);
+        setInterval(this.handleUpdateMarker, 5000);
+        setInterval(this.handleAddPolyline, 7000);
+        setInterval(this.handleRemovePolyline, 2500);
+        //setInterval(this.handleClearMap, 10000);
+
+        // for (let record of this.props.flightRecords) {
+        //     this.addFlightRecordAsMarker(record);
+        // }
     }
     
-    componentDidUpdate(prevProps: InteractiveMapProps) {
-        // If the flightRecords prop has changed add the new flight records as markers.
-        if (this.props.flightRecords !== prevProps.flightRecords) {
-            for (let record of this.props.flightRecords) {
-                if (!prevProps.flightRecords.includes(record)) {
-                    this.addFlightRecordAsMarker(record);
-                }
-            }
-        }
+    // componentDidUpdate(prevProps: InteractiveMapProps) {
+    //     // If the flightRecords prop has changed add the new flight records as markers.
+    //     if (this.props.flightRecords !== prevProps.flightRecords) {
+    //         for (let record of this.props.flightRecords) {
+    //             if (!prevProps.flightRecords.includes(record)) {
+    //                 this.addFlightRecordAsMarker(record);
+    //             }
+    //         }
+    //     }
+    // }
+
+    componentWillUnmount() {
+        fetch('/api/PageReload/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"Page": "Refreshed"}),
+        });
     }
 
     // Move camera to given coords and zoom
     handleFlyToLocation = async () => {
         try {
             const response = await fetch('/api/flyToLastMarker');
-            const data = await response.json();
-            const fly = {
+            const data = parseText(await response.text())
+            if(data == 0) return;
+            this.mapRef.current?.flyTo({
                 lat: data.lat,
                 lng: data.lng,
                 zoom: data.zoom
-            }
+            });
             console.log("Frontend received flyToLocation: (data) " + data);
-            console.log("Frontend received flyToLocation: " + fly.lat + " " + fly.lng);
-            this.mapRef.current?.flyTo(fly);
+            console.log("Frontend received flyToLocation: " + data.lat + " " + data.lng);
         } catch (error) {
             console.error('Error:', error);
         }
@@ -78,7 +99,8 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     handleAddMarker = async () => {
         try {
             const response = await fetch('/api/addMarker/');
-            const data = await response.json();
+            const data = parseText(await response.text())
+            if(data == 0) return;
             if (!Array.isArray(data)) {
                 this.mapRef.current?.addMarkers({
                     id: data.id,                         // marker id -- currently using flight id as marker id
@@ -104,13 +126,20 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     handleRemoveMarker = async () => {
         try {
             const response = await fetch('/api/removeMarker/');
-            const data = await response.json();
+            const data = parseText(await response.text())
+            if(data == 0) return;
             if (!Array.isArray(data)) {
-                this.mapRef.current?.removeMarker(data.id);
+                this.mapRef.current?.removeMarker({
+                    id: data.id,
+                    type: data.type
+                });
                 return;
             }
             for (var index = 0; index < data.length; index++) {
-                this.mapRef.current?.removeMarker(data[index].id);
+                this.mapRef.current?.removeMarker({
+                    id: data[index].id,
+                    type: data[index].type
+                });
             }
         } catch (error) {
             console.error('Error:', error);
@@ -120,7 +149,8 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     handleUpdateMarker = async () => {
         try {
             const response = await fetch('/api/updateMarker/');
-            const data = await response.json();
+            const data = parseText(await response.text())
+            if(data == 0) return;
             if (!Array.isArray(data)) {
                 this.mapRef.current?.moveMarkers({
                     movingMarkerId: data.id,                 // marker Id
@@ -142,30 +172,36 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     handleAddPolyline = async () => {
         try {
             const response = await fetch('/api/addPolylinePayload/');
-            const data = await response.json();
-            console.log("aircraft: %d, airport: %d", data.aircraftID, data.airportID);
+            const data = parseText(await response.text())
+            if(data == 0) return;
+            console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data.aircraftID, data.airportIDFrom, data.airportIDTo);
             if (!Array.isArray(data)) {
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data.aircraftID,
-                    airportId: data.airportID,
+                    airportIdTo: data.airportIDTo,
+                    airportIdFrom: data.airportIDFrom
                 });
                 return;
             }
             for (var index = 0; index < data.length; index++) {
+                console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data[index].aircraftID, data[index].airportIDFrom, data[index].airportIDTo);
                 this.mapRef.current?.drawPolyLine({
                     aircraftId: data[index].aircraftID,
-                    airportId: data[index].airportID,
+                    airportIdTo: data[index].airportIDTo,
+                    airportIdFrom: data[index].airportIDFrom
                 });
             }
         } catch (error) {
             console.error('Error:', error);
         }
-    };
+        // setTimeout(() => { this.handleAddPolyline(); }, 100);
+    }; 
 
     handleRemovePolyline = async () => {
         try {
             const response = await fetch('/api/removePolylinePayload/');
-            const data = await response.json();
+            const data = parseText(await response.text())
+            if(data == 0) return;
             if (!Array.isArray(data)) {
                 this.mapRef.current?.removePolyLine(data.mark_aircraft.id);
                 return;
@@ -180,8 +216,9 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
 
     handleClearMap = async () => {
         try {
-            const response = await fetch('/api/clearMarkers/');
-            const data = await response.json();
+            const response = await fetch('/api/ClearMapPayload');
+            const data = parseText(await response.text())
+            if(data == 0) return;
             if (data.ClearSwitch) {
                 this.mapRef.current?.clearMap();
             }
@@ -190,29 +227,49 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         }
     };
 
-    addFlightRecordAsMarker = (record: FlightRecord) => {
-        this.mapRef.current?.removeMarker(record.flight.id);
-        let rotationAngle;
-    
-        // Check if the previous record for the flight exists
-        const previousRecords = this.props.flightRecords.filter(
-            r => r.flight.id === record.flight.id && r.timestamp < record.timestamp
-        );
-    
-        if (previousRecords.length > 0) {
-            const prevRecord = previousRecords[previousRecords.length - 1];
-            rotationAngle = calculateRotation(prevRecord.lat, prevRecord.lng, record.lat, record.lng);
+    handleResponseWellnessCheck = async () => {
+        try {
+            const response = await fetch('/api/WellnessCheck/');
+            const responseData = await response.json();
+            const valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
+            if (responseData.message in valid){
+                const sendResponse = await fetch('/api/FrontEndData/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.mapRef.current?.sendData(responseData.message)),
+                });
+            }
+        } catch (error) {
+            console.error(error);
         }
-    
-        const markerDataPayload = {
-            id: record.flight.id,
-            type: "aircraft",
-            coords: { lat: record.lat, lng: record.lng },
-            rotationAngle: rotationAngle,
-            element: <p>{record.flight.flight}</p>
-        }
-        this.mapRef.current?.addMarkers(markerDataPayload);
+        setTimeout(() => { this.handleResponseWellnessCheck(); }, 1000);
     };
+
+    // addFlightRecordAsMarker = (record: FlightRecord) => {
+    //     this.mapRef.current?.removeMarker(record.flight.id);
+    //     let rotationAngle;
+    
+    //     // Check if the previous record for the flight exists
+    //     const previousRecords = this.props.flightRecords.filter(
+    //         r => r.flight.id === record.flight.id && r.timestamp < record.timestamp
+    //     );
+    
+    //     if (previousRecords.length > 0) {
+    //         const prevRecord = previousRecords[previousRecords.length - 1];
+    //         rotationAngle = calculateRotation(prevRecord.lat, prevRecord.lng, record.lat, record.lng);
+    //     }
+    
+    //     const markerDataPayload = {
+    //         id: record.flight.id,
+    //         type: "aircraft",
+    //         coords: { lat: record.lat, lng: record.lng },
+    //         rotationAngle: rotationAngle,
+    //         element: <p>{record.flight.flight}</p>
+    //     }
+    //     this.mapRef.current?.addMarkers(markerDataPayload);
+    // };
     
     render() {
         return (
