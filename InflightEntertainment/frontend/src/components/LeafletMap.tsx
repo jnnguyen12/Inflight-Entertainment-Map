@@ -5,7 +5,7 @@ import '../App.css';
 
 // Leaflet
 import L, { LatLngExpression, Marker } from "leaflet";
-import { BuildMarker } from './functions/BuildMarker';
+import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 
 //Styling
 import './MapStyling.css';
@@ -89,6 +89,10 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
+    
+    // Offline implementation
+    // L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
+    //   { maxZoom: 7 }).addTo(this.map);
 
   }
 
@@ -157,7 +161,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           console.warn("addMarkers: aircraft id already exists")
           return;
         }
-        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, 0, newMarkerProps?.element)
         newMarker.addTo(this.map!);
         this.state.aircrafts[newMarkerProps.id] = newMarker
         return;
@@ -166,7 +170,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           console.warn("addMarkers: airport id already exists")
           return;
         }
-        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, 0, newMarkerProps?.element)
         newMarker.addTo(this.map!);
         this.state.airports[newMarkerProps.id] = newMarker
         return;
@@ -175,7 +179,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           console.warn("addMarkers: landmark id already exists")
           return;
         }
-        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, newMarkerProps?.element)
+        newMarker = BuildMarker(newMarkerProps.type, newMarkerProps.coords, 0, newMarkerProps?.element)
         newMarker.addTo(this.map!);
         this.state.landmarks[newMarkerProps.id] = newMarker
         return;
@@ -187,9 +191,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   // removing a marker based on its index
   removeMarker(payload: RemoveMarker) {
-    switch (payload.type) {
+    switch (payload.type.toLowerCase()) {
       case "aircraft":
-        if (this.state.aircrafts.hasOwnProperty(payload.id)) {
+        if (!this.state.aircrafts.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find aircraft id")
           return;
         }
@@ -197,7 +201,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.aircrafts[payload.id];
         return;
       case "airport":
-        if (this.state.airports.hasOwnProperty(payload.id)) {
+        if (!this.state.airports.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find airport id")
           return;
         }
@@ -205,7 +209,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.airports[payload.id];
         return;
       case "landmark":
-        if (this.state.landmarks.hasOwnProperty(payload.id)) {
+        if (!this.state.landmarks.hasOwnProperty(payload.id)) {
           console.warn("removeMarker: Could not find landmark id")
           return;
         }
@@ -213,7 +217,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         delete this.state.landmarks[payload.id];
         return;
       default:
-        console.warn("removeMarker: type not found")
+        console.warn("removeMarker: type not found:", payload.type)
         return;
     }
   }
@@ -224,6 +228,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.warn("moveMarkers: Could not find aircraft Id");
       return;
     }
+    this.state.aircrafts[payload.movingMarkerId] = updateMarkerRotation(this.state.aircrafts[payload.movingMarkerId], this.state.aircrafts[payload.movingMarkerId].getLatLng(), payload.newCoords);
     this.state.aircrafts[payload.movingMarkerId].setLatLng(payload.newCoords)
     if (!this.state.polylines.hasOwnProperty(payload.movingMarkerId)) {
       console.warn("moveMarkers: Could not find polyline Id");

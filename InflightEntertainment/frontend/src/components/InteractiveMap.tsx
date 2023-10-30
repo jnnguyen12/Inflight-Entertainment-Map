@@ -158,7 +158,6 @@ class InteractiveMap extends React.Component {
         } catch (error) {
             console.error('Error:', error);
         }
-        // setTimeout(() => { this.handleAddPolyline(); }, 100);
     }; 
 
     handleRemovePolyline = async () => {
