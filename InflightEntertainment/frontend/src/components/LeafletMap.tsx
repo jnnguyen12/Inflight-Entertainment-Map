@@ -6,7 +6,7 @@ import '../App.css';
 // Leaflet
 import L, { LatLngExpression, Marker } from "leaflet";
 import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
-
+import { Rnd, RndDragEvent, DraggableData } from "react-rnd";
 //Styling
 import './MapStyling.css';
 
@@ -18,6 +18,7 @@ interface LeafletMapState {
   lat: number;
   lng: number;
   zoom: number;
+  isRndFrozen: boolean;
 }
 
 // the key for the polyline is the aircraft key
@@ -74,6 +75,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lat: 0,
       lng: 0,
       zoom: 0,
+      isRndFrozen: false
     };
   }
 
@@ -89,7 +91,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
-    
+
+
+
     // Offline implementation
     // L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
     //   { maxZoom: 7 }).addTo(this.map);
@@ -98,6 +102,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   componentDidMount() {
     this.makeMap()
+
   }
 
   // Cleanup removes map
@@ -317,11 +322,51 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     delete this.state.polylines[polyLineId];
   }
 
+  handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
+    if (e.touches.length <= 1) {
+      // Disable dragging of map when there's only one touch but Rnd dragging is enabled
+      this.setState({ isRndFrozen: false })
+      if (this.map) this.map.dragging.disable();
+    } else {
+      // Enable dragging of map when there are multiple touches but Rnd dragging is disabled
+      this.setState({ isRndFrozen: true })
+      if (this.map) this.map.dragging.enable();
+    }
+  }
+
   //render the map
   render() {
     return (
       <>
-        <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
+        <Rnd
+          className='rnd-container'
+          default={{
+            x: 0,
+            y: 0,
+            width: 320,
+            height: 200,
+          }}
+          disableDragging={this.state.isRndFrozen}
+          onDrag={(e, d) => {
+            if (this.map && this.map.dragging.enabled()) {
+              return false; // Prevent dragging the Rnd component
+            }
+          }}
+        >
+        <div
+          id="map"
+          className="leaflet-map"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%"
+          }}
+          onTouchMove={(e) => this.handleMapTouch(e)}
+          ref={this.mapRef}
+        ></div>
+      </Rnd >
       </>
     );
   }
