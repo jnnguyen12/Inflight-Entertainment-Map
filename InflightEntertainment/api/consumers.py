@@ -40,7 +40,7 @@ class FlightConsumer(WebsocketConsumer):
                 alt_baro=record_data.get('alt_baro'),
                 alt_geom=record_data.get('alt_geom'),
                 track=record_data.get('track'),
-                gs=record_data.get('gs')
+                ground_speed=record_data.get('ground_speed')
             )
             self.send(text_data=json.dumps({
                 'type': 'new_flight_record',
@@ -85,7 +85,7 @@ class FlightConsumer(WebsocketConsumer):
                 alt_baro=record_data.get('alt_baro'),
                 alt_geom=record_data.get('alt_geom'),
                 track=record_data.get('track'),
-                gs=record_data.get('gs')
+                ground_speed=record_data.get('ground_speed')
             )
 
             print(f"Added flight record for existing flight: {flight.flight}")
