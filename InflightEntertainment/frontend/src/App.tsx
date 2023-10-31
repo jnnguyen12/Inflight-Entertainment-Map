@@ -34,7 +34,7 @@ type FlightRecord = {
   alt_baro: number | null;
   alt_geom: number | null;
   track: number | null;
-  gs: number;
+  ground_speed: number;
 };
 
 const TestBackend = () => {
