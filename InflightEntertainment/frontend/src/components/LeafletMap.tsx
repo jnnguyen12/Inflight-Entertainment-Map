@@ -18,7 +18,6 @@ interface LeafletMapState {
   lat: number;
   lng: number;
   zoom: number;
-  isRndFrozen: boolean;
 }
 
 // the key for the polyline is the aircraft key
@@ -75,7 +74,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lat: 0,
       lng: 0,
       zoom: 0,
-      isRndFrozen: false
     };
   }
 
@@ -324,13 +322,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
   handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
     if (e.touches.length <= 1) {
-      // Disable dragging of map when there's only one touch but Rnd dragging is enabled
-      this.setState({ isRndFrozen: false })
-      if (this.map) this.map.dragging.disable();
+      if (this.map) this.map.dragging.disable(); // Disable dragging of map when there's only one touch
     } else {
-      // Enable dragging of map when there are multiple touches but Rnd dragging is disabled
-      this.setState({ isRndFrozen: true })
-      if (this.map) this.map.dragging.enable();
+      if (this.map) this.map.dragging.enable(); // Enable dragging of map when there are multiple touches
     }
   }
 
@@ -346,12 +340,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
             width: 320,
             height: 200,
           }}
-          disableDragging={this.state.isRndFrozen}
-          onDrag={(e, d) => {
-            if (this.map && this.map.dragging.enabled()) {
-              return false; // Prevent dragging the Rnd component
-            }
-          }}
+          onDrag={(e, d) => { if (this.map.dragging.enabled()) return false; /* Prevent dragging the Rnd component */ }}
         >
         <div
           id="map"
@@ -366,7 +355,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           onTouchMove={(e) => this.handleMapTouch(e)}
           ref={this.mapRef}
         ></div>
-      </Rnd >
+      </Rnd>
       </>
     );
   }
