@@ -6,9 +6,7 @@ import '../App.css';
 // Leaflet
 import L, { LatLngExpression, Marker } from "leaflet";
 import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
-import { Rnd, RndDragEvent, DraggableData } from "react-rnd";
-//Styling
-import './MapStyling.css';
+import { Rnd } from "react-rnd";
 
 interface LeafletMapState {
   airports: { [key: string]: Marker };
