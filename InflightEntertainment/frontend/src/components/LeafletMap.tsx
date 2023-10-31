@@ -7,8 +7,7 @@ import '../App.css';
 import L, { LatLngExpression, Marker } from "leaflet";
 import BuildMarker from './functions/BuildMarker';
 
-//Styling
-import './MapStyling.css';
+import { Rnd } from "react-rnd";
 
 interface LeafletMapState {
   airports: { [key: string]: Marker };
@@ -317,11 +316,42 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     delete this.state.polylines[polyLineId];
   }
 
+  handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
+    if (e.touches.length <= 1) {
+      if (this.map) this.map.dragging.disable(); // Disable dragging of map when there's only one touch
+    } else {
+      if (this.map) this.map.dragging.enable(); // Enable dragging of map when there are multiple touches
+    }
+  }
+
   //render the map
   render() {
     return (
       <>
-        <div id="map" className="resizable-map-container" ref={this.mapRef}></div>
+        <Rnd
+          className='rnd-container'
+          default={{
+            x: 0,
+            y: 0,
+            width: 320,
+            height: 200,
+          }}
+          onDrag={(e, d) => { if (this.map.dragging.enabled()) return false; /* Prevent dragging the Rnd component */ }}
+        >
+        <div
+          id="map"
+          className="leaflet-map"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%"
+          }}
+          onTouchMove={(e) => this.handleMapTouch(e)}
+          ref={this.mapRef}
+        ></div>
+      </Rnd>
       </>
     );
   }
