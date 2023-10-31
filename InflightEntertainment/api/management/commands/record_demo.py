@@ -7,8 +7,16 @@ from django.utils import timezone
 from datetime import datetime
 import time
 
+from consumers import FlightConsumer
+from channels.generic.websocket import WebsocketConsumer
+
 # Creates flight between ames and des moines airports and updates DB
 class Command(BaseCommand):
+
+    # def __init__(self):
+    #     self.client = FlightConsumer(WebsocketConsumer)
+    #     self.client.connect()
+
 
     def add_arguments(self, parser):
         parser.add_argument('flight', type=str, nargs='?', default="KAL074")
@@ -51,3 +59,4 @@ class Command(BaseCommand):
             print(f"| Flight {flight_key.flight} | Lat: {rec.lat} | Lng: {rec.lng} | Timestamp: {rec.timestamp}")
 
         self.clearDemo()
+

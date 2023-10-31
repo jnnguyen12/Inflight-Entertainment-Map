@@ -13,7 +13,8 @@ class Flight(models.Model):
         return self.flight
     
 class FlightRecord(models.Model):
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    id = models.IntegerField(primary_key=True)
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, unique=False)
     timestamp = models.DateTimeField()  # Timestamp of the record
     lat = models.FloatField()  # Latitude
     lng = models.FloatField()  # Longitude
@@ -47,6 +48,7 @@ class Marker(models.Model):
     timestamp = models.DateTimeField()  # Timestamp of the record
     lat = models.FloatField()
     lng = models.FloatField()
+    rotation = models.FloatField(default=0)
     onMap = models.BooleanField(default=False)
     flyTo = models.BooleanField(default=False)
     toRemove = models.BooleanField(default=False)

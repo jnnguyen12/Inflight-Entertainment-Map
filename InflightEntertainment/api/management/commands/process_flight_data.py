@@ -5,9 +5,15 @@ import os
 from datetime import datetime
 from api.models import Flight, FlightRecord
 from django.utils import timezone
+import math
 
 class Command(BaseCommand):
-    help = 'Process .json.gz flight data files'
+    def __init__(self, *args, **kwargs):
+        super(Command, self).__init__(*args, **kwargs)
+        self.lastRec = None
+        self.latSpeed = 0
+        self.lngSpeed = 0
+        help = 'Process .json.gz flight data files'
     
     def handle(self, *args, **options):
         cwd = os.getcwd()
@@ -46,12 +52,18 @@ class Command(BaseCommand):
                     alt_baro = aircraft.get('alt_baro')
                     alt_baro = None if isinstance(alt_baro, str) else alt_baro
                 
+                    # Skip this record if it already exists
                     if FlightRecord.objects.filter(flight=flight, timestamp=timestamp).exists():
                         print(f"Skipping {timestamp}")
-                        continue  # Skip this record if it already exists
+                        self.latSpeed = rec.lat - self.lastRec.lat
+                        self.lngSpeed = rec.lng - self.lastRec.lng
+                        self.lastRec = rec
+                        continue  
+
+                    # Flight found but with no coordinates, try backup fields
                     if(aircraft.get('lat') is None):
                         print("using predicted coordinates")
-                        FlightRecord.objects.create(
+                        rec = FlightRecord.objects.create(
                             flight=flight,
                             timestamp=timestamp,
                             lat=aircraft.get('rr_lat'),
@@ -61,8 +73,15 @@ class Command(BaseCommand):
                             track=None,
                             ground_speed=None
                         )
+                        self.lastRec = rec if self.lastRec is None else self.lastRec
+                        self.latSpeed = rec.lat - self.lastRec.lat
+                        self.lngSpeed = rec.lng - self.lastRec.lng
+                        self.lastRec = rec
+                        print("rec: " + rec.id)
+
                     else:
-                        FlightRecord.objects.create(
+                        # Found flight with coordinates
+                        rec = FlightRecord.objects.create(
                             flight=flight,
                             timestamp=timestamp,
                             lat=aircraft.get('lat'),
@@ -72,8 +91,54 @@ class Command(BaseCommand):
                             track=aircraft.get('track'),
                             ground_speed=aircraft.get('gs')
                         )
+                        self.lastRec = rec if self.lastRec is None else self.lastRec
+                        self.latSpeed = rec.lat - self.lastRec.lat
+                        self.lngSpeed = rec.lng - self.lastRec.lng
+                        self.lastRec = rec
+                        print("rec: " + rec.id)
                     print(f"FlightRecord: {flight}, {timestamp}, {aircraft.get('lat')}, {aircraft.get('lon')}")
                 except Exception as e:
                     print("Error: ", e)
+            else:
+                # Didn't find flight in record - estimate position
+                if(not self.lastRec is None):
+                    print("Estimating position")
+                    print("lastRec")
+                    curLat = self.lastRec.lat + self.latSpeed
+                    curLng = self.lastRec.lng + self.lngSpeed
+                    rec = FlightRecord.objects.create(
+                            flight = self.lastRec.flight,
+                            timestamp = timestamp,
+                            lat = curLat,
+                            lng = curLng,
+                            alt_baro = alt_baro,
+                            alt_geom = self.lastRec.alt_geom,
+                            track = self.lastRec.track,
+                            ground_speed = self.lastRec.ground_speed
+                        )
+                    self.lastRec = rec if self.lastRec is None else self.lastRec
+                    self.latSpeed = rec.lat - self.lastRec.lat
+                    self.lngSpeed = rec.lng - self.lastRec.lng
+                    self.lastRec = rec
+
+
                     
-                    
+    # function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    # const toRadians = (degree: number) => degree * (Math.PI / 180);
+    # const toDegrees = (radians: number) => radians * (180 / Math.PI);
+    # const radLat1 = toRadians(lat1);
+    # const radLat2 = toRadians(lat2);
+    # const diffLng = toRadians(lng2 - lng1);
+    # return (toDegrees(Math.atan2(
+    #     Math.sin(diffLng) * Math.cos(radLat2),
+    #     Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
+    # )) + 360) % 360;
+
+    def calculateRotation(lat1, lng1, lat2, lng2):
+        radLat1 = lat1 * (math.pi / 180)
+        radLat2 = lat2 * (math.pi / 180)
+        lngDiff = (lng2 - lng1) * (math.pi / 180)
+        radRotation = math.atan2(math.sin(lngDiff) * math.cos(radLat2),
+                                math.cos(radLat1) * math.sin(radLat2) - math.sin(radLat1) * math.cos(radLat2) * math.cos(lngDiff))
+        degRotation = ((radRotation * 180 / math.pi) + 360) % 360
+        return degRotation
