@@ -18,12 +18,17 @@ class Command(BaseCommand):
 
 
     def add_arguments(self, parser):
-        parser.add_argument('flight', type=str, nargs='?', default="KAL074")
+        parser.add_argument('flight', type=str, nargs='?', default="ACA765")
+        parser.add_argument('hex_key', type=str, nargs="?", default="c07c7b")
         parser.add_argument('time', type=int, nargs='?', default=600) #5 hours
 
-    def clearDemo(self):
+    def clearDemo(self, **options):
         print("Exiting demo -- deleting objects.")
-        flight = get_object_or_404(Flight, Q(hex='71ba08') | Q(flight='KAL074'))
+        time.sleep(4)
+
+        hex_key = options.get('hex_key')
+        flightSign = options.get('flight')
+        flight = get_object_or_404(Flight, Q(hex=hex_key) | Q(flight=flightSign))
 
         markers = Marker.objects.all().filter(flight=flight)
         for m in markers:
@@ -35,11 +40,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Create objects
         print("Commencing demo -- creating objects")
+        hex_key = options.get('hex_key')
+        flightSign = options.get('flight')
 
         try: 
-            flight_key = get_object_or_404(Flight, Q(hex='71ba08'))
+            flight_key = get_object_or_404(Flight, Q(hex=hex_key))
         except:
-            flight_key = Flight(hex='71ba08', flight="KAL074")
+            flight_key = Flight(hex=hex_key, flight=flightSign)
             flight_key.save()
 
         start = FlightRecord.objects.all().order_by("-timestamp")[0]
@@ -50,7 +57,7 @@ class Command(BaseCommand):
         print("Looping through flight records")      
         records = FlightRecord.objects.all().filter(flight=flight_key)
         for rec in records:
-            time.sleep(1)
+            time.sleep(0.5)
             flight_marker.lat = rec.lat
             flight_marker.lng = rec.lng
             flight_marker.timestamp = rec.timestamp
@@ -58,5 +65,5 @@ class Command(BaseCommand):
             flight_marker.save(update_fields=['lat', 'lng', 'timestamp'])
             print(f"| Flight {flight_key.flight} | Lat: {rec.lat} | Lng: {rec.lng} | Timestamp: {rec.timestamp}")
 
-        self.clearDemo()
+        self.clearDemo(**options)
 

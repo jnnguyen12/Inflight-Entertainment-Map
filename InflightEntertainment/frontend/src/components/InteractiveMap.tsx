@@ -47,7 +47,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         setInterval(this.handleFlyToLocation, 2500); // This is a one time thing
         setInterval(this.handleAddMarker, 2500);
         setInterval(this.handleRemoveMarker, 2500);
-        setInterval(this.handleUpdateMarker, 5000);
+        setInterval(this.handleUpdateMarker, 1000);
         setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
         //setInterval(this.handleClearMap, 10000);

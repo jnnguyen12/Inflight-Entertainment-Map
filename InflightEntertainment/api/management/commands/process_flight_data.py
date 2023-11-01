@@ -22,7 +22,7 @@ def calculateRotation(lat1, lng1, lat2, lng2):
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        self.flightCode = "71ba08"
+        self.flightCode = "c07c7b"
         self.foundFlight = False
         self.lastRec = None
         self.latSpeed = 0
