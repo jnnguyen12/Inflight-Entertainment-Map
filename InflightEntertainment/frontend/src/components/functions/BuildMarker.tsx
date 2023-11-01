@@ -12,20 +12,18 @@ function JSXToHTMLElement(element: JSX.Element): HTMLElement {
   return container.firstChild as HTMLElement;
 }
 
-function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
+export function updateMarkerRotation(marker: any, lat1: number, lng1: number, lat2: number, lng2: number) {
+  console.log(lat1, lng1, lat2, lng2)
   const toRadians = (degree: number) => degree * (Math.PI / 180);
   const toDegrees = (radians: number) => radians * (180 / Math.PI);
   const radLat1 = toRadians(lat1);
   const radLat2 = toRadians(lat2);
   const diffLng = toRadians(lng2 - lng1);
-  return (toDegrees(Math.atan2(
+  const rotation = (toDegrees(Math.atan2(
       Math.sin(diffLng) * Math.cos(radLat2),
       Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
   )) + 360) % 360;
-}
-
-export function updateMarkerRotation(marker: any, previous: L.LatLngExpression, updated: L.LatLngExpression) {
-  marker.options.rotationAngle = calculateRotation(previous[0], previous[1], updated[0], updated[1]); // Update the marker to apply the changes
+  marker.setRotationAngle(rotation)
   marker.update()
   return marker;
 }
@@ -65,6 +63,7 @@ export function BuildMarker(type: string, position: L.LatLngExpression, rotation
         ),
       })
   }
+  
   if(!rotationAngle) rotationAngle = 0;
   
   let marker = new L.Marker(position, { rotationAngle: rotationAngle } as any).setIcon(icon);
