@@ -7,7 +7,6 @@ from django.utils import timezone
 from datetime import datetime
 import time
 
-from consumers import FlightConsumer
 from channels.generic.websocket import WebsocketConsumer
 
 # Creates flight between ames and des moines airports and updates DB
@@ -44,7 +43,7 @@ class Command(BaseCommand):
             flight_key.save()
 
         start = FlightRecord.objects.all().order_by("-timestamp")[0]
-        flight_marker = Marker(type='aircraft', lat=start.lat, lng=start.lng, flight=flight_key, timestamp=start.timestamp, flyTo=True)
+        flight_marker = Marker(type='aircraft', lat=start.lat, lng=start.lng, flight=flight_key, timestamp=start.timestamp, flyTo=True, rotation=start.rotation)
         flight_marker.save()
 
         # Loop through records
@@ -55,6 +54,7 @@ class Command(BaseCommand):
             flight_marker.lat = rec.lat
             flight_marker.lng = rec.lng
             flight_marker.timestamp = rec.timestamp
+            flight_marker.rotation = rec.rotation
             flight_marker.save(update_fields=['lat', 'lng', 'timestamp'])
             print(f"| Flight {flight_key.flight} | Lat: {rec.lat} | Lng: {rec.lng} | Timestamp: {rec.timestamp}")
 

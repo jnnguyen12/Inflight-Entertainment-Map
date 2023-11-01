@@ -5,7 +5,7 @@ from django.db import models
 # TODO: Rename to aircraft
 class Flight(models.Model):
     hex = models.CharField(max_length=10, unique=True)  # Hex ID of the flight
-    flight = models.CharField(max_length=20)  # Flight number
+    flight = models.CharField(max_length=20)  # Flight call sign
     r = models.CharField(max_length=10)  # Registration
     t = models.CharField(max_length=10)  # Aircraft type
     
@@ -13,7 +13,6 @@ class Flight(models.Model):
         return self.flight
     
 class FlightRecord(models.Model):
-    id = models.IntegerField(primary_key=True)
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE, unique=False)
     timestamp = models.DateTimeField()  # Timestamp of the record
     lat = models.FloatField()  # Latitude
@@ -22,6 +21,7 @@ class FlightRecord(models.Model):
     alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
     track = models.FloatField(null=True, blank=True)  # Track
     ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
+    rotation = models.FloatField(default=0)
 
     class Meta:
         unique_together = ['flight', 'timestamp']  # Each record must be unique per flight and timestamp
