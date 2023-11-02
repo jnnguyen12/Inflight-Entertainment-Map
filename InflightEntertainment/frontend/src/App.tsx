@@ -7,17 +7,18 @@ function App() {
   // This represents the componet that they wanted
   return (
     // To test the backend uncomment the following lines and comment out the InteractiveMap.
-    <div className="App">
-      {/* <TestBackend /> */}
-      {/* <TestWebsocket /> */}
-      <InteractiveMapWithWebsocket />
-    </div>
+    // <div className="App">
+    //   {/* <TestBackend /> */}
+    //   {/* <TestWebsocket /> */}
+    //   {/* <InteractiveMapWithWebsocket /> */}
+    // </div>
     // <>
-    //   <InteractiveMap />
+      <InteractiveMap />
     // </>
   );
 }
 
+/*
 type Flight = {
   id: number;
   hex: string;
@@ -142,5 +143,5 @@ const InteractiveMapWithWebsocket: React.FC = () => {
     </div>
   );
 }
-
+*/
 export default App;
