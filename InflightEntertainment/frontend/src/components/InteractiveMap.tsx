@@ -1,17 +1,4 @@
 
-import React from 'react';
-import LeafletMap from './LeafletMap';
-
-function parseText(text: any) {
-    if (text === "") return 0;
-    try {
-        return JSON.parse(text);
-    } catch (error) {
-        console.error('Error parsing JSON:', error);
-        return 0;
-    }
-}
-
 type Flight = {
     id: number;
     hex: string;
@@ -35,6 +22,184 @@ interface InteractiveMapProps {
     flightRecords: FlightRecord[];
 }
 
+import React from 'react';
+import LeafletMap from './LeafletMap';
+import {FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData} from './types'
+
+
+function parseText(text: any) {
+    if (text === "") return 0;
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        console.error('Error parsing JSON:', error);
+        return 0;
+    }
+}
+
+//////
+
+
+class InteractiveMap extends React.Component {
+    private mapRef = React.createRef<LeafletMap>();
+    private socket: WebSocket | null = null; // WebSocket connection
+    private valid = new Set<string>(["aircrafts", "airports", "landmarks", "camera"])
+
+    constructor(props: {}) {
+        super(props);
+    }
+
+    // On load function
+    componentDidMount() {
+        const url = `ws://${window.location.host}/ws/socket-server/`;
+        this.socket = new WebSocket(url);
+        this.socket.addEventListener('open', () => {
+            console.log('WebSocket connection established.');
+        });
+
+        this.socket.addEventListener('close', () => {
+            console.log('WebSocket connection closed.');
+        });
+    }
+
+    componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<{}>, snapshot?: any): void {
+        this.socket.onmessage = (event: MessageEvent) => {
+            const dataJson = parseText(event.data);
+            if (dataJson === 0) return;
+            const data = Array.isArray(dataJson) ? dataJson : [dataJson];
+            const response = []
+            for (let index = 0; index < data.length; index++) {
+                switch (data[index].type) {
+                    case 'flyToLocation':
+                        this.handleFlyToLocation(data[index])
+                        break;
+                    case 'addMarker':
+                        this.handleAddMarker(data[index]);
+                        break;
+                    case 'removeMarker':
+                        this.handleRemoveMarker(data[index]);
+                        break;
+                    case 'updateMarker':
+                        this.handleUpdateMarker(data[index]);
+                        break;
+                    case 'addPolyline':
+                        this.handleAddPolyline(data[index]);
+                        break;
+                    case 'removePolyline':
+                        this.handleRemovePolyline(data[index]);
+                        break;
+                    case 'clearMap':
+                        this.handleClearMap();
+                        break;
+                    case 'responseWellness':
+                        if (this.valid.has(data[index].type.toLowerCase())) {
+                            response.push(this.mapRef.current?.sendData(data[index].type));
+                        }
+                        else {
+                            response.push("Invalid Command for wellness: " + data[index].type.toLowerCase())
+                            console.warn("Invalid Command for wellness: " + data[index].type.toLowerCase())
+                        }
+                        break;
+                    default:
+                        console.warn("Unknown command sent: ", data[index].command)
+                }
+                if (response.length === 0) return;
+                this.socket.send(JSON.stringify({
+                    action: 'FrontEndData',
+                    data: response
+                }));
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        this.socket.send(JSON.stringify({
+            action: 'FrontEndData',
+            data: "Closing Map"
+        }));
+
+        if (this.socket) {
+            this.socket.close();
+        }
+    }
+
+    // Move camera to given coords and zoom
+    handleFlyToLocation(data: FlyCameraTo) {
+        try {
+            this.mapRef.current?.flyTo(data);
+            console.log("Frontend received flyToLocation: (data) " + data);
+            console.log("Frontend received flyToLocation: " + data.lat + " " + data.lng);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+    
+    handleAddMarker(data: MarkerData) {
+        try {
+            this.mapRef.current?.addMarkers(data);
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    handleRemoveMarker(data: RemoveData) {
+        try {
+            this.mapRef.current?.removeMarker({
+                id: data.id,
+                type: data.type
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleUpdateMarker(data: UpdateMarkerData) {
+        try {
+            this.mapRef.current?.moveMarkers(data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleAddPolyline(data: PolyLineData) {
+        try {
+            this.mapRef.current?.drawPolyLine(data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleRemovePolyline(data: RemoveData) {
+        try {
+            this.mapRef.current?.removePolyLine(data.id);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    handleClearMap() {
+        try {
+            this.mapRef.current?.clearMap();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    render() {
+        return (
+            <div>
+                <LeafletMap ref={this.mapRef} />
+            </div>
+        );
+    }
+}
+
+export default InteractiveMap;
+
+
+
+/*
 class InteractiveMap extends React.Component<InteractiveMapProps> {
     private mapRef = React.createRef<LeafletMap>();
 
@@ -50,7 +215,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         setInterval(this.handleUpdateMarker, 5000);
         setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
-        //setInterval(this.handleClearMap, 10000);
+        setInterval(this.handleClearMap, 10000);
 
         for (let record of this.props.flightRecords) {
             this.addFlightRecordAsMarker(record);
@@ -294,3 +459,4 @@ function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 export default InteractiveMap;
+*/
