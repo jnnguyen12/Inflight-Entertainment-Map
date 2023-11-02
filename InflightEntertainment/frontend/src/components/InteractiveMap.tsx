@@ -63,17 +63,9 @@ class InteractiveMap extends React.Component {
     handleAddMarker = async () => {
         try {
             const response = await fetch('/api/addMarker/');
-            const data = parseText(await response.text())
-            if(data == 0) return;
-            if (!Array.isArray(data)) {
-                this.mapRef.current?.addMarkers({
-                    id: data.id,                         // marker id -- currently using flight id as marker id
-                    type: data.type,                     // aircraft or airport -- currently only have aircraft
-                    coords: [data.lat, data.lng],        // [lat, lng]
-                    element: data?.info                  // info or ""
-                });
-                return;
-            }
+            const parsedData = parseText(await response.text())
+            if(parsedData == 0) return;
+            const data = Array.isArray(parsedData) ? parsedData : [parsedData];
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.addMarkers({
                     id: data[index].id,                         // marker id -- currently using flight id as marker id
@@ -90,15 +82,9 @@ class InteractiveMap extends React.Component {
     handleRemoveMarker = async () => {
         try {
             const response = await fetch('/api/removeMarker/');
-            const data = parseText(await response.text())
-            if(data == 0) return;
-            if (!Array.isArray(data)) {
-                this.mapRef.current?.removeMarker({
-                    id: data.id,
-                    type: data.type
-                });
-                return;
-            }
+            const parsedData = parseText(await response.text())
+            if(parsedData == 0) return;
+            const data = Array.isArray(parsedData) ? parsedData : [parsedData];
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.removeMarker({
                     id: data[index].id,
@@ -113,15 +99,9 @@ class InteractiveMap extends React.Component {
     handleUpdateMarker = async () => {
         try {
             const response = await fetch('/api/updateMarker/');
-            const data = parseText(await response.text())
-            if(data == 0) return;
-            if (!Array.isArray(data)) {
-                this.mapRef.current?.moveMarkers({
-                    movingMarkerId: data.id,                 // marker Id
-                    newCoords: [data.lat, data.lng]   // [lat, lng]
-                });
-                return;
-            }
+            const parsedData = parseText(await response.text())
+            if(parsedData == 0) return;
+            const data = Array.isArray(parsedData) ? parsedData : [parsedData];
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.moveMarkers({
                     movingMarkerId: data[index].id,                 // marker Id
@@ -136,17 +116,9 @@ class InteractiveMap extends React.Component {
     handleAddPolyline = async () => {
         try {
             const response = await fetch('/api/addPolylinePayload/');
-            const data = parseText(await response.text())
-            if(data == 0) return;
-            console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data.aircraftID, data.airportIDFrom, data.airportIDTo);
-            if (!Array.isArray(data)) {
-                this.mapRef.current?.drawPolyLine({
-                    aircraftId: data.aircraftID,
-                    airportIdTo: data.airportIDTo,
-                    airportIdFrom: data.airportIDFrom
-                });
-                return;
-            }
+            const parsedData = parseText(await response.text())
+            if(parsedData == 0) return;
+            const data = Array.isArray(parsedData) ? parsedData : [parsedData];
             for (var index = 0; index < data.length; index++) {
                 console.log("aircraft: %d, airportFrom: %d, airportTo: %d", data[index].aircraftID, data[index].airportIDFrom, data[index].airportIDTo);
                 this.mapRef.current?.drawPolyLine({
@@ -163,12 +135,9 @@ class InteractiveMap extends React.Component {
     handleRemovePolyline = async () => {
         try {
             const response = await fetch('/api/removePolylinePayload/');
-            const data = parseText(await response.text())
-            if(data == 0) return;
-            if (!Array.isArray(data)) {
-                this.mapRef.current?.removePolyLine(data.mark_aircraft.id);
-                return;
-            }
+            const parsedData = parseText(await response.text())
+            if(parsedData == 0) return;
+            const data = Array.isArray(parsedData) ? parsedData : [parsedData];
             for (var index = 0; index < data.length; index++) {
                 this.mapRef.current?.removePolyLine(data[index].mark_aircraft.id);
             }

@@ -206,7 +206,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.warn("moveMarkers: Could not find aircraft Id: ", payload.movingMarkerId);
       return;
     }
-    this.state.aircrafts[payload.movingMarkerId] = updateMarkerRotation(this.state.aircrafts[payload.movingMarkerId], this.state.aircrafts[payload.movingMarkerId].getLatLng().lat, this.state.aircrafts[payload.movingMarkerId].getLatLng().lng, payload.newCoords[0], payload.newCoords[1]);
+    updateMarkerRotation(this.state.aircrafts[payload.movingMarkerId], this.state.aircrafts[payload.movingMarkerId].getLatLng().lat, this.state.aircrafts[payload.movingMarkerId].getLatLng().lng, payload.newCoords[0], payload.newCoords[1]);
     this.state.aircrafts[payload.movingMarkerId].setLatLng(payload.newCoords)
     if (!this.state.polylines.hasOwnProperty(payload.movingMarkerId)) {
       console.warn("moveMarkers: Could not find polyline Id: ", payload.movingMarkerId);
