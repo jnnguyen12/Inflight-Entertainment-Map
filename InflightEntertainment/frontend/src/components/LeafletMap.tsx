@@ -9,9 +9,6 @@ import L, { LatLngExpression, Marker } from "leaflet";
 // Functions
 import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 
-// Rnd
-import { Rnd } from "react-rnd";
-
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, LeafletPolyline, Wellness } from './Interfaces'
 
