@@ -59,22 +59,12 @@ class InteractiveMap extends React.Component {
                     case 'setFlight':
                         flightData = payload as Flight
                         this.Flight = flightData;
-                        this.mapRef.current?.addMarkers({
-                            id: flightData.id,
-                            type: "aircraft",
-                            lat: flightData.lat,
-                            lng: flightData.lng,
-                            rotation: 0
-                        });
+                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: 0 });
                         break;
                     case 'updateFlight':
                         flightData = payload as Flight
                         this.Flight = flightData;
-                        this.mapRef.current?.moveMarkers({
-                            id: flightData.id,
-                            lat: flightData.lat,
-                            lng: flightData.lng
-                        });
+                        this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng });
                         break;
                     case 'removeFlight':
                         flightData = payload as RemoveData
@@ -133,10 +123,7 @@ class InteractiveMap extends React.Component {
             }
         });
         if (response.length > 0) {
-            this.socket.send(JSON.stringify({
-                action: 'FrontEndData',
-                data: response
-            }));
+            this.socket.send(JSON.stringify({ action: 'FrontResponse', data: response }));
         }
     }
 
