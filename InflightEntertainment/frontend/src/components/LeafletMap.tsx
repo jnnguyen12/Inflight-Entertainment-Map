@@ -13,23 +13,13 @@ import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 import { Rnd } from "react-rnd";
 
 // types
-import {FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, LeafletPolyline} from './types'
-
-
-interface LeafletMapState {
-  airports: { [key: string]: Marker };
-  aircrafts: { [key: string]: Marker };
-  landmarks: { [key: string]: Marker };
-  polylines: { [key: string]: LeafletPolyline }; // the key for the polyline is the aircraft key
-  lat: number;
-  lng: number;
-  zoom: number;
-}
+import {LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, LeafletPolyline, Wellness} from './Interfaces'
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
   private map: L.Map | null
+  // private validCommands: Set<string> = new Set(["aircrafts", "airports", "landmarks", "camera"]);
   constructor(props) {
     super(props)
     this.map = null;
@@ -97,8 +87,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     });
   }
 
-  sendData(dataType: string) {
-    switch (dataType) {
+  sendData(dataType: Wellness) {
+    switch (dataType.type.toLowerCase()) {
       case "aircraft":
         return this.state.aircrafts;
       case "airport":
@@ -112,8 +102,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           zoom: this.state.zoom
         }
       default:
-        console.warn("sendData: type not found")
-        return { type: "Not found" };
+        console.warn("sendData: data type not found: ", dataType.type.toLowerCase())
+        return { error: "Not found" };
     }
   }
 
@@ -241,15 +231,14 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map);
   }
 
-
-  removePolyLine(polyLineId: string) {
-    if (!this.state.polylines.hasOwnProperty(polyLineId)) {
+  removePolyLine(payload: RemoveData) {
+    if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("removePolyLine: Could not find polyline id");
       return;
     }
-    if (this.state.polylines[polyLineId].polylineFrom) this.map!.removeLayer(this.state.polylines[polyLineId].polylineFrom);
-    this.map!.removeLayer(this.state.polylines[polyLineId].polylineTo)
-    delete this.state.polylines[polyLineId];
+    if (this.state.polylines[payload.id].polylineFrom) this.map!.removeLayer(this.state.polylines[payload.id].polylineFrom);
+    this.map!.removeLayer(this.state.polylines[payload.id].polylineTo)
+    delete this.state.polylines[payload.id];
   }
 
   handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {

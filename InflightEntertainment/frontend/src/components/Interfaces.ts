@@ -1,18 +1,28 @@
-import L from "leaflet";
+import L, { Marker } from "leaflet";
 
-export type FlyCameraTo = {
+export interface LeafletMapState {
+    airports: { [key: string]: Marker };
+    aircrafts: { [key: string]: Marker };
+    landmarks: { [key: string]: Marker };
+    polylines: { [key: string]: LeafletPolyline }; // the key for the polyline is the aircraft key
+    lat: number;
+    lng: number;
+    zoom: number;
+}
+
+export interface FlyCameraTo {
     lat: number
     lng: number
     zoom: number
 }
 
-export type PolyLineMaker = {
+export interface PolyLineMaker {
     aircraftId: string
     airportIdTo: string
     airportIdFrom: string
 }
 
-export type MarkerData = {
+export interface MarkerData {
     id: string;                 // marker id -- currently using flight id as marker id
     type: string;               // aircraft, airport -- currently only have aircraft
     lat: number;
@@ -21,26 +31,30 @@ export type MarkerData = {
     element: JSX.Element;
 }
 
-export type UpdateMarkerData = {
+export interface UpdateMarkerData {
     id: string;
     lat: number;
     lng: number;
 }
 
-export type PolyLineData = {
+export interface PolyLineData {
     aircraftId: string
     airportIdTo: string
     airportIdFrom: string
 }
 
-export type RemoveData = {
+export interface RemoveData {
     id: string;
     type?: string;
 }
 
-export type LeafletPolyline = {
+export interface LeafletPolyline {
     airportIdTo: string
     airportIdFrom: string
     polylineTo: L.Polyline;
     polylineFrom: L.Polyline | any
+}
+
+export interface Wellness {
+    type: string
 }
