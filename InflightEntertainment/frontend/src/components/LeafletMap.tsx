@@ -32,6 +32,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     };
   }
 
+  componentDidMount() {
+    this.makeMap()
+  }
+
+  // Cleanup removes map
+  componentWillUnmount() {
+    if (this.map) this.map.remove();
+  }
+
   makeMap() {
     this.map = L.map('map', {
       zoomControl: false,     // Removes defaults 
@@ -48,15 +57,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     // Offline implementation
     L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
       { maxZoom: 7 }).addTo(this.map);
-  }
-
-  componentDidMount() {
-    this.makeMap()
-  }
-
-  // Cleanup removes map
-  componentWillUnmount() {
-    if (this.map) this.map.remove();
   }
 
   //Flys to the position on the map
