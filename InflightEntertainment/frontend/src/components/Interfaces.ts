@@ -10,6 +10,18 @@ export interface LeafletMapState {
     zoom: number;
 }
 
+export interface Flight {
+    id: string;
+    flight: string;
+    timestamp: string;
+    lat: number;
+    lng: number;
+    alt_baro?: number;
+    alt_geom?: number;
+    track?: number;
+    ground_speed: number;
+}
+
 export interface FlyCameraTo {
     lat: number
     lng: number
@@ -28,7 +40,7 @@ export interface MarkerData {
     lat: number;
     lng: number;
     rotation: number;
-    element: JSX.Element;
+    element?: JSX.Element;
 }
 
 export interface UpdateMarkerData {

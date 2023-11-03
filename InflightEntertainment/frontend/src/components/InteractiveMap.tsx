@@ -1,10 +1,12 @@
 import React from 'react';
 import LeafletMap from './LeafletMap';
-import { FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+import { Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+
 
 class InteractiveMap extends React.Component {
     private mapRef = React.createRef<LeafletMap>();
     private socket: WebSocket | null = null; // WebSocket connection
+    private Flight: Flight | null = null
 
     constructor(props: {}) {
         super(props);
@@ -38,7 +40,7 @@ class InteractiveMap extends React.Component {
     private handleSocketMessage(event: MessageEvent) {
         const text = event.data
         let dataJson;
-        if (text === "") return 0;
+        if (text === "") return;
         try {
             dataJson = JSON.parse(text);
         } catch (error) {
@@ -47,21 +49,65 @@ class InteractiveMap extends React.Component {
         }
         const data = Array.isArray(dataJson) ? dataJson : [dataJson];
         const response: any[] = [];
+        let flightData;
         data.forEach((payload) => {
             try {
                 switch (payload.command) {
+                    case 'setFlight':
+                        flightData = payload as Flight
+                        this.Flight = flightData;
+                        this.mapRef.current?.addMarkers({
+                            id: flightData.id,
+                            type: "aircraft",
+                            lat: flightData.lat,
+                            lng: flightData.lng,
+                            rotation: 0
+                        });
+                        break;
+                    case 'updateFlight':
+                        flightData = payload as Flight
+                        this.Flight = flightData;
+                        this.mapRef.current?.moveMarkers({
+                            id: flightData.id,
+                            lat: flightData.lat,
+                            lng: flightData.lng
+                        });
+                        break;
+                    case 'removeFlight':
+                        flightData = payload as RemoveData
+                        this.Flight = null
+                        this.mapRef.current?.removeMarker({ id: flightData.id, type: "aircraft" });
+                       break;
                     case 'flyToLocation':
                         // Move camera to given coords and zoom
                         this.mapRef.current?.flyTo(payload as FlyCameraTo);
                         break;
                     case 'addMarker':
-                        this.mapRef.current?.addMarkers(payload as MarkerData);
+                        flightData = payload as MarkerData
+                        if (flightData.id === this.Flight.id) {
+                            response.push("Error cant add marker because it is the current flight")
+                            console.warn("Error cant add marker because it is the current flight")
+                            break;
+                        }
+                        this.mapRef.current?.addMarkers(flightData);
                         break;
                     case 'removeMarker':
-                        this.mapRef.current?.removeMarker(payload as RemoveData);
+                        flightData = payload as RemoveData
+                        if (flightData.id === this.Flight.id) {
+                            response.push("Error cant remove marker because it is the current flight")
+                            console.warn("Error cant remove marker because it is the current flight")
+                            break;
+                        }
+                        this.mapRef.current?.removeMarker(flightData);
                         break;
                     case 'updateMarker':
-                        this.mapRef.current?.moveMarkers(payload as UpdateMarkerData);
+                        flightData = payload as UpdateMarkerData
+                        if (flightData.id === this.Flight.id) {
+                            response.push("Error cant update marker because it is the current flight")
+                            console.warn("Error cant update marker because it is the current flight")
+                            break;
+                        }
+                        this.mapRef.current?.moveMarkers(flightData);
                         break;
                     case 'addPolyline':
                         this.mapRef.current?.drawPolyLine(payload as PolyLineData);
