@@ -13,7 +13,7 @@ import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 import { Rnd } from "react-rnd";
 
 // types
-import {LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, LeafletPolyline, Wellness} from './Interfaces'
+import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, LeafletPolyline, Wellness } from './Interfaces'
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
@@ -134,7 +134,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     newMarker.addTo(this.map!);
     markerState[newMarkerProps.id] = newMarker;
   }
-  
+
   // removing a marker based on its index
   removeMarker(payload: RemoveData) {
     let markerState;
@@ -199,7 +199,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.warn("drawPolyLine: Could not find airportTo id: ", payload.airportIdTo);
       return;
     }
-    if(payload.airportIdFrom){
+    if (payload.airportIdFrom) {
       if (!this.state.airports.hasOwnProperty(payload.airportIdFrom)) {
         console.warn("drawPolyLine: Could not find airportFrom id: ", payload.airportIdFrom);
         return;
@@ -221,9 +221,9 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       polylineTo: L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdTo].getLatLng()], polylineOptions),
       polylineFrom: payload.airportIdFrom
         ? L.polyline([this.state.aircrafts[payload.aircraftId].getLatLng(), this.state.airports[payload.airportIdFrom].getLatLng()], {
-            ...polylineOptions,
-            color: 'black',
-          })
+          ...polylineOptions,
+          color: 'black',
+        })
         : false,
     };
 
@@ -249,34 +249,27 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+  mapStatus(){
+    return this.map.dragging.enabled()
+  }
+
   //render the map
   render() {
     return (
       <>
-        <Rnd
-          className='rnd-container'
-          default={{
-            x: 0,
-            y: 0,
-            width: 320,
-            height: 200,
+        <div
+          id="map"
+          className="leaflet-map"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%"
           }}
-          onDrag={(e, d) => { if (this.map.dragging.enabled()) return false; /* Prevent dragging the Rnd component */ }}
-        >
-          <div
-            id="map"
-            className="leaflet-map"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%"
-            }}
-            onTouchMove={(e) => this.handleMapTouch(e)}
-            ref={this.mapRef}
-          ></div>
-        </Rnd>
+          onTouchMove={(e) => this.handleMapTouch(e)}
+          ref={this.mapRef}
+        ></div>
       </>
     );
   }

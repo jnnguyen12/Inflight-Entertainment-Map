@@ -2,6 +2,9 @@ import React from 'react';
 import LeafletMap from './LeafletMap';
 import { Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
+// Rnd
+import { Rnd } from "react-rnd";
+
 
 class InteractiveMap extends React.Component {
     private mapRef = React.createRef<LeafletMap>();
@@ -77,7 +80,7 @@ class InteractiveMap extends React.Component {
                         flightData = payload as RemoveData
                         this.Flight = null
                         this.mapRef.current?.removeMarker({ id: flightData.id, type: "aircraft" });
-                       break;
+                        break;
                     case 'flyToLocation':
                         // Move camera to given coords and zoom
                         this.mapRef.current?.flyTo(payload as FlyCameraTo);
@@ -139,9 +142,18 @@ class InteractiveMap extends React.Component {
 
     render() {
         return (
-            <div>
+            <Rnd
+                className='rnd-container'
+                default={{
+                    x: 0,
+                    y: 0,
+                    width: 320,
+                    height: 200,
+                }}
+                onDrag={(e, d) => { if (this.mapRef.current?.mapStatus()) return false; /* Prevent dragging the Rnd component */ }}
+            >
                 <LeafletMap ref={this.mapRef} />
-            </div>
+            </Rnd>
         );
     }
 }
