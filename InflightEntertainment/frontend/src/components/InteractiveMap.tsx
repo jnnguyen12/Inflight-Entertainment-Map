@@ -5,11 +5,10 @@ import { Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, Remove
 // Rnd
 import { Rnd } from "react-rnd";
 
-
 class InteractiveMap extends React.Component {
     private mapRef = React.createRef<LeafletMap>();
     private socket: WebSocket | null = null; // WebSocket connection
-    private Flight: Flight | null = null
+    private Flight: Flight | null = null     // Current Flight
 
     constructor(props: {}) {
         super(props);
@@ -25,8 +24,9 @@ class InteractiveMap extends React.Component {
     }
 
     componentWillUnmount() {
+        // Sending a message to the backend if the page closed
         this.socket.send(JSON.stringify({
-            action: 'FrontEndData',
+            action: 'FrontEndResponse',
             data: "Closing Map"
         }));
         if (this.socket) this.socket.close();
@@ -111,7 +111,7 @@ class InteractiveMap extends React.Component {
                     case 'clearMap':
                         this.mapRef.current?.clearMap();
                         break;
-                    case 'responseWellness':
+                    case 'wellness':
                         response.push(this.mapRef.current?.sendData(payload as Wellness));
                         break;
                     default:
@@ -123,7 +123,7 @@ class InteractiveMap extends React.Component {
             }
         });
         if (response.length > 0) {
-            this.socket.send(JSON.stringify({ action: 'FrontResponse', data: response }));
+            this.socket.send(JSON.stringify({ action: 'FrontEndResponse', data: response }));
         }
     }
 
