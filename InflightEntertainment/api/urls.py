@@ -25,4 +25,4 @@ urlpatterns = [
 
 #    path('WellnessCheck/', views.wellnessCheck, name="Wellness Check")
     
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
