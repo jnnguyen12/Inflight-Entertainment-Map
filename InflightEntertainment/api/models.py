@@ -6,8 +6,8 @@ from django.db import models
 class Flight(models.Model):
     hex = models.CharField(max_length=10, unique=True)  # Hex ID of the flight
     flight = models.CharField(max_length=20)  # Flight number
-    r = models.CharField(max_length=10)  # Registration
-    t = models.CharField(max_length=10)  # Aircraft type
+    registration = models.CharField(max_length=10)  # Registration
+    aircraft_type = models.CharField(max_length=10)  # Aircraft type
     
     def __str__(self):
         return self.flight

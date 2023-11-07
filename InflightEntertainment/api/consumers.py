@@ -121,6 +121,33 @@ class FlightConsumer(WebsocketConsumer):
                 }
             }))
 
+        elif text_data_json.get('type') == 'setFlight':
+            flight, created = Flight.objects.get_or_create(
+                hex=flight_data['hex'],
+                defaults={
+                    'flight': flight_data['flight'],
+                    'registration': flight_data['registration'],
+                    'aircraft_type': flight_data['aircraft_type'],
+                }
+            )
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'setFlight',
+                    'flight': {
+                        'flight': flight.flight,
+                        'hex': flight.hex,
+                        'registration': flight.registration,
+                        'aircraft_type': flight.aircraft_type,
+                    }
+                }
+            )
+            #
+
+# Send flight to front end
+# Update flight with flight record
+
     def add_flight_record(self, event):
         self.send(text_data=json.dumps(event))
 

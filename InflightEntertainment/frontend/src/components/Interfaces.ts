@@ -12,6 +12,7 @@ export interface LeafletMapState {
 
 export interface Flight {
     id: string;
+    hex: string;
     flight: string;
     timestamp: string;
     lat: number;
