@@ -59,7 +59,7 @@ class InteractiveMap extends React.Component {
                     case 'setFlight':
                         flightData = payload as Flight
                         this.Flight = flightData;
-                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0});
                         break;
                     case 'updateFlight':
                         flightData = payload as Flight

@@ -10,13 +10,12 @@ import L, { LatLngExpression, Marker } from "leaflet";
 import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 
 // types
-import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, LeafletPolyline, Wellness } from './Interfaces'
+import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
   private map: L.Map | null
-  // private validCommands: Set<string> = new Set(["aircrafts", "airports", "landmarks", "camera"]);
   constructor(props) {
     super(props)
     this.map = null;
@@ -46,7 +45,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       zoomControl: false,     // Removes defaults 
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
-      scrollWheelZoom: true, // This makes it look bad
+      scrollWheelZoom: true,  
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys
@@ -127,7 +126,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       return;
     }
     const coords: LatLngExpression = [newMarkerProps.lat, newMarkerProps.lng]
-    newMarker = BuildMarker(newMarkerProps.type, coords, newMarkerProps.rotation, newMarkerProps?.element);
+    newMarker = BuildMarker(newMarkerProps.type, coords, newMarkerProps.rotation);
     newMarker.addTo(this.map!);
     markerState[newMarkerProps.id] = newMarker;
   }
