@@ -134,8 +134,8 @@ class InteractiveMap extends React.Component {
                 default={{
                     x: 0,
                     y: 0,
-                    width: 320,
-                    height: 200,
+                    width: 1920,
+                    height: 1080,
                 }}
                 onDrag={(e, d) => { if (this.mapRef.current?.mapStatus()) return false; /* Prevent dragging the Rnd component */ }}
             >
