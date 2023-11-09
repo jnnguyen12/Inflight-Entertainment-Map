@@ -375,10 +375,11 @@ class InteractiveMap extends React.Component<InteractiveMapProps, RndProps> {
             {/* if if is full screen, render the panel and everything, if it is not, render only the expand button */}
             {/* TODO  implment shrink button*/}
             {this.state.w === window.innerWidth || this.state.fullScreen ? (
-              // this sits on top of the map
+                // this sits on top of the map
                 <MapUI/>
             ) : (
               <FontAwesomeIcon
+                className="expander"
                 icon={faExpand}
                 onClick={this.goFullScreen.bind(this)}
               />

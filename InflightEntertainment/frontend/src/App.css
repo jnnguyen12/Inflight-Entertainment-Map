@@ -27,7 +27,7 @@ html, body {
 }
 
 /* styling for expand icon */
-svg:not(.expand) {
+svg.expander {
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -70,13 +70,13 @@ svg:not(.expand) {
   margin-bottom: 0;
 }
 
-.time small, .cities {
+.time small, .cities, .distance p {
   color: var(--bs-gray-700) !important;
 }
 
-.time ~ hr {
-  border: 1px dashed var(--bs-gray-600);
-  margin-top: 8px;
+hr {
+  border: 1px dashed var(--bs-gray-600) !important;
+  margin-top: 8px !important;
 }
 
 .progress {
@@ -89,5 +89,27 @@ svg:not(.expand) {
   margin-top: 10px;
   border-radius: var(--pill-radius);
   height: 100%;
+  padding: 25px;
 }
 
+.distance h4 {
+  margin-bottom: 3px;
+}
+
+.extra-info:not( .distance p) p {
+  margin-bottom: 8px;
+}
+
+.bar {
+  width: 3px;
+  background-color: var(--bs-gray-400);
+  height: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  /* position: absolute; */
+  left: -50%;
+}
+
+svg ~ .bar {
+  background-color: var(--bs-blue);
+}
