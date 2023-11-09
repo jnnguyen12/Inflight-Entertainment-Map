@@ -6,13 +6,9 @@ import LeafletMap from "./LeafletMap";
 import { Rnd } from "react-rnd";
 import MapUI from "./MapUI";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap/dist/js/bootstrap.js';
 
 import {
-  faExpand,
-  faCompress,
-  faCircleChevronRight,
+  faExpand
 } from "@fortawesome/free-solid-svg-icons";
 
 function parseText(text: any) {
@@ -68,7 +64,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps, RndProps> {
       h: this.d_height,
       x: 10,
       y: 10,
-      fullScreen: false
+      fullScreen: false,
     };
   }
 
@@ -338,7 +334,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps, RndProps> {
       h: window.innerHeight,
       x: 0,
       y: 0,
-      fullScreen: true
+      fullScreen: true,
     });
   }
 
@@ -380,36 +376,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps, RndProps> {
             {/* TODO  implment shrink button*/}
             {this.state.w === window.innerWidth || this.state.fullScreen ? (
               // this sits on top of the map
-              <>
-                <div className="row container-fluid vh-100 ">
-                  <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
-                    {/* main panel that displays information */}
-                    <a
-                        className="btn btn-primary"
-                        data-bs-toggle="collapse"
-                        href="#collapseExample"
-                        role="button"
-                        aria-expanded="false"
-                        aria-controls="collapseExample"
-                      >
-                        <FontAwesomeIcon icon={faCircleChevronRight} className="expand" />
-                      </a>
-                    <div className="collapse collapse-horizontal" id="collapseExample">
-                        <div className="panel" style={{width: '500px'}}>
-                            <div className="container-fluid d-flex flex-column">
-                                {/* aircraft type  */}
-                                <div className="aircraft-type mx-auto">
-                                    <div className="flight-num">
-                                        UA1669
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                  </div>
-                </div>
-                <FontAwesomeIcon icon={faCompress} />
-              </>
+                <MapUI/>
             ) : (
               <FontAwesomeIcon
                 icon={faExpand}
