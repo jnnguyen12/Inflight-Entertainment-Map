@@ -90,6 +90,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
+      noWrap: true
     }).addTo(this.map);
 
     // Offline implementation
@@ -326,11 +327,22 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+  reloadMap(){
+    this.map.invalidateSize()
+}
+
+  /**
+   * @returns if the map is enabling dragging.
+   */
+  isMapDragging() {
+    return this.map.dragging.enabled();
+  }
+
   //render the map
   render() {
     return (
       <>
-        <Rnd
+        {/* <Rnd
           className='rnd-container'
           default={{
             x: 0,
@@ -338,7 +350,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
             width: 320,
             height: 200,
           }}
-          onDrag={(e, d) => { if (this.map.dragging.enabled()) return false; /* Prevent dragging the Rnd component */ }}
+          onDrag={(e, d) => { if (this.map.dragging.enabled()) return false;}}
         >
         <div
           id="map"
@@ -353,7 +365,21 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           onTouchMove={(e) => this.handleMapTouch(e)}
           ref={this.mapRef}
         ></div>
-      </Rnd>
+        </Rnd> */}
+
+      <div
+          id="map"
+          className="leaflet-map"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%"
+          }}
+          onTouchMove={(e) => this.handleMapTouch(e)}
+          ref={this.mapRef}
+        ></div>
       </>
     );
   }
