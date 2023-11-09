@@ -11,8 +11,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
   faCompress,
-  faCircleChevronRight,
   faPlaneUp,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 
 const MapUI = () => {
@@ -22,14 +22,15 @@ const MapUI = () => {
         <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
           {/* main panel that displays information */}
           <a
-            className="btn btn-primary"
+            className="btn me-2"
             data-bs-toggle="collapse"
             href="#collapseExample"
             role="button"
             aria-expanded="false"
             aria-controls="collapseExample"
           >
-            <FontAwesomeIcon icon={faCircleChevronRight} />
+            {/* TODO: turn this into chevron left on expansion */}
+            <FontAwesomeIcon icon={faChevronRight} />
           </a>
           <div className="collapse collapse-horizontal" id="collapseExample">
             <div className="panel" style={{ width: "500px" }}>
@@ -113,7 +114,6 @@ const MapUI = () => {
           </div>
         </div>
       </div>
-      <FontAwesomeIcon className="expander" icon={faCompress} />
     </>
   );
 };

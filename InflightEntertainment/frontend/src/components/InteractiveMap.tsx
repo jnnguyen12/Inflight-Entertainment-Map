@@ -7,9 +7,7 @@ import { Rnd } from "react-rnd";
 import MapUI from "./MapUI";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import {
-  faExpand
-} from "@fortawesome/free-solid-svg-icons";
+import { faCompress, faExpand } from "@fortawesome/free-solid-svg-icons";
 
 function parseText(text: any) {
   if (text === "") return 0;
@@ -52,6 +50,11 @@ interface RndProps {
   fullScreen: boolean;
 }
 
+/*
+ * wrapper to wrap rnd
+ */
+const RndWrapper = ({ condition, ui_wrapper, rnd_wrapper, children }) =>
+  condition ? ui_wrapper(children) : rnd_wrapper(children);
 class InteractiveMap extends React.Component<InteractiveMapProps, RndProps> {
   private mapRef = React.createRef<LeafletMap>();
   private d_width = window.innerWidth;
@@ -337,57 +340,75 @@ class InteractiveMap extends React.Component<InteractiveMapProps, RndProps> {
       fullScreen: true,
     });
   }
+  goWindowed() {
+    this.setState({
+      w: this.d_height,
+      h: this.d_width,
+      x: window.innerWidth - 50,
+      y: window.innerHeight - 50,
+      fullScreen: false,
+    });
+  }
 
   render() {
     return (
       <div>
         {/* <LeafletMap ref={this.mapRef} /> */}
-        <Rnd
-          className="rnd-container"
-          default={{
-            x: 10,
-            y: 10,
-            width: this.d_width,
-            height: this.d_height,
-          }}
-          size={{ width: this.state.w, height: this.state.h }}
-          onDrag={(e, d) => {
-            if (this.mapRef.current?.isMapDragging())
-              return false; /* Prevent dragging the Rnd component */
-          }}
-          position={{ x: this.state.x, y: this.state.y }}
-          onDragStop={(e, d) => {
-            this.setState({ x: d.x, y: d.y });
-
-            console.log(this.state);
-          }}
-          onResizeStop={(e, direction, ref, delta, position) => {
-            this.setState({
-              w: parseInt(ref.style.width),
-              h: parseInt(ref.style.height),
-              x: position.x,
-              y: position.y,
-            });
-            this.mapRef.current?.reloadMap();
-          }}
-        >
-          <div className="UI-container">
-            {/* if if is full screen, render the panel and everything, if it is not, render only the expand button */}
-            {/* TODO  implment shrink button*/}
-            {this.state.w === window.innerWidth || this.state.fullScreen ? (
-                // this sits on top of the map
-                <MapUI/>
-            ) : (
-              <FontAwesomeIcon
-                className="expander"
-                icon={faExpand}
-                onClick={this.goFullScreen.bind(this)}
-              />
+        <div className="UI-container">
+          {/* if this is fullscreen, dont wrap rnd around the map  */}
+          <RndWrapper
+            condition={
+              this.state.w === window.innerWidth || this.state.fullScreen
+            }
+            ui_wrapper={(children) => (
+              <>
+                <MapUI />
+                <FontAwesomeIcon
+                  className="expander"
+                  icon={faCompress}
+                  onClick={this.goWindowed.bind(this)}
+                />
+                {children}
+              </>
             )}
+            rnd_wrapper={(children) => (
+              <Rnd
+                className="rnd-container"
+                default={{
+                  x: 10,
+                  y: 10,
+                  width: this.d_width,
+                  height: this.d_height,
+                }}
+                size={{ width: this.state.w, height: this.state.h }}
+                onDrag={(e, d) => {
+                  if (this.mapRef.current?.isMapDragging())
+                    return false; /* Prevent dragging the Rnd component */
+                }}
+                position={{ x: this.state.x, y: this.state.y }}
+                onDragStop={(e, d) => {
+                  this.setState({ x: d.x, y: d.y });
+
+                  console.log(this.state);
+                }}
+                onResizeStop={(e, direction, ref, delta, position) => {
+                  this.setState({
+                    w: parseInt(ref.style.width),
+                    h: parseInt(ref.style.height),
+                    x: position.x,
+                    y: position.y,
+                  });
+                  this.mapRef.current?.reloadMap();
+                }}
+              >
+                {children}
+              </Rnd>
+            )}
+          >
+            {/* children  */}
             <LeafletMap ref={this.mapRef} />
-            {/* svg of the expand button */}
-          </div>
-        </Rnd>
+          </RndWrapper>
+        </div>
       </div>
     );
   }
