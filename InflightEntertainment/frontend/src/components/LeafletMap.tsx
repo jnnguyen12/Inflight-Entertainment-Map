@@ -51,6 +51,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
+      noWrap: true
     }).addTo(this.map);
 
     // Offline implementation
@@ -243,6 +244,10 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     } else {
       if (this.map) this.map.dragging.enable(); // Enable dragging of map when there are multiple touches
     }
+  }
+
+  reloadMap(){
+    this.map.invalidateSize()
   }
 
   mapStatus(){

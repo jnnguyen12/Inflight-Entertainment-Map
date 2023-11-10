@@ -2,16 +2,37 @@ import React from 'react';
 import LeafletMap from './LeafletMap';
 import { Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
+
+import MapUI from "./MapUI";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import { faCompress, faExpand } from "@fortawesome/free-solid-svg-icons";
+
 // Rnd
 import { Rnd } from "react-rnd";
 
-class InteractiveMap extends React.Component {
+interface RndStates {
+    RndXPosition: number;
+    RndYPosition: number;
+    RndWidth: number;
+    RndHeight: number;
+    fullScreen: boolean;
+}
+
+class InteractiveMap extends React.Component<{}, RndStates> {
     private mapRef = React.createRef<LeafletMap>();
     private socket: WebSocket | null = null; // WebSocket connection
     private Flight: Flight | null = null     // Current Flight
 
-    constructor(props: {}) {
+    constructor(props) {
         super(props);
+        this.state = {
+            RndXPosition: 0,
+            RndYPosition: 0,
+            RndWidth: 400,
+            RndHeight: 300,
+            fullScreen: true,
+        };
     }
 
     // On load function
@@ -59,7 +80,7 @@ class InteractiveMap extends React.Component {
                     case 'setFlight':
                         flightData = payload as Flight
                         this.Flight = flightData;
-                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0});
+                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
                         break;
                     case 'updateFlight':
                         flightData = payload as Flight
@@ -127,21 +148,65 @@ class InteractiveMap extends React.Component {
         }
     }
 
+    goFullScreen() {
+        this.setState({
+            fullScreen: true,
+        });
+        console.warn("Full screen")
+    }
+
+    goWindowed() {
+        this.setState({
+            fullScreen: false,
+        });
+        console.warn("Windowed");
+    }
+
     render() {
-        return (
-            <Rnd
-                className='rnd-container'
-                default={{
-                    x: 0,
-                    y: 0,
-                    width: 1920,
-                    height: 1080,
-                }}
-                onDrag={(e, d) => { if (this.mapRef.current?.mapStatus()) return false; /* Prevent dragging the Rnd component */ }}
-            >
-                <LeafletMap ref={this.mapRef} />
-            </Rnd>
-        );
+        const leafletMap = <LeafletMap ref={this.mapRef} />;
+        if (this.state.fullScreen) {
+            return (
+                <>
+                    <MapUI />
+                    <FontAwesomeIcon
+                        className="expander"
+                        icon={faCompress}
+                        onClick={this.goWindowed.bind(this)}
+                    />
+                    {leafletMap}
+                </>
+            )
+        }
+        else {
+            return (
+                <Rnd
+                    className="rnd-container"
+                    default={{
+                        x: 0,
+                        y: 0,
+                        width: this.state.RndWidth,
+                        height: this.state.RndHeight,
+                    }}
+                    size={{ width: this.state.RndWidth, height: this.state.RndHeight }}
+                    onDrag={(e, d) => {
+                        if (this.mapRef.current?.mapStatus()) return false; /* Prevent dragging the Rnd component */
+                        this.setState({ RndXPosition: d.x, RndYPosition: d.y });
+                    }}
+                    position={{ x: this.state.RndXPosition, y: this.state.RndYPosition }}
+                    onResizeStop={(e, direction, ref, delta, position) => {
+                        this.setState({
+                            RndWidth: parseInt(ref.style.width),
+                            RndHeight: parseInt(ref.style.height),
+                            RndXPosition: position.x,
+                            RndYPosition: position.y,
+                        });
+                        this.mapRef.current?.reloadMap();
+                    }}
+                >
+                    {leafletMap}
+                </Rnd >
+            );
+        }
     }
 }
 
