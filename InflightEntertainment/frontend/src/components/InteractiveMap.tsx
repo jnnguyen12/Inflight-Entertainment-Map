@@ -246,9 +246,9 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         }
         setTimeout(() => { this.handleResponseWellnessCheck(); }, 1000);
     };
-
+    
     addFlightRecordAsMarker = (record: FlightRecord) => {
-        this.mapRef.current?.removeMarker({ id: String(record.flight.id), type: "aircraft" });
+        //this.mapRef.current?.removeMarker({ id: String(record.flight.id), type: "aircraft" });
         let rotationAngle;
 
         // Check if the previous record for the flight exists
@@ -260,15 +260,18 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
             const prevRecord = previousRecords[previousRecords.length - 1];
             rotationAngle = calculateRotation(prevRecord.lat, prevRecord.lng, record.lat, record.lng);
         }
+        else{
+            rotationAngle = 0;
+        }
 
-        const markerDataPayload = {
+        this.mapRef.current?.updateOrCreateMarker({
             id: String(record.flight.id),
             type: "aircraft",
             coords: { lat: record.lat, lng: record.lng },
             rotation: rotationAngle,
             element: <p>{record.flight.flight}</p>
-        }
-        this.mapRef.current?.addMarkers(markerDataPayload);
+        });
+        //this.mapRef.current?.addMarkers(markerDataPayload);
     };
 
     render() {
