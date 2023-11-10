@@ -27,11 +27,12 @@ function BuildMarker(type: string, position: L.LatLngExpression, rotationAngle?:
   }
 
   const icon = new L.Icon({ 
-    iconUrl: image, 
+    iconUrl: image,
     iconSize: new L.Point(35, 46),
-    transition: "0.5s"
+    iconAnchor: new L.Point(17, 23),
+    iconStyle: 'transition: transform 0.5s ease;',
   })
-  if(typeof rotationAngle !== 'number') rotationAngle = 0; // catch if none 
+  if(typeof rotationAngle !== 'number') rotationAngle = 0;
   const marker = new L.Marker(position, { rotationAngle: rotationAngle } as any).setIcon(icon);
   if(popupContent){
       const popup = L.popup().setContent(JSXToHTMLElement(popupContent));

@@ -121,7 +121,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     })
   }
 
-// We have the markers on initializatoion now we need to add them to the map
+  // We have the markers on initializatoion now we need to add them to the map
   addMarkers(newMarkerProps: MakeMaker) {
     let newMarker;
     switch (newMarkerProps.type) {
@@ -326,6 +326,53 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
+  updateOrCreateMarker = (markerProps: MakeMaker) => {
+    const { id, type, coords, rotation, element } = markerProps;
+    const existingMarker = this.state.aircrafts[id];
+
+    if (existingMarker) {
+      // Marker exists, so animate to new position
+      this.animateMarkerMovement(existingMarker, coords, rotation);
+    } else {
+      // Create a new marker
+      const newMarker = BuildMarker(type, coords, rotation, element);
+      newMarker.addTo(this.map);
+      this.setState(prevState => ({
+        aircrafts: { ...prevState.aircrafts, [id]: newMarker }
+      }));
+    }
+  };
+
+  animateMarkerMovement = (marker, newCoords, rotation) => {
+    const startPosition = marker.getLatLng();
+    const endPosition = L.latLng(newCoords.lat, newCoords.lng);
+    const duration = 1000; 
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = elapsedTime / duration;
+
+      if (progress < 1) {
+        const currentPosition = {
+          lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,
+          lng: startPosition.lng + (endPosition.lng - startPosition.lng) * progress,
+        };
+        marker.setLatLng(currentPosition);
+        if (rotation !== undefined) {
+          marker.setRotationAngle(rotation);
+        }
+        requestAnimationFrame(animate);
+      } else {
+        marker.setLatLng(endPosition);
+        if (rotation !== undefined) {
+          marker.setRotationAngle(rotation);
+        }
+      }
+    };
+
+    requestAnimationFrame(animate);
+  };
   //render the map
   render() {
     return (
@@ -340,20 +387,20 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           }}
           onDrag={(e, d) => { if (this.map.dragging.enabled()) return false; /* Prevent dragging the Rnd component */ }}
         >
-        <div
-          id="map"
-          className="leaflet-map"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%"
-          }}
-          onTouchMove={(e) => this.handleMapTouch(e)}
-          ref={this.mapRef}
-        ></div>
-      </Rnd>
+          <div
+            id="map"
+            className="leaflet-map"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%"
+            }}
+            onTouchMove={(e) => this.handleMapTouch(e)}
+            ref={this.mapRef}
+          ></div>
+        </Rnd>
       </>
     );
   }
