@@ -2,11 +2,16 @@ import React from 'react';
 import LeafletMap from './LeafletMap';
 import { Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
-
-import MapUI from "./MapUI";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap/dist/js/bootstrap.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { faCompress, faExpand } from "@fortawesome/free-solid-svg-icons";
+import {
+    faCompress,
+    faPlaneUp,
+    faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
+
 
 // Rnd
 import { Rnd } from "react-rnd";
@@ -18,6 +23,29 @@ interface RndStates {
     RndHeight: number;
     fullScreen: boolean;
 }
+
+function calculateDistanceInKm(originLat: number, originLng: number, destinationLat: number, destinationLng: number): number {
+    const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = toRadians(destinationLat - originLat);
+    const dLon = toRadians(destinationLng - originLng);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRadians(originLat)) *
+        Math.cos(toRadians(destinationLat)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in kilometers
+}
+
+function calculateDistanceInMiles(originLat: number, originLng: number, destinationLat: number, destinationLng: number): number {
+    const distance = calculateDistanceInKm(originLat, originLng, destinationLat, destinationLng)
+    // Convert distance to miles
+    return distance * 0.621371;
+}
+
+
 
 class InteractiveMap extends React.Component<{}, RndStates> {
     private mapRef = React.createRef<LeafletMap>();
@@ -164,10 +192,130 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
     render() {
         const leafletMap = <LeafletMap ref={this.mapRef} />;
+
+        const knotsToMph = (knots: number): number => knots * 1.15078;
+        const knotsToKph = (knots: number): number => knots * 1.852;
+        const feetToMeters = (feet: number): number => feet * 0.3048;
+        const calculateDistanceInMiles = (distanceKm: number): number => distanceKm * 0.621371;
+
+        // orig to plan
+        let travaledKm = calculateDistanceInKm(
+            this.Flight.airportOriginLat,
+            this.Flight.airportOriginLng,
+            this.Flight.lat,
+            this.Flight.lng
+        )
+        
+        // plan to dest
+        let remainingKm = calculateDistanceInKm(
+            this.Flight.lat,
+            this.Flight.lng,
+            this.Flight.airportDestinationLat,
+            this.Flight.airportDestinationLng
+        )
+
+        let totalDistanceKm = calculateDistanceInKm(
+            this.Flight.airportOriginLat,
+            this.Flight.airportOriginLng,
+            this.Flight.airportDestinationLat,
+            this.Flight.airportDestinationLng
+        )
+
         if (this.state.fullScreen) {
             return (
                 <>
-                    <MapUI />
+                    <div className="row container-fluid vh-100 ">
+                        <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
+                            {/* main panel that displays information */}
+                            <a
+                                className="btn me-2"
+                                data-bs-toggle="collapse"
+                                href="#collapseExample"
+                                role="button"
+                                aria-expanded="false"
+                                aria-controls="collapseExample"
+                            >
+                                {/* TODO: turn this into chevron left on expansion */}
+                                <FontAwesomeIcon icon={faChevronRight} />
+                            </a>
+                            <div className="collapse collapse-horizontal" id="collapseExample">
+                                <div className="panel" style={{ width: "500px" }}>
+                                    <div className="container-fluid d-flex flex-column h-100">
+                                        {/* aircraft type  */}
+                                        <div className="mx-auto">
+                                            <div className="flight-num">{this.Flight.flight}</div>
+                                            <div className="small text-center">{this.Flight.aircraftType}</div>
+                                        </div>
+
+                                        {/* time  */}
+                                        <div className="time d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h4>16:15</h4>
+                                                <small>Local time</small>
+                                            </div>
+                                            <div className="text-end">
+                                                <h4>4:15AM</h4>
+                                                <small>Destination time</small>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        {/* airports info  */}
+                                        <div className="d-flex-flex-column">
+                                            <div className="d-flex justify-content-between align-items-center">
+                                                <h1 className="display-4 fw-normal">SGN</h1>
+                                                <small className="text-center">
+                                                    2h30 <br /> remaining
+                                                </small>
+                                                <h1 className="display-4 fw-normal text-end">DSM</h1>
+                                            </div>
+
+                                            <div
+                                                className="progress"
+                                                role="progressbar"
+                                                data-aria-label="Animated striped example"
+                                                data-aria-valuenow="75"
+                                                data-aria-valuemin="0"
+                                                data-aria-valuemax="100"
+                                            >
+                                                <div
+                                                    className="progress-bar progress-bar-striped progress-bar-animated"
+                                                    style={{ width: "75%" }}
+                                                ></div>
+                                            </div>
+
+                                            <div className="cities mt-2 d-flex justify-content-between align-items-center">
+                                                <p>{this.Flight.airportOrigin}</p>
+                                                <p className="text-end">{this.Flight.airportDestination}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* extra info  */}
+                                        <div className="extra-info d-flex flex-column justify-content-evenly">
+                                            {/* distance  */}
+                                            <div className="distance text-center d-flex flex-column">
+                                                <h4>{travaledKm} km | {calculateDistanceInMiles(travaledKm)} miles</h4>
+                                                <p>traveled</p>
+                                                <div className="position-relative mb-3">
+                                                    <div className="bar" />
+                                                    <FontAwesomeIcon icon={faPlaneUp} />
+                                                    <div className="bar"></div>
+                                                </div>
+                                                <h4>{remainingKm} km | {calculateDistanceInMiles(remainingKm)} miles</h4>
+                                                <p>remaining</p>
+                                            </div>
+
+                                            <hr />
+                                            {/* other extra info */}
+                                            <p>Ground speed <span className="float-end">{knotsToKph(this.Flight.ground_speed)} kph | {knotsToMph(this.Flight.ground_speed)} mph</span></p>
+                                            <p>Altitude <span className="float-end">{this.Flight.alt_geom} ft | {feetToMeters(this.Flight.alt_geom)} m</span></p>
+                                            <p>Longtitude<span className="float-end">{this.Flight.lng}</span></p>
+                                            <p>Latitude<span className="float-end">{this.Flight.lat}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <FontAwesomeIcon
                         className="expander"
                         icon={faCompress}
