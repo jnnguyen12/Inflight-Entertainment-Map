@@ -10,6 +10,15 @@ export interface LeafletMapState {
     zoom: number;                                   // Zoom level of the camera
 }
 
+export interface RndStates {
+    RndXPosition: number;
+    RndYPosition: number;
+    RndWidth: number;
+    RndHeight: number;
+    fullScreen: boolean;
+    Flight: Flight;
+}
+
 export interface LeafletPolyline {
     airportIdTo: string             // Desitation Airport key
     airportIdFrom: string           // Origin Airport key
@@ -17,26 +26,30 @@ export interface LeafletPolyline {
     polylineFrom: L.Polyline | any  // Polyline | False
 }
 
+export interface Airport{
+    id: string                          // Id of Airport
+    name: string;                       // Name of Airport
+    nameAbbreviated: string;            // Abbreviated name of Airport
+    lat: number;                        // Latitude
+    lng: number;                        // Longitude
+    time: string                        // Time at Airport
+}
+
 export interface Flight {
     id: string;                             // Id of the Flight
-    flight: string;                         // Flight number
+    flight: string;                         // Flight name or aircraft registration as 8 chars 
     lat: number;                            // Latitude 
     lng: number;                            // Longitude
-    airportOrigin: string;                  // Airport from
-    airportOriginAbbreviated: string;       // Airport from 
-    airportOriginLat: number;               // Airport from 
-    airportOriginLng: number;               // Airport from 
-    airportDestination: string;             // Airport To 
-    airportDestinationAbreviated: string;   // Airport To 
-    airportDestinationLat: number;          // Airport To 
-    airportDestinationLng: number;          // Airport To 
-    registration?: string;                  // Registration
-    aircraftType?: string;                  // Aircraft type
-    timestamp?: string;                     // Timestamp of the record
-    alt_baro?: number;                      // Barometric Altitude
-    alt_geom?: number;                      // Geometric Altitude
-    track?: number;                         // Track
-    ground_speed?: number;                  // Ground Speed
+    rotation?: number;                      // Rotation of marker 
+    airportOrigin: Airport;                 // Airport from
+    airportDestination: Airport;            // Airport To 
+    aircraftType: string;                   // Aircraft type (aircraft type pulled from database)
+    altitude?: string;                      // Barometric Altitude (altitude in feet as a number OR “ground”)
+    ground_speed?: string;                  // Ground Speed
+    estimatedTime?: string;                 // Estimated time remaining of flight
+    progress: number;                       // Flight progress 
+    travaledKm: number;                     // Distance Traveled in Km
+    remainingKm: number;                    // Distance Remaining in Km
 }
 
 export interface FlyCameraTo {

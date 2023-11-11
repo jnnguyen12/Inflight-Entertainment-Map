@@ -1,6 +1,6 @@
 import React from 'react';
 import LeafletMap from './LeafletMap';
-import { Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+import { RndStates, Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/dist/js/bootstrap.js";
@@ -12,17 +12,8 @@ import {
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 
-
 // Rnd
 import { Rnd } from "react-rnd";
-
-interface RndStates {
-    RndXPosition: number;
-    RndYPosition: number;
-    RndWidth: number;
-    RndHeight: number;
-    fullScreen: boolean;
-}
 
 function calculateDistanceInKm(originLat: number, originLng: number, destinationLat: number, destinationLng: number): number {
     const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
@@ -47,45 +38,98 @@ function calculateProgress(totalDistance: number, remainingDistance: number): nu
     const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
     // Ensure progress is within the range [0, 100]
     return Math.max(0, Math.min(100, progress));
-  }
+}
 
-  function calculateEstimatedTime(remainingKm: number, groundSpeedKnots: number): string {
+function calculateEstimatedTime(remainingKm: number, groundSpeedKnots: number): string {
     if (remainingKm < 0 || groundSpeedKnots <= 0) {
-      console.error('Invalid input: remainingKm and groundSpeedKnots must be positive numbers.');
-      return "Error";
+        console.error('Invalid input: remainingKm and groundSpeedKnots must be positive numbers.');
+        return "Error";
     }
-  
+
     // Calculate estimated time in hours
     const estimatedHours = remainingKm / groundSpeedKnots;
-  
+
     // Convert estimated time to days, hours, and minutes
     const days = Math.floor(estimatedHours / 24);
     const hours = Math.floor(estimatedHours % 24);
     const minutes = Math.round((estimatedHours % 1) * 60);
-  
+
     let resultString = '';
 
     if (days !== 0) {
-      resultString += `${days} ${days === 1 ? 'day' : 'days'}, `;
+        resultString += `${days} ${days === 1 ? 'day' : 'days'}, `;
     }
-  
-    if (hours !== 0) {
-      resultString += `${hours} ${hours === 1 ? 'hour' : 'hours'}, `;
-    }
-  
-    if (minutes !== 0 || (days === 0 && hours === 0)) {
-      resultString += `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-    }
-  
-    return resultString;
-  }
 
+    if (hours !== 0) {
+        resultString += `${hours} ${hours === 1 ? 'hour' : 'hours'}, `;
+    }
+
+    if (minutes !== 0 || (days === 0 && hours === 0)) {
+        resultString += `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+    }
+
+    return resultString;
+}
+
+function stringValid(myString: string | null): boolean {
+    return myString !== null && myString !== "";
+}
+
+const testFlight: Flight = {
+    id: 'F1',
+    flight: 'FLIGHT01',
+    lat: 35.6895,
+    lng: 139.6917,
+    rotation: 45,
+    airportOrigin: {
+        id: 'A1',
+        name: 'Airport 1',
+        nameAbbreviated: 'A1',
+        lat: 37.7749,
+        lng: -122.4194,
+        time: '12:00 PM',
+    },
+    airportDestination: {
+        id: 'A2',
+        name: 'Airport 2',
+        nameAbbreviated: 'A2',
+        lat: 40.7128,
+        lng: -74.0060,
+        time: '02:30 PM',
+    },
+    aircraftType: 'Boeing 747',
+    altitude: '35000', // Example barometric altitude in feet
+    ground_speed: '500', // Example ground speed in knots
+    estimatedTime: '2 hours',
+    progress: 50,
+    travaledKm: 1500,
+    remainingKm: 1500,
+};
+
+const emptyAirport = {
+    id: '',
+    name: '',
+    nameAbbreviated: '',
+    lat: 0,
+    lng: 0,
+    time: '',
+};
+const emptyFlight: Flight = {
+    id: '',
+    flight: '',
+    lat: 0,
+    lng: 0,
+    airportOrigin: emptyAirport,
+    airportDestination: emptyAirport,
+    aircraftType: '',
+    progress: 0,
+    travaledKm: 0,
+    remainingKm: 0,
+};
 
 class InteractiveMap extends React.Component<{}, RndStates> {
     private mapRef = React.createRef<LeafletMap>();
     private socket: WebSocket | null = null; // WebSocket connection
-    private Flight: Flight | null = null     // Current Flight
-
     constructor(props) {
         super(props);
         this.state = {
@@ -94,6 +138,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             RndWidth: 400,
             RndHeight: 300,
             fullScreen: true,
+            Flight: emptyFlight
         };
     }
 
@@ -104,6 +149,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         this.socket.addEventListener('open', this.handleSocketOpen);
         this.socket.addEventListener('close', this.handleSocketClose);
         this.socket.addEventListener('message', this.handleSocketMessage);
+        this.setState({ Flight: testFlight })
     }
 
     componentWillUnmount() {
@@ -140,18 +186,23 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             try {
                 switch (payload.command) {
                     case 'setFlight':
+                        // Adds Plane, Airports and polyline to map
                         flightData = payload as Flight
-                        this.Flight = flightData;
+                        this.setState({ Flight: flightData })
                         this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, type: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, type: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
+                        this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
                         break;
                     case 'updateFlight':
                         flightData = payload as Flight
-                        this.Flight = flightData;
+                        this.setState({ Flight: flightData })
                         this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng });
                         break;
                     case 'removeFlight':
                         flightData = payload as RemoveData
-                        this.Flight = null
+                        this.setState({ Flight: emptyFlight })
+                        this.mapRef.current?.removePolyLine({ id: flightData.id, type: "aircraft" });
                         this.mapRef.current?.removeMarker({ id: flightData.id, type: "aircraft" });
                         break;
                     case 'flyToLocation':
@@ -160,7 +211,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         break;
                     case 'addMarker':
                         flightData = payload as MarkerData
-                        if (flightData.id === this.Flight.id) {
+                        if (flightData.id === this.state.Flight.id) {
                             response.push("Error cant add marker because it is the current flight")
                             console.warn("Error cant add marker because it is the current flight")
                             break;
@@ -169,7 +220,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         break;
                     case 'removeMarker':
                         flightData = payload as RemoveData
-                        if (flightData.id === this.Flight.id) {
+                        if (flightData.id === this.state.Flight.id) {
                             response.push("Error cant remove marker because it is the current flight")
                             console.warn("Error cant remove marker because it is the current flight")
                             break;
@@ -178,7 +229,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         break;
                     case 'updateMarker':
                         flightData = payload as UpdateMarkerData
-                        if (flightData.id === this.Flight.id) {
+                        if (flightData.id === this.state.Flight.id) {
                             response.push("Error cant update marker because it is the current flight")
                             console.warn("Error cant update marker because it is the current flight")
                             break;
@@ -224,35 +275,80 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         console.warn("Windowed");
     }
 
-    render() {
-        const leafletMap = <LeafletMap ref={this.mapRef} />;
+    displayTime() {
+        if (stringValid(this.state.Flight.airportOrigin.time) && stringValid(this.state.Flight.airportDestination.time)) {
+            return (
+                <div className="time d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4>{this.state.Flight.airportOrigin.time}</h4>
+                        <small>Local time</small>
+                    </div>
+                    <div className="text-end">
+                        <h4>{this.state.Flight.airportDestination.time}</h4>
+                        <small>Destination time</small>
+                    </div>
+                </div>
+            )
+        }
+        return (<></>)
+    }
 
+    displayEstimatedTime() {
+        if (stringValid(this.state.Flight.estimatedTime)) {
+            return (
+                <div className="d-flex justify-content-between align-items-center">
+                    <h1 className="display-4 fw-normal">{this.state.Flight.airportOrigin.nameAbbreviated}</h1>
+                    <small className="text-center">
+                        {this.state.Flight.estimatedTime} <br /> remaining
+                    </small>
+                    <h1 className="display-4 fw-normal text-end">{this.state.Flight.airportDestination.nameAbbreviated}</h1>
+                </div>
+            )
+        }
+        return (<></>)
+    }
+
+    displayExtraInfo() {
         const knotsToMph = (knots: number): number => knots * 1.15078;
         const knotsToKph = (knots: number): number => knots * 1.852;
         const feetToMeters = (feet: number): number => feet * 0.3048;
-        const calculateDistanceInMiles = (distanceKm: number): number => distanceKm * 0.621371;
-        const travaledKm = calculateDistanceInKm(
-            this.Flight.airportOriginLat,
-            this.Flight.airportOriginLng,
-            this.Flight.lat,
-            this.Flight.lng
-        )
-        const remainingKm = calculateDistanceInKm(
-            this.Flight.lat,
-            this.Flight.lng,
-            this.Flight.airportDestinationLat,
-            this.Flight.airportDestinationLng
-        )
-        const totalDistanceKm = calculateDistanceInKm(
-            this.Flight.airportOriginLat,
-            this.Flight.airportOriginLng,
-            this.Flight.airportDestinationLat,
-            this.Flight.airportDestinationLng
-        )
-        const progress = calculateProgress(totalDistanceKm,remainingKm)
-        
-        const estimatedTime = calculateEstimatedTime(remainingKm, this.Flight.ground_speed)
+        const tryParseNumber = (input: string): number | string => {
+            const parsedNumber = parseFloat(input);
+            return isNaN(parsedNumber) ? input : parsedNumber;
+        };
+        const numberValid = (myNumber: number | null): boolean => myNumber !== null && !isNaN(myNumber);
+    
+        let x = <></>;
+        let y = <></>;
+    
+        if (stringValid(this.state.Flight.ground_speed)) {
+            const speed = tryParseNumber(this.state.Flight.ground_speed);
+            if (typeof speed === "number" && numberValid(speed)) {
+                x = <p>Ground speed <span className="float-end">{knotsToKph(speed)} kph | {knotsToMph(speed)} mph</span></p>;
+            }
+        }
+    
+        if (stringValid(this.state.Flight.altitude)) {
+            const altitude = tryParseNumber(this.state.Flight.altitude);
+            if (typeof altitude === "string") {
+                y = <p>Altitude <span className="float-end">{this.state.Flight.altitude}</span></p>;
+            } else if (typeof altitude === "number" && numberValid(altitude)) {
+                y = <p>Altitude <span className="float-end">{altitude} ft | {feetToMeters(altitude)} m</span></p>;
+            }
+        }
+    
+        return (
+            <>
+                {x}
+                {y}
+            </>
+        );
+    }
+    
 
+    render() {
+        const leafletMap = <LeafletMap ref={this.mapRef} />;
+        const calculateDistanceInMiles = (distanceKm: number): number => distanceKm * 0.621371;
 
         if (this.state.fullScreen) {
             return (
@@ -276,37 +372,20 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                                     <div className="container-fluid d-flex flex-column h-100">
                                         {/* aircraft type  */}
                                         <div className="mx-auto">
-                                            <div className="flight-num">{this.Flight.flight}</div>
-                                            <div className="small text-center">{this.Flight.aircraftType}</div>
+                                            <div className="flight-num">{this.state.Flight.flight}</div>
+                                            <div className="small text-center">{this.state.Flight.aircraftType}</div>
                                         </div>
-
                                         {/* time  */}
-                                        {/* <div className="time d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h4>16:15</h4>
-                                                <small>Local time</small>
-                                            </div>
-                                            <div className="text-end">
-                                                <h4>4:15AM</h4>
-                                                <small>Destination time</small>
-                                            </div>
-                                        </div> */}
+                                        {this.displayTime()}
                                         <hr />
                                         {/* airports info  */}
                                         <div className="d-flex-flex-column">
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <h1 className="display-4 fw-normal">{this.Flight.airportOriginAbbreviated}</h1>
-                                                <small className="text-center">
-                                                    {estimatedTime} <br /> remaining
-                                                </small>
-                                                <h1 className="display-4 fw-normal text-end">{this.Flight.airportDestinationAbreviated}</h1>
-                                            </div>
-
+                                            {this.displayEstimatedTime()}
                                             <div
                                                 className="progress"
                                                 role="progressbar"
                                                 data-aria-label="Animated striped example"
-                                                data-aria-valuenow={progress}
+                                                data-aria-valuenow={this.state.Flight.progress}
                                                 data-aria-valuemin="0"
                                                 data-aria-valuemax="100"
                                             >
@@ -315,10 +394,9 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                                                     style={{ width: "75%" }}
                                                 ></div>
                                             </div>
-
                                             <div className="cities mt-2 d-flex justify-content-between align-items-center">
-                                                <p>{this.Flight.airportOrigin}</p>
-                                                <p className="text-end">{this.Flight.airportDestination}</p>
+                                                <p>{this.state.Flight.airportOrigin.name}</p>
+                                                <p className="text-end">{this.state.Flight.airportDestination.name}</p>
                                             </div>
                                         </div>
 
@@ -326,22 +404,21 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                                         <div className="extra-info d-flex flex-column justify-content-evenly">
                                             {/* distance  */}
                                             <div className="distance text-center d-flex flex-column">
-                                                <h4>{travaledKm} km | {calculateDistanceInMiles(travaledKm)} miles</h4>
+                                                <h4>{this.state.Flight.travaledKm} km | {calculateDistanceInMiles(this.state.Flight.travaledKm)} miles</h4>
                                                 <p>traveled</p>
                                                 <div className="position-relative mb-3">
                                                     <div className="bar" />
                                                     <FontAwesomeIcon icon={faPlaneUp} />
                                                     <div className="bar"></div>
                                                 </div>
-                                                <h4>{remainingKm} km | {calculateDistanceInMiles(remainingKm)} miles</h4>
+                                                <h4>{this.state.Flight.remainingKm} km | {calculateDistanceInMiles(this.state.Flight.remainingKm)} miles</h4>
                                                 <p>remaining</p>
                                             </div>
                                             <hr />
                                             {/* other extra info */}
-                                            <p>Ground speed <span className="float-end">{knotsToKph(this.Flight.ground_speed)} kph | {knotsToMph(this.Flight.ground_speed)} mph</span></p>
-                                            <p>Altitude <span className="float-end">{this.Flight.alt_geom} ft | {feetToMeters(this.Flight.alt_geom)} m</span></p>
-                                            <p>Longtitude<span className="float-end">{this.Flight.lng}</span></p>
-                                            <p>Latitude<span className="float-end">{this.Flight.lat}</span></p>
+                                            {this.displayExtraInfo()}
+                                            <p>Longtitude<span className="float-end">{this.state.Flight.lng}</span></p>
+                                            <p>Latitude<span className="float-end">{this.state.Flight.lat}</span></p>
                                         </div>
                                     </div>
                                 </div>
