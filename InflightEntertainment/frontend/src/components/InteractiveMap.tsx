@@ -249,8 +249,11 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
     
     addFlightRecordAsMarker = (record: FlightRecord) => {
         //this.mapRef.current?.removeMarker({ id: String(record.flight.id), type: "aircraft" });
+        const defaultSpeed = 100;
         let rotationAngle;
-
+        let speed = record.ground_speed || defaultSpeed;
+        let prevTimestamp;
+        let currentTimestamp;
         // Check if the previous record for the flight exists
         const previousRecords = this.props.flightRecords.filter(
             r => r.flight.id === record.flight.id && r.timestamp < record.timestamp
@@ -259,9 +262,13 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         if (previousRecords.length > 0) {
             const prevRecord = previousRecords[previousRecords.length - 1];
             rotationAngle = calculateRotation(prevRecord.lat, prevRecord.lng, record.lat, record.lng);
+            prevTimestamp = prevRecord.timestamp;
+            currentTimestamp = record.timestamp;
         }
         else{
             rotationAngle = 0;
+            prevTimestamp = record.timestamp;
+            currentTimestamp = record.timestamp;
         }
 
         this.mapRef.current?.updateOrCreateMarker({
@@ -269,7 +276,10 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
             type: "aircraft",
             coords: { lat: record.lat, lng: record.lng },
             rotation: rotationAngle,
-            element: <p>{record.flight.flight}</p>
+            element: <p>{record.flight.flight}</p>,
+            speed,
+            prevTimestamp,
+            currentTimestamp
         });
         //this.mapRef.current?.addMarkers(markerDataPayload);
     };

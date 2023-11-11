@@ -58,6 +58,12 @@ interface PolyLineMaker {
   airportIdFrom: string
 }
 
+interface ExtendedMakeMaker extends MakeMaker {
+  speed: number;
+  prevTimestamp: string;
+  currentTimestamp: string;
+}
+
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
@@ -326,13 +332,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
-  updateOrCreateMarker = (markerProps: MakeMaker) => {
-    const { id, type, coords, rotation, element } = markerProps;
+  updateOrCreateMarker = (markerProps: ExtendedMakeMaker) => {
+    const { id, type, coords, rotation, element, speed, prevTimestamp, currentTimestamp } = markerProps;
     const existingMarker = this.state.aircrafts[id];
-
+  
     if (existingMarker) {
       // Marker exists, so animate to new position
-      this.animateMarkerMovement(existingMarker, coords, rotation);
+      this.animateMarkerMovement(existingMarker, coords, rotation, speed, prevTimestamp, currentTimestamp);
     } else {
       // Create a new marker
       const newMarker = BuildMarker(type, coords, rotation, element);
@@ -343,16 +349,28 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   };
 
-  animateMarkerMovement = (marker, newCoords, rotation) => {
+  animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {
     const startPosition = marker.getLatLng();
     const endPosition = L.latLng(newCoords.lat, newCoords.lng);
-    const duration = 1000; 
-    const startTime = performance.now();
+  
+    // Calculate distance in meters
+    const distance = calculateDistance(startPosition.lat, startPosition.lng, endPosition.lat, endPosition.lng);
+  
+    // Convert speed from knots to meters per second
+    const speedInMetersPerSecond = speed * 0.514444; 
+  
+    // Calculate time to travel the distance at the given speed (time = distance / speed)
+    const timeToTravel = distance / speedInMetersPerSecond;
+  
+    // Calculate animation duration using timestamps (in milliseconds)
+    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
 
+    const startTime = performance.now();
+  
     const animate = (currentTime) => {
       const elapsedTime = currentTime - startTime;
       const progress = elapsedTime / duration;
-
+  
       if (progress < 1) {
         const currentPosition = {
           lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,
@@ -370,7 +388,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         }
       }
     };
-
+  
     requestAnimationFrame(animate);
   };
   //render the map
@@ -406,4 +424,18 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   }
 }
 
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // Earth's radius in meters
+  const phi1 = lat1 * Math.PI / 180;
+  const phi2 = lat2 * Math.PI / 180;
+  const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+  const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+            Math.cos(phi1) * Math.cos(phi2) *
+            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+}
 export default LeafletMap;

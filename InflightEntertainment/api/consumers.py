@@ -53,7 +53,8 @@ class FlightConsumer(WebsocketConsumer):
                 'record': {
                     'timestamp': record_data['timestamp'],
                     'lat': record_data['lat'],
-                    'lng': record_data['lng']
+                    'lng': record_data['lng'],
+                    'ground_speed': record_data.get('ground_speed')
                 }
             }))
             async_to_sync(self.channel_layer.group_send)(
@@ -66,7 +67,8 @@ class FlightConsumer(WebsocketConsumer):
                     'record': {
                         'timestamp': record_data['timestamp'],
                         'lat': record_data['lat'],
-                        'lng': record_data['lng']
+                        'lng': record_data['lng'],
+                        'ground_speed': record_data.get('ground_speed')
                     }
                 }
             )
@@ -100,7 +102,8 @@ class FlightConsumer(WebsocketConsumer):
                     'record': {
                         'timestamp': record_data['timestamp'],
                         'lat': record_data['lat'],
-                        'lng': record_data['lng']
+                        'lng': record_data['lng'],
+                        'ground_speed': record_data.get('ground_speed')
                     }
                 }
             )
@@ -117,7 +120,8 @@ class FlightConsumer(WebsocketConsumer):
                 'record': {
                     'timestamp': record_data['timestamp'],
                     'lat': record_data['lat'],
-                    'lng': record_data['lng']
+                    'lng': record_data['lng'],
+                    'ground_speed': record_data.get('ground_speed')
                 }
             }))
 
