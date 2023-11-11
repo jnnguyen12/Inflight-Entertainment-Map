@@ -18,17 +18,25 @@ export interface LeafletPolyline {
 }
 
 export interface Flight {
-    id: string;                 // Id of the Flight
-    flight: string;             // Flight number
-    lat: number;                // Latitude 
-    lng: number;                // Longitude
-    registration?: string;      // Registration
-    aircraftType?: string;      // Aircraft type
-    timestamp?: string;         // Timestamp of the record
-    alt_baro?: number;          // Barometric Altitude
-    alt_geom?: number;          // Geometric Altitude
-    track?: number;             // Track
-    ground_speed?: number;      // Ground Speed
+    id: string;                             // Id of the Flight
+    flight: string;                         // Flight number
+    lat: number;                            // Latitude 
+    lng: number;                            // Longitude
+    airportOrigin: string;                  // Airport from
+    airportOriginAbbreviated: string;       // Airport from 
+    airportOriginLat: number;               // Airport from 
+    airportOriginLng: number;               // Airport from 
+    airportDestination: string;             // Airport To 
+    airportDestinationAbreviated: string;   // Airport To 
+    airportDestinationLat: number;          // Airport To 
+    airportDestinationLng: number;          // Airport To 
+    registration?: string;                  // Registration
+    aircraftType?: string;                  // Aircraft type
+    timestamp?: string;                     // Timestamp of the record
+    alt_baro?: number;                      // Barometric Altitude
+    alt_geom?: number;                      // Geometric Altitude
+    track?: number;                         // Track
+    ground_speed?: number;                  // Ground Speed
 }
 
 export interface FlyCameraTo {

@@ -39,12 +39,46 @@ function calculateDistanceInKm(originLat: number, originLng: number, destination
     return R * c; // Distance in kilometers
 }
 
-function calculateDistanceInMiles(originLat: number, originLng: number, destinationLat: number, destinationLng: number): number {
-    const distance = calculateDistanceInKm(originLat, originLng, destinationLat, destinationLng)
-    // Convert distance to miles
-    return distance * 0.621371;
-}
+function calculateProgress(totalDistance: number, remainingDistance: number): number {
+    if (totalDistance <= 0 || remainingDistance < 0) {
+        console.error('Invalid input: totalDistance and remainingDistance must be positive numbers.');
+        return 0;
+    }
+    const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
+    // Ensure progress is within the range [0, 100]
+    return Math.max(0, Math.min(100, progress));
+  }
 
+  function calculateEstimatedTime(remainingKm: number, groundSpeedKnots: number): string {
+    if (remainingKm < 0 || groundSpeedKnots <= 0) {
+      console.error('Invalid input: remainingKm and groundSpeedKnots must be positive numbers.');
+      return "Error";
+    }
+  
+    // Calculate estimated time in hours
+    const estimatedHours = remainingKm / groundSpeedKnots;
+  
+    // Convert estimated time to days, hours, and minutes
+    const days = Math.floor(estimatedHours / 24);
+    const hours = Math.floor(estimatedHours % 24);
+    const minutes = Math.round((estimatedHours % 1) * 60);
+  
+    let resultString = '';
+
+    if (days !== 0) {
+      resultString += `${days} ${days === 1 ? 'day' : 'days'}, `;
+    }
+  
+    if (hours !== 0) {
+      resultString += `${hours} ${hours === 1 ? 'hour' : 'hours'}, `;
+    }
+  
+    if (minutes !== 0 || (days === 0 && hours === 0)) {
+      resultString += `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+    }
+  
+    return resultString;
+  }
 
 
 class InteractiveMap extends React.Component<{}, RndStates> {
@@ -197,29 +231,28 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         const knotsToKph = (knots: number): number => knots * 1.852;
         const feetToMeters = (feet: number): number => feet * 0.3048;
         const calculateDistanceInMiles = (distanceKm: number): number => distanceKm * 0.621371;
-
-        // orig to plan
-        let travaledKm = calculateDistanceInKm(
+        const travaledKm = calculateDistanceInKm(
             this.Flight.airportOriginLat,
             this.Flight.airportOriginLng,
             this.Flight.lat,
             this.Flight.lng
         )
-        
-        // plan to dest
-        let remainingKm = calculateDistanceInKm(
+        const remainingKm = calculateDistanceInKm(
             this.Flight.lat,
             this.Flight.lng,
             this.Flight.airportDestinationLat,
             this.Flight.airportDestinationLng
         )
-
-        let totalDistanceKm = calculateDistanceInKm(
+        const totalDistanceKm = calculateDistanceInKm(
             this.Flight.airportOriginLat,
             this.Flight.airportOriginLng,
             this.Flight.airportDestinationLat,
             this.Flight.airportDestinationLng
         )
+        const progress = calculateProgress(totalDistanceKm,remainingKm)
+        
+        const estimatedTime = calculateEstimatedTime(remainingKm, this.Flight.ground_speed)
+
 
         if (this.state.fullScreen) {
             return (
@@ -248,7 +281,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                                         </div>
 
                                         {/* time  */}
-                                        <div className="time d-flex justify-content-between align-items-center">
+                                        {/* <div className="time d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h4>16:15</h4>
                                                 <small>Local time</small>
@@ -257,23 +290,23 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                                                 <h4>4:15AM</h4>
                                                 <small>Destination time</small>
                                             </div>
-                                        </div>
+                                        </div> */}
                                         <hr />
                                         {/* airports info  */}
                                         <div className="d-flex-flex-column">
                                             <div className="d-flex justify-content-between align-items-center">
-                                                <h1 className="display-4 fw-normal">SGN</h1>
+                                                <h1 className="display-4 fw-normal">{this.Flight.airportOriginAbbreviated}</h1>
                                                 <small className="text-center">
-                                                    2h30 <br /> remaining
+                                                    {estimatedTime} <br /> remaining
                                                 </small>
-                                                <h1 className="display-4 fw-normal text-end">DSM</h1>
+                                                <h1 className="display-4 fw-normal text-end">{this.Flight.airportDestinationAbreviated}</h1>
                                             </div>
 
                                             <div
                                                 className="progress"
                                                 role="progressbar"
                                                 data-aria-label="Animated striped example"
-                                                data-aria-valuenow="75"
+                                                data-aria-valuenow={progress}
                                                 data-aria-valuemin="0"
                                                 data-aria-valuemax="100"
                                             >
@@ -303,7 +336,6 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                                                 <h4>{remainingKm} km | {calculateDistanceInMiles(remainingKm)} miles</h4>
                                                 <p>remaining</p>
                                             </div>
-
                                             <hr />
                                             {/* other extra info */}
                                             <p>Ground speed <span className="float-end">{knotsToKph(this.Flight.ground_speed)} kph | {knotsToMph(this.Flight.ground_speed)} mph</span></p>
