@@ -4,10 +4,10 @@ import React from 'react';
 import '../App.css';
 
 // Leaflet
-import L, { LatLngExpression, Marker } from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 
 // Functions
-import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
+import { BuildMarker, updateRotation} from './functions/BuildMarker';
 
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
@@ -178,7 +178,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       return;
     }
 
-    const rotation = updateMarkerRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
+    const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
     
     this.state.aircrafts[payload.id].setLatLng([payload.lat, payload.lng])
@@ -266,16 +266,14 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   
     // Calculate time to travel the distance at the given speed (time = distance / speed)
     const timeToTravel = distance / speedInMetersPerSecond;
-  
+    
     // Calculate animation duration using timestamps (in milliseconds)
     const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
-
     const startTime = performance.now();
-  
+    
     const animate = (currentTime) => {
       const elapsedTime = currentTime - startTime;
       const progress = elapsedTime / duration;
-  
       if (progress < 1) {
         const currentPosition = {
           lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,

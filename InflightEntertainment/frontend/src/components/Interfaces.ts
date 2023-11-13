@@ -49,8 +49,8 @@ export interface Flight {
     progress: number;                       // Flight progress 
     travaledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
-    prevTimestamp?: string;
-    currentTimestamp?: string;
+    prevTimestamp?: string;                 // date time of prevous record
+    currentTimestamp?: string;              // date time of current record
 }
 
 export interface FlyCameraTo {
@@ -96,10 +96,3 @@ export interface RemoveData {
 export interface Wellness {
     type: string                // Data Type (aircraft, airport, landmark, camera)
 }
-
-
-// export interface ExtendedMarkerData extends MarkerData {
-//     speed: number;
-//     prevTimestamp: string;
-//     currentTimestamp: string;
-// }

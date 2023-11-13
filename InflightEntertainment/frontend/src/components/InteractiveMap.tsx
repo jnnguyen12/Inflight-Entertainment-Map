@@ -50,6 +50,8 @@ const numberValid = (myNumber: number | null): boolean => myNumber !== null && !
 //     progress: 50,
 //     travaledKm: 1500,
 //     remainingKm: 1500,
+//     prevTimestamp: "5"
+//     currentTimestamp: "5"
 // };
 
 const emptyAirport = {
@@ -143,8 +145,11 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                     case 'updateFlight':
                         flightData = payload as Flight
                         this.setState({ Flight: flightData })
-                        const speed = flightData.ground_speed || defaultSpeed;
-                        this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        if(flightData.ground_speed){ 
+                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        } else{
+                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        }
                         break;
                     case 'removeFlight':
                         flightData = payload as RemoveData
