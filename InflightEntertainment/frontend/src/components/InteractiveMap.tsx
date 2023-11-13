@@ -15,96 +15,42 @@ import {
 // Rnd
 import { Rnd } from "react-rnd";
 
-function calculateDistanceInKm(originLat: number, originLng: number, destinationLat: number, destinationLng: number): number {
-    const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = toRadians(destinationLat - originLat);
-    const dLon = toRadians(destinationLng - originLng);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRadians(originLat)) *
-        Math.cos(toRadians(destinationLat)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in kilometers
-}
-
-function calculateProgress(totalDistance: number, remainingDistance: number): number {
-    if (totalDistance <= 0 || remainingDistance < 0) {
-        console.error('Invalid input: totalDistance and remainingDistance must be positive numbers.');
-        return 0;
-    }
-    const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
-    // Ensure progress is within the range [0, 100]
-    return Math.max(0, Math.min(100, progress));
-}
-
-function calculateEstimatedTime(remainingKm: number, groundSpeedKnots: number): string {
-    if (remainingKm < 0 || groundSpeedKnots <= 0) {
-        console.error('Invalid input: remainingKm and groundSpeedKnots must be positive numbers.');
-        return "Error";
-    }
-
-    // Calculate estimated time in hours
-    const estimatedHours = remainingKm / groundSpeedKnots;
-
-    // Convert estimated time to days, hours, and minutes
-    const days = Math.floor(estimatedHours / 24);
-    const hours = Math.floor(estimatedHours % 24);
-    const minutes = Math.round((estimatedHours % 1) * 60);
-
-    let resultString = '';
-
-    if (days !== 0) {
-        resultString += `${days} ${days === 1 ? 'day' : 'days'}, `;
-    }
-
-    if (hours !== 0) {
-        resultString += `${hours} ${hours === 1 ? 'hour' : 'hours'}, `;
-    }
-
-    if (minutes !== 0 || (days === 0 && hours === 0)) {
-        resultString += `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-    }
-
-    return resultString;
-}
-
 function stringValid(myString: string | null): boolean {
     return myString !== null && myString !== "";
 }
 
-const testFlight: Flight = {
-    id: 'F1',
-    flight: 'FLIGHT01',
-    lat: 35.6895,
-    lng: 139.6917,
-    rotation: 45,
-    airportOrigin: {
-        id: 'A1',
-        name: 'Airport 1',
-        nameAbbreviated: 'A1',
-        lat: 37.7749,
-        lng: -122.4194,
-        time: '12:00 PM',
-    },
-    airportDestination: {
-        id: 'A2',
-        name: 'Airport 2',
-        nameAbbreviated: 'A2',
-        lat: 40.7128,
-        lng: -74.0060,
-        time: '02:30 PM',
-    },
-    aircraftType: 'Boeing 747',
-    altitude: '35000', // Example barometric altitude in feet
-    ground_speed: '500', // Example ground speed in knots
-    estimatedTime: '2 hours',
-    progress: 50,
-    travaledKm: 1500,
-    remainingKm: 1500,
-};
+const numberValid = (myNumber: number | null): boolean => myNumber !== null && !isNaN(myNumber);
+
+// const testFlight: Flight = {
+//     id: 'F1',
+//     flight: 'FLIGHT01',
+//     lat: 35.6895,
+//     lng: 139.6917,
+//     rotation: 45,
+//     airportOrigin: {
+//         id: 'A1',
+//         name: 'Airport 1',
+//         nameAbbreviated: 'A1',
+//         lat: 37.7749,
+//         lng: -122.4194,
+//         time: '12:00 PM',
+//     },
+//     airportDestination: {
+//         id: 'A2',
+//         name: 'Airport 2',
+//         nameAbbreviated: 'A2',
+//         lat: 40.7128,
+//         lng: -74.0060,
+//         time: '02:30 PM',
+//     },
+//     aircraftType: 'Boeing 747',
+//     altitude: '35000', // Example barometric altitude in feet
+//     ground_speed: '500', // Example ground speed in knots
+//     estimatedTime: '2 hours',
+//     progress: 50,
+//     travaledKm: 1500,
+//     remainingKm: 1500,
+// };
 
 const emptyAirport = {
     id: '',
@@ -149,7 +95,6 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         this.socket.addEventListener('open', this.handleSocketOpen);
         this.socket.addEventListener('close', this.handleSocketClose);
         this.socket.addEventListener('message', this.handleSocketMessage);
-        this.setState({ Flight: testFlight })
     }
 
     componentWillUnmount() {
@@ -181,6 +126,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         }
         const data = Array.isArray(dataJson) ? dataJson : [dataJson];
         const response: any[] = [];
+        const defaultSpeed = 100;
         let flightData;
         data.forEach((payload) => {
             try {
@@ -197,7 +143,8 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                     case 'updateFlight':
                         flightData = payload as Flight
                         this.setState({ Flight: flightData })
-                        this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng });
+                        const speed = flightData.ground_speed || defaultSpeed;
+                        this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
                         break;
                     case 'removeFlight':
                         flightData = payload as RemoveData
@@ -234,6 +181,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                             console.warn("Error cant update marker because it is the current flight")
                             break;
                         }
+                        if(!flightData.speed) flightData.speed = defaultSpeed
                         this.mapRef.current?.moveMarkers(flightData);
                         break;
                     case 'addPolyline':
@@ -294,12 +242,26 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
 
     displayEstimatedTime() {
-        if (stringValid(this.state.Flight.estimatedTime)) {
+        if (numberValid(this.state.Flight.remainingKm) && numberValid(this.state.Flight.ground_speed)) {
+            if (this.state.Flight.remainingKm < 0 || this.state.Flight.ground_speed <= 0) {
+                console.error('Invalid input: remainingKm and groundSpeedKnots must be positive numbers.');
+                return (<></>);
+            }
+            // Calculate estimated time in hours
+            const estimatedHours = this.state.Flight.remainingKm / this.state.Flight.ground_speed;
+            // Convert estimated time to days, hours, and minutes
+            const days = Math.floor(estimatedHours / 24);
+            const hours = Math.floor(estimatedHours % 24);
+            const minutes = Math.round((estimatedHours % 1) * 60);
+            let resultString = '';
+            if (days !== 0) resultString += `${days} ${days === 1 ? 'day' : 'days'}, `;
+            if (hours !== 0) resultString += `${hours} ${hours === 1 ? 'hour' : 'hours'}, `;
+            if (minutes !== 0 || (days === 0 && hours === 0)) resultString += `${minutes} ${minutes === 1 ? 'min' : 'mins'}`;
             return (
                 <div className="d-flex justify-content-between align-items-center">
                     <h1 className="display-4 fw-normal">{this.state.Flight.airportOrigin.nameAbbreviated}</h1>
                     <small className="text-center">
-                        {this.state.Flight.estimatedTime} <br /> remaining
+                        {resultString} <br /> remaining
                     </small>
                     <h1 className="display-4 fw-normal text-end">{this.state.Flight.airportDestination.nameAbbreviated}</h1>
                 </div>
@@ -316,18 +278,11 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             const parsedNumber = parseFloat(input);
             return isNaN(parsedNumber) ? input : parsedNumber;
         };
-        const numberValid = (myNumber: number | null): boolean => myNumber !== null && !isNaN(myNumber);
-    
         let x = <></>;
         let y = <></>;
-    
-        if (stringValid(this.state.Flight.ground_speed)) {
-            const speed = tryParseNumber(this.state.Flight.ground_speed);
-            if (typeof speed === "number" && numberValid(speed)) {
-                x = <p>Ground speed <span className="float-end">{knotsToKph(speed)} kph | {knotsToMph(speed)} mph</span></p>;
-            }
+        if (numberValid(this.state.Flight.ground_speed)) {
+            x = <p>Ground speed <span className="float-end">{knotsToKph(this.state.Flight.ground_speed)} kph | {knotsToMph(this.state.Flight.ground_speed)} mph</span></p>;
         }
-    
         if (stringValid(this.state.Flight.altitude)) {
             const altitude = tryParseNumber(this.state.Flight.altitude);
             if (typeof altitude === "string") {
@@ -336,7 +291,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                 y = <p>Altitude <span className="float-end">{altitude} ft | {feetToMeters(altitude)} m</span></p>;
             }
         }
-    
+
         return (
             <>
                 {x}
@@ -344,7 +299,6 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             </>
         );
     }
-    
 
     render() {
         const leafletMap = <LeafletMap ref={this.mapRef} />;

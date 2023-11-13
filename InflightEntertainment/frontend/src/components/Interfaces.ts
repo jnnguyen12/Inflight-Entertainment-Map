@@ -45,11 +45,12 @@ export interface Flight {
     airportDestination: Airport;            // Airport To 
     aircraftType: string;                   // Aircraft type (aircraft type pulled from database)
     altitude?: string;                      // Barometric Altitude (altitude in feet as a number OR “ground”)
-    ground_speed?: string;                  // Ground Speed
-    estimatedTime?: string;                 // Estimated time remaining of flight
+    ground_speed?: number;                  // Ground Speed
     progress: number;                       // Flight progress 
     travaledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
+    prevTimestamp?: string;
+    currentTimestamp?: string;
 }
 
 export interface FlyCameraTo {
@@ -76,6 +77,9 @@ export interface UpdateMarkerData {
     id: string;                 // Aircaft Marker key
     lat: number;                // New Latitude
     lng: number;                // New Longitude
+    speed: number;
+    prevTimestamp: string;
+    currentTimestamp: string;
 }
 
 export interface PolyLineData {
@@ -92,3 +96,10 @@ export interface RemoveData {
 export interface Wellness {
     type: string                // Data Type (aircraft, airport, landmark, camera)
 }
+
+
+// export interface ExtendedMarkerData extends MarkerData {
+//     speed: number;
+//     prevTimestamp: string;
+//     currentTimestamp: string;
+// }

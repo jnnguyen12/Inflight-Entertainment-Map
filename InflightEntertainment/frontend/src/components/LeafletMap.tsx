@@ -12,6 +12,20 @@ import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // Earth's radius in meters
+  const phi1 = lat1 * Math.PI / 180;
+  const phi2 = lat2 * Math.PI / 180;
+  const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+  const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+            Math.cos(phi1) * Math.cos(phi2) *
+            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in meters
+}
+
+
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
@@ -163,7 +177,10 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.warn("moveMarkers: Could not find aircraft Id: ", payload.id);
       return;
     }
-    updateMarkerRotation(this.state.aircrafts[payload.id], this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
+
+    const rotation = updateMarkerRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
+    this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
+    
     this.state.aircrafts[payload.id].setLatLng([payload.lat, payload.lng])
     if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("moveMarkers: Could not find polyline Id: ", payload.id);
@@ -237,6 +254,47 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.map!.removeLayer(this.state.polylines[payload.id].polylineTo)
     delete this.state.polylines[payload.id];
   }
+
+  animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {
+    const startPosition = marker.getLatLng();
+    const endPosition = newCoords;
+    // Calculate distance in meters
+    const distance = calculateDistance(startPosition.lat, startPosition.lng, endPosition.lat, endPosition.lng);
+    
+    // Convert speed from knots to meters per second
+    const speedInMetersPerSecond = speed * 0.514444; 
+  
+    // Calculate time to travel the distance at the given speed (time = distance / speed)
+    const timeToTravel = distance / speedInMetersPerSecond;
+  
+    // Calculate animation duration using timestamps (in milliseconds)
+    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
+
+    const startTime = performance.now();
+  
+    const animate = (currentTime) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = elapsedTime / duration;
+  
+      if (progress < 1) {
+        const currentPosition = {
+          lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,
+          lng: startPosition.lng + (endPosition.lng - startPosition.lng) * progress,
+        };
+        marker.setLatLng(currentPosition);
+        if (rotation !== undefined) {
+          marker.setRotationAngle(rotation);
+        }
+        requestAnimationFrame(animate);
+      } else {
+        marker.setLatLng(endPosition);
+        if (rotation !== undefined) {
+          marker.setRotationAngle(rotation);
+        }
+      }
+    };
+    requestAnimationFrame(animate);
+  };
 
   handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
     if (e.touches.length <= 1) {
