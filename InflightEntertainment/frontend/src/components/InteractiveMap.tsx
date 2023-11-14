@@ -451,117 +451,119 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
     if (this.state.fullScreen) {
       return (
-        <div className="UI-container">
-          <div className="row container-fluid vh-100 ">
-            <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
-              {/* main panel that displays information */}
-              <a
-                className="btn me-2"
-                data-bs-toggle="collapse"
-                href="#collapseExample"
-                role="button"
-                aria-expanded="false"
-                aria-controls="collapseExample"
-              >
-                {/* TODO: turn this into chevron left on expansion */}
-                <FontAwesomeIcon icon={faChevronRight} />
-              </a>
-              <div
-                className="collapse collapse-horizontal"
-                id="collapseExample"
-              >
-                <div className="panel" style={{ width: "500px" }}>
-                  <div className="container-fluid d-flex flex-column h-100">
-                    {/* aircraft type  */}
-                    <div className="mx-auto">
-                      <div className="flight-num">
-                        {this.state.Flight.flight}
+        <>
+          {leafletMap}
+          <div className="UI-container">
+            <div className="row container-fluid vh-100 ">
+              <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
+                {/* main panel that displays information */}
+                <a
+                  className="btn me-2 yes-click"
+                  data-bs-toggle="collapse"
+                  href="#collapseExample"
+                  role="button"
+                  aria-expanded="false"
+                  aria-controls="collapseExample"
+                >
+                  {/* TODO: turn this into chevron left on expansion */}
+                  <FontAwesomeIcon icon={faChevronRight} />
+                </a>
+                <div
+                  className="collapse collapse-horizontal yes-click"
+                  id="collapseExample"
+                >
+                  <div className="panel" style={{ width: "500px" }}>
+                    <div className="container-fluid d-flex flex-column h-100">
+                      {/* aircraft type  */}
+                      <div className="mx-auto">
+                        <div className="flight-num">
+                          {this.state.Flight.flight}
+                        </div>
+                        <div className="small text-center">
+                          {this.state.Flight.aircraftType}
+                        </div>
                       </div>
-                      <div className="small text-center">
-                        {this.state.Flight.aircraftType}
-                      </div>
-                    </div>
-                    {/* time  */}
-                    {this.displayTime()}
-                    <hr />
-                    {/* airports info  */}
-                    <div className="d-flex-flex-column">
-                      {this.displayEstimatedTime()}
-                      <div
-                        className="progress"
-                        role="progressbar"
-                        data-aria-label="Animated striped example"
-                        data-aria-valuenow={this.state.Flight.progress}
-                        data-aria-valuemin="0"
-                        data-aria-valuemax="100"
-                      >
+                      {/* time  */}
+                      {this.displayTime()}
+                      <hr />
+                      {/* airports info  */}
+                      <div className="d-flex-flex-column">
+                        {this.displayEstimatedTime()}
                         <div
-                          className="progress-bar progress-bar-striped progress-bar-animated"
-                          style={{ width: "75%" }}
-                        ></div>
+                          className="progress"
+                          role="progressbar"
+                          data-aria-label="Animated striped example"
+                          data-aria-valuenow={this.state.Flight.progress}
+                          data-aria-valuemin="0"
+                          data-aria-valuemax="100"
+                        >
+                          <div
+                            className="progress-bar progress-bar-striped progress-bar-animated"
+                            style={{ width: "75%" }}
+                          ></div>
+                        </div>
+                        <div className="cities mt-2 d-flex justify-content-between align-items-center">
+                          <p>{this.state.Flight.airportOrigin.name}</p>
+                          <p className="text-end">
+                            {this.state.Flight.airportDestination.name}
+                          </p>
+                        </div>
                       </div>
-                      <div className="cities mt-2 d-flex justify-content-between align-items-center">
-                        <p>{this.state.Flight.airportOrigin.name}</p>
-                        <p className="text-end">
-                          {this.state.Flight.airportDestination.name}
+
+                      {/* extra info  */}
+                      <div className="extra-info d-flex flex-column justify-content-evenly">
+                        {/* distance  */}
+                        <div className="distance text-center d-flex flex-column">
+                          <h4>
+                            {this.state.Flight.travaledKm} km |{" "}
+                            {calculateDistanceInMiles(
+                              this.state.Flight.travaledKm
+                            )}{" "}
+                            miles
+                          </h4>
+                          <p>traveled</p>
+                          <div className="position-relative mb-3">
+                            <div className="bar" />
+                            <FontAwesomeIcon icon={faPlaneUp} />
+                            <div className="bar"></div>
+                          </div>
+                          <h4>
+                            {this.state.Flight.remainingKm} km |{" "}
+                            {calculateDistanceInMiles(
+                              this.state.Flight.remainingKm
+                            )}{" "}
+                            miles
+                          </h4>
+                          <p>remaining</p>
+                        </div>
+                        <hr />
+                        {/* other extra info */}
+                        {this.displayExtraInfo()}
+                        <p>
+                          Longtitude
+                          <span className="float-end">
+                            {this.state.Flight.lng}
+                          </span>
+                        </p>
+                        <p>
+                          Latitude
+                          <span className="float-end">
+                            {this.state.Flight.lat}
+                          </span>
                         </p>
                       </div>
-                    </div>
-
-                    {/* extra info  */}
-                    <div className="extra-info d-flex flex-column justify-content-evenly">
-                      {/* distance  */}
-                      <div className="distance text-center d-flex flex-column">
-                        <h4>
-                          {this.state.Flight.travaledKm} km |{" "}
-                          {calculateDistanceInMiles(
-                            this.state.Flight.travaledKm
-                          )}{" "}
-                          miles
-                        </h4>
-                        <p>traveled</p>
-                        <div className="position-relative mb-3">
-                          <div className="bar" />
-                          <FontAwesomeIcon icon={faPlaneUp} />
-                          <div className="bar"></div>
-                        </div>
-                        <h4>
-                          {this.state.Flight.remainingKm} km |{" "}
-                          {calculateDistanceInMiles(
-                            this.state.Flight.remainingKm
-                          )}{" "}
-                          miles
-                        </h4>
-                        <p>remaining</p>
-                      </div>
-                      <hr />
-                      {/* other extra info */}
-                      {this.displayExtraInfo()}
-                      <p>
-                        Longtitude
-                        <span className="float-end">
-                          {this.state.Flight.lng}
-                        </span>
-                      </p>
-                      <p>
-                        Latitude
-                        <span className="float-end">
-                          {this.state.Flight.lat}
-                        </span>
-                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            <FontAwesomeIcon
+              className="expander"
+              icon={faCompress}
+              onClick={this.goWindowed.bind(this)}
+            />
           </div>
-          <FontAwesomeIcon
-            className="expander"
-            icon={faCompress}
-            onClick={this.goWindowed.bind(this)}
-          />
-          {leafletMap}
-        </div>
+        </>
       );
     } else {
       return (
@@ -593,24 +595,25 @@ class InteractiveMap extends React.Component<{}, RndStates> {
               });
               this.mapRef.current?.reloadMap();
             }}
-            >
-              {leafletMap}
+          >
+            {leafletMap}
           </Rnd>
-         <div className="UI-container"
+          <div
+            className="UI-container"
             style={{
-                position: 'absolute',
-                left: this.state.RndXPosition + this.state.RndWidth - 16,
-                top: this.state.RndYPosition,
-                width: '16px', 
-                height: '16px'
-            }}>
-
-                <FontAwesomeIcon
-                className="expander"
-                icon={faExpand}
-                onClick={this.goFullScreen.bind(this)}
-                />
-         </div>
+              position: "absolute",
+              left: this.state.RndXPosition + this.state.RndWidth - 16,
+              top: this.state.RndYPosition,
+              width: "16px",
+              height: "16px",
+            }}
+          >
+            <FontAwesomeIcon
+              className="expander"
+              icon={faExpand}
+              onClick={this.goFullScreen.bind(this)}
+            />
+          </div>
         </div>
       );
     }
