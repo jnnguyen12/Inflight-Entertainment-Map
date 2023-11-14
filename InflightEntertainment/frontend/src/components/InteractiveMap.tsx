@@ -337,6 +337,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     this.setState({
       fullScreen: true,
     });
+    this.mapRef.current?.handleFullscreen(true);
     console.warn("Full screen");
   }
 
@@ -344,6 +345,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     this.setState({
       fullScreen: false,
     });
+    this.mapRef.current?.handleFullscreen(false);
     console.warn("Windowed");
   }
 

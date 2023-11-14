@@ -11,6 +11,7 @@ import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+import { stat } from 'fs';
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
@@ -28,6 +29,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lat: 0,
       lng: 0,
       zoom: 0,
+      fullScreen: true  // default is fullscreen for now
     };
   }
 
@@ -239,11 +241,19 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   }
 
   handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
-    if (e.touches.length <= 1) {
+    // console.log("fullscreen: " + this.state.fullScreen);
+    // if there is only one touch on the screen and the map is fullscreen, enable dragging
+    if (e.touches.length <= 1 && !this.state.fullScreen) {
       if (this.map) this.map.dragging.disable(); // Disable dragging of map when there's only one touch
     } else {
       if (this.map) this.map.dragging.enable(); // Enable dragging of map when there are multiple touches
     }
+  }
+
+  handleFullscreen(full: boolean){
+    this.setState({fullScreen: full})
+    
+    console.log("handle: " + this.state.fullScreen);
   }
 
   reloadMap(){
