@@ -215,7 +215,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
           case "setFlight":
             // Adds Plane, Airports and polyline to map
             flightData = payload as Flight;
-            this.setState({ Flight: flightData });
+            this.setState({ Flight: flightData }, () => { this.mapRef.current?.setState({lat: this.state.Flight.lat, lng: this.state.Flight.lng}); });
             this.mapRef.current?.addMarkers({
               id: flightData.id,
               type: "aircraft",
@@ -245,7 +245,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             break;
           case "updateFlight":
             flightData = payload as Flight;
-            this.setState({ Flight: flightData });
+            this.setState({ Flight: flightData }, () => { this.mapRef.current?.setState({lat: this.state.Flight.lat, lng: this.state.Flight.lng}); });
             this.mapRef.current?.moveMarkers({
               id: flightData.id,
               lat: flightData.lat,
