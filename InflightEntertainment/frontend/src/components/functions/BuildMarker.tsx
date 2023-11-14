@@ -3,7 +3,7 @@ import airport from '../assets/airport.png'
 import aircraft from '../assets/plane.png';
 import 'leaflet-rotatedmarker'; 
 
-export function updateMarkerRotation(lat1: number, lng1: number, lat2: number, lng2: number) {
+export function updateRotation(lat1: number, lng1: number, lat2: number, lng2: number) {
   const toRadians = (degree: number) => degree * (Math.PI / 180);
   const radLat1 = toRadians(lat1);
   const radLat2 = toRadians(lat2);
@@ -14,9 +14,9 @@ export function updateMarkerRotation(lat1: number, lng1: number, lat2: number, l
   ) * (180 / Math.PI) + 360) % 360);
 }
 
-export function BuildMarker(type: string, position: L.LatLngExpression, rotationAngle?: number){
+export function BuildMarker(param: string, position: L.LatLngExpression, rotationAngle?: number){
   let image;
-  switch(type){
+  switch(param){
     case "plane":
     case "aircraft":
       image = aircraft

@@ -50,6 +50,8 @@ const numberValid = (myNumber: number | null): boolean => myNumber !== null && !
 //     progress: 50,
 //     travaledKm: 1500,
 //     remainingKm: 1500,
+//     prevTimestamp: "5"
+//     currentTimestamp: "5"
 // };
 
 const emptyAirport = {
@@ -124,33 +126,38 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             console.error('Error parsing JSON:', error);
             return;
         }
+        console.log(dataJson);
         const data = Array.isArray(dataJson) ? dataJson : [dataJson];
         const response: any[] = [];
         const defaultSpeed = 100;
         let flightData;
         data.forEach((payload) => {
+            console.log(payload);
             try {
-                switch (payload.command) {
+                switch (payload.type) {
                     case 'setFlight':
                         // Adds Plane, Airports and polyline to map
                         flightData = payload as Flight
                         this.setState({ Flight: flightData })
-                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
-                        this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, type: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
-                        this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, type: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.id, param: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, param: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, param: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
                         this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
                         break;
                     case 'updateFlight':
                         flightData = payload as Flight
                         this.setState({ Flight: flightData })
-                        const speed = flightData.ground_speed || defaultSpeed;
-                        this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        if(flightData.ground_speed){ 
+                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        } else{
+                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        }
                         break;
                     case 'removeFlight':
                         flightData = payload as RemoveData
                         this.setState({ Flight: emptyFlight })
-                        this.mapRef.current?.removePolyLine({ id: flightData.id, type: "aircraft" });
-                        this.mapRef.current?.removeMarker({ id: flightData.id, type: "aircraft" });
+                        this.mapRef.current?.removePolyLine({ id: flightData.id, param: "aircraft" });
+                        this.mapRef.current?.removeMarker({ id: flightData.id, param: "aircraft" });
                         break;
                     case 'flyToLocation':
                         // Move camera to given coords and zoom
@@ -197,7 +204,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         response.push(this.mapRef.current?.sendData(payload as Wellness));
                         break;
                     default:
-                        console.warn("Unknown command sent: ", payload.command);
+                        console.warn("Unknown type sent: ", payload.type);
                 }
             }
             catch (error) {

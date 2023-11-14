@@ -4,10 +4,10 @@ import React from 'react';
 import '../App.css';
 
 // Leaflet
-import L, { LatLngExpression, Marker } from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 
 // Functions
-import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
+import { BuildMarker, updateRotation} from './functions/BuildMarker';
 
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
@@ -98,8 +98,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     });
   }
 
-  sendData(dataType: Wellness) {
-    switch (dataType.type.toLowerCase()) {
+  sendData(dataParam: Wellness) {
+    switch (dataParam.param.toLowerCase()) {
       case "aircraft":
         return this.state.aircrafts;
       case "airport":
@@ -113,7 +113,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           zoom: this.state.zoom
         }
       default:
-        console.warn("sendData: data type not found: ", dataType.type.toLowerCase())
+        console.warn("sendData: data param not found: ", dataParam.param.toLowerCase())
         return { error: "Not found" };
     }
   }
@@ -122,7 +122,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   addMarkers(newMarkerProps: MarkerData) {
     let newMarker;
     let markerState;
-    switch (newMarkerProps.type) {
+    switch (newMarkerProps.param) {
       case "aircraft":
         markerState = this.state.aircrafts;
         break;
@@ -133,15 +133,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         markerState = this.state.landmarks;
         break;
       default:
-        console.warn("addMarkers: type not found");
+        console.warn("addMarkers: param not found");
         return;
     }
     if (markerState.hasOwnProperty(newMarkerProps.id)) {
-      console.warn(`addMarkers: ${newMarkerProps.type} id already exists`);
+      console.warn(`addMarkers: ${newMarkerProps.param} id already exists`);
       return;
     }
     const coords: LatLngExpression = [newMarkerProps.lat, newMarkerProps.lng]
-    newMarker = BuildMarker(newMarkerProps.type, coords, newMarkerProps.rotation);
+    newMarker = BuildMarker(newMarkerProps.param, coords, newMarkerProps.rotation);
     newMarker.addTo(this.map!);
     markerState[newMarkerProps.id] = newMarker;
   }
@@ -149,7 +149,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   // removing a marker based on its index
   removeMarker(payload: RemoveData) {
     let markerState;
-    switch (payload.type.toLowerCase()) {
+    switch (payload.param.toLowerCase()) {
       case "aircraft":
         markerState = this.state.aircrafts;
         break;
@@ -160,11 +160,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         markerState = this.state.landmarks;
         break;
       default:
-        console.warn("removeMarker: type not found:", payload.type);
+        console.warn("removeMarker: param not found:", payload.param);
         return;
     }
     if (!markerState.hasOwnProperty(payload.id)) {
-      console.warn(`removeMarker: Could not find ${payload.type} id`);
+      console.warn(`removeMarker: Could not find ${payload.param} id`);
       return;
     }
     this.map!.removeLayer(markerState[payload.id]);
@@ -178,7 +178,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       return;
     }
 
-    const rotation = updateMarkerRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
+    const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
     
     this.state.aircrafts[payload.id].setLatLng([payload.lat, payload.lng])
@@ -266,16 +266,14 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   
     // Calculate time to travel the distance at the given speed (time = distance / speed)
     const timeToTravel = distance / speedInMetersPerSecond;
-  
+    
     // Calculate animation duration using timestamps (in milliseconds)
     const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
-
     const startTime = performance.now();
-  
+    
     const animate = (currentTime) => {
       const elapsedTime = currentTime - startTime;
       const progress = elapsedTime / duration;
-  
       if (progress < 1) {
         const currentPosition = {
           lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,
