@@ -50,7 +50,7 @@ export interface Flight {
     travaledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
     prevTimestamp?: string;                 // date time of prevous record
-    currentTimestamp?: string;              // date time of current record
+    currentTimestamp: string;              // date time of current record
 }
 
 export interface FlyCameraTo {
@@ -67,7 +67,7 @@ export interface PolyLineMaker {
 
 export interface MarkerData {
     id: string;                 // marker id -- currently using flight id as marker id
-    type: string;               // aircraft, airport -- currently only have aircraft
+    param: string;               // aircraft, airport -- currently only have aircraft
     lat: number;                // Latitude
     lng: number;                // Longitude
     rotation?: number;           // Rotation
@@ -90,9 +90,9 @@ export interface PolyLineData {
 
 export interface RemoveData {
     id: string;                 // Marker key
-    type?: string;              // Marker type (Aircraft, Airport, ...)
+    param?: string;              // Marker param (Aircraft, Airport, ...)
 }
 
 export interface Wellness {
-    type: string                // Data Type (aircraft, airport, landmark, camera)
+    param: string                // Data param (aircraft, airport, landmark, camera)
 }

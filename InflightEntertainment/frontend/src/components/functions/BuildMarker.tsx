@@ -14,9 +14,9 @@ export function updateRotation(lat1: number, lng1: number, lat2: number, lng2: n
   ) * (180 / Math.PI) + 360) % 360);
 }
 
-export function BuildMarker(type: string, position: L.LatLngExpression, rotationAngle?: number){
+export function BuildMarker(param: string, position: L.LatLngExpression, rotationAngle?: number){
   let image;
-  switch(type){
+  switch(param){
     case "plane":
     case "aircraft":
       image = aircraft

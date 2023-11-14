@@ -98,8 +98,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     });
   }
 
-  sendData(dataType: Wellness) {
-    switch (dataType.type.toLowerCase()) {
+  sendData(dataParam: Wellness) {
+    switch (dataParam.param.toLowerCase()) {
       case "aircraft":
         return this.state.aircrafts;
       case "airport":
@@ -113,7 +113,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           zoom: this.state.zoom
         }
       default:
-        console.warn("sendData: data type not found: ", dataType.type.toLowerCase())
+        console.warn("sendData: data param not found: ", dataParam.param.toLowerCase())
         return { error: "Not found" };
     }
   }
@@ -122,7 +122,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   addMarkers(newMarkerProps: MarkerData) {
     let newMarker;
     let markerState;
-    switch (newMarkerProps.type) {
+    switch (newMarkerProps.param) {
       case "aircraft":
         markerState = this.state.aircrafts;
         break;
@@ -133,15 +133,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         markerState = this.state.landmarks;
         break;
       default:
-        console.warn("addMarkers: type not found");
+        console.warn("addMarkers: param not found");
         return;
     }
     if (markerState.hasOwnProperty(newMarkerProps.id)) {
-      console.warn(`addMarkers: ${newMarkerProps.type} id already exists`);
+      console.warn(`addMarkers: ${newMarkerProps.param} id already exists`);
       return;
     }
     const coords: LatLngExpression = [newMarkerProps.lat, newMarkerProps.lng]
-    newMarker = BuildMarker(newMarkerProps.type, coords, newMarkerProps.rotation);
+    newMarker = BuildMarker(newMarkerProps.param, coords, newMarkerProps.rotation);
     newMarker.addTo(this.map!);
     markerState[newMarkerProps.id] = newMarker;
   }
@@ -149,7 +149,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   // removing a marker based on its index
   removeMarker(payload: RemoveData) {
     let markerState;
-    switch (payload.type.toLowerCase()) {
+    switch (payload.param.toLowerCase()) {
       case "aircraft":
         markerState = this.state.aircrafts;
         break;
@@ -160,11 +160,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         markerState = this.state.landmarks;
         break;
       default:
-        console.warn("removeMarker: type not found:", payload.type);
+        console.warn("removeMarker: param not found:", payload.param);
         return;
     }
     if (!markerState.hasOwnProperty(payload.id)) {
-      console.warn(`removeMarker: Could not find ${payload.type} id`);
+      console.warn(`removeMarker: Could not find ${payload.param} id`);
       return;
     }
     this.map!.removeLayer(markerState[payload.id]);
@@ -177,7 +177,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.warn("moveMarkers: Could not find aircraft Id: ", payload.id);
       return;
     }
-
+    
     const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
     
@@ -200,6 +200,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     polyline.polylineFrom.setLatLngs([this.state.aircrafts[payload.id].getLatLng(), this.state.airports[polyline.airportIdFrom].getLatLng()]);
   }
 
+  // Adds a polyline to the map given a aircraft Id as the key to the polyline 
   drawPolyLine(payload: PolyLineData) {
     if (this.state.polylines.hasOwnProperty(payload.aircraftId)) {
       console.warn("Aready made: ", this.state.polylines[payload.aircraftId]);
@@ -245,6 +246,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map);
   }
 
+  // Removes the polyline on the map if it exists
   removePolyLine(payload: RemoveData) {
     if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("removePolyLine: Could not find polyline id");

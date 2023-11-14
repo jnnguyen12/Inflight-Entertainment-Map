@@ -46,6 +46,7 @@ class Flight(models.Model):
     hex = models.CharField(max_length=10, unique=True)          # Hex ID of the flight
     flight = models.CharField(max_length=20)                    # Flight number
     timestamp = models.DateTimeField()                          # Timestamp of the record
+    previousTimestamp = models.DateTimeField()                  # Previous Timestamp of the record
     lat = models.FloatField()                                   # Latitude
     lng = models.FloatField()                                   # Longitude
     registration = models.CharField(max_length=10)              # Registration
@@ -55,10 +56,6 @@ class Flight(models.Model):
     track = models.FloatField(null=True, blank=True)            # Track
     ground_speed = models.FloatField(null=True, blank=True)     # Ground Speed
     totalDistance = models.FloatField(null=True, blank=True)    # total Distance of the flight
-    # estimatedTime = models.CharField(null=True, blank=True)     # time Remaining on Flight
-    # progress = models.FloatField(null=True, blank=True)         # Flight progress 
-    # travaled = models.FloatField(null=True, blank=True)         # Distance Traveled in Km
-    # remaining = models.FloatField(null=True, blank=True)        # Distance Remaining in Km
     airportOrigin = models.ForeignKey(Airport) 
     airportDestination = models.ForeignKey(Airport) 
     

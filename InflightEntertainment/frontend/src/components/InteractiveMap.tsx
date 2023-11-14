@@ -73,6 +73,7 @@ const emptyFlight: Flight = {
     progress: 0,
     travaledKm: 0,
     remainingKm: 0,
+    currentTimestamp: Date.now.toString()
 };
 
 class InteractiveMap extends React.Component<{}, RndStates> {
@@ -126,24 +127,29 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             console.error('Error parsing JSON:', error);
             return;
         }
+        console.log(dataJson)
         const data = Array.isArray(dataJson) ? dataJson : [dataJson];
         const response: any[] = [];
         const defaultSpeed = 100;
         let flightData;
         data.forEach((payload) => {
+            console.log(payload)
             try {
-                switch (payload.command) {
+                switch (payload.type) {
+                    // Sets the UI to the current flight
+                    // Adds Plane, Airports and polyline to map 
                     case 'setFlight':
-                        // Adds Plane, Airports and polyline to map
                         flightData = payload as Flight
                         this.setState({ Flight: flightData })
-                        this.mapRef.current?.addMarkers({ id: flightData.id, type: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
-                        this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, type: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
-                        this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, type: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.id, param: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, param: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, param: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
                         this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
                         break;
+                    // Updates the current flight
                     case 'updateFlight':
                         flightData = payload as Flight
+                        flightData.prevTimestamp = this.state.Flight.currentTimestamp
                         this.setState({ Flight: flightData })
                         if(flightData.ground_speed){ 
                             this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
@@ -151,16 +157,19 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                             this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
                         }
                         break;
+                    // Removes the current flight and sets the UI to emtpy
                     case 'removeFlight':
                         flightData = payload as RemoveData
                         this.setState({ Flight: emptyFlight })
-                        this.mapRef.current?.removePolyLine({ id: flightData.id, type: "aircraft" });
-                        this.mapRef.current?.removeMarker({ id: flightData.id, type: "aircraft" });
+                        this.mapRef.current?.removePolyLine({ id: flightData.id, param: "aircraft" });
+                        this.mapRef.current?.removeMarker({ id: flightData.id, param: "aircraft" });
                         break;
+                    // Sets the camera 
                     case 'flyToLocation':
                         // Move camera to given coords and zoom
                         this.mapRef.current?.flyTo(payload as FlyCameraTo);
                         break;
+                    // adds a marker to the map A marker can be (Aircraft, Airport, Landmark) It can not be a flight
                     case 'addMarker':
                         flightData = payload as MarkerData
                         if (flightData.id === this.state.Flight.id) {
@@ -170,15 +179,20 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         }
                         this.mapRef.current?.addMarkers(flightData);
                         break;
+                    // Removes a marker from the map it can not remove the flight from the map or the attached airports
                     case 'removeMarker':
                         flightData = payload as RemoveData
-                        if (flightData.id === this.state.Flight.id) {
-                            response.push("Error cant remove marker because it is the current flight")
-                            console.warn("Error cant remove marker because it is the current flight")
+                        if((flightData.param === "aircraft" && flightData.id === this.state.Flight.id || 
+                            flightData.param === "airport" && flightData.id === this.state.Flight.airportOrigin.id ||
+                            flightData.param === "airport" && flightData.id === this.state.Flight.airportDestination.id ) && 
+                            flightData.param){
+                            response.push("Error cant remove marker because it is attached to the current flight")
+                            console.warn("Error cant remove marker because it is attached to the current flight")
                             break;
                         }
                         this.mapRef.current?.removeMarker(flightData);
                         break;
+                    // Updates a aircraft marker on the map that is not the current flight
                     case 'updateMarker':
                         flightData = payload as UpdateMarkerData
                         if (flightData.id === this.state.Flight.id) {
@@ -189,20 +203,25 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         if(!flightData.speed) flightData.speed = defaultSpeed
                         this.mapRef.current?.moveMarkers(flightData);
                         break;
+                    // Manually adds a polyline to the map
                     case 'addPolyline':
                         this.mapRef.current?.drawPolyLine(payload as PolyLineData);
                         break;
+                    // Manually removes a polyline from the map
                     case 'removePolyline':
                         this.mapRef.current?.removePolyLine(payload as RemoveData);
                         break;
+                    // Removes everything on the map
                     case 'clearMap':
                         this.mapRef.current?.clearMap();
+                        this.setState({ Flight: emptyFlight })
                         break;
+                    // Sends information to the backend given the param
                     case 'wellness':
                         response.push(this.mapRef.current?.sendData(payload as Wellness));
                         break;
                     default:
-                        console.warn("Unknown command sent: ", payload.command);
+                        console.warn("Unknown type sent: ", payload.type);
                 }
             }
             catch (error) {
