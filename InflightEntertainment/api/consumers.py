@@ -171,8 +171,27 @@ class FlightConsumer(WebsocketConsumer):
         return max(0, min(100, progress)) # Ensure progress is within the range [0, 100]
 
     def setFlight(self, data):
-        originData = self.handleAirport(data['airportOrigin'])
-        destinationData = self.handleAirport(data.get('airportDestination'))
+        origin = data.get('airportOrigin')
+        originData, created = Airport.objects.update_or_create(
+            identifier=origin['identifier'],
+            type=origin['type'],
+            nameAbbreviated=origin['nameAbbreviated'],
+            lat=origin['lat'],
+            lng=origin['lng'],
+            time=origin['time']
+        )
+        originData.save()
+
+        destination=data.get('airportDestination')
+        destinationData, created = Airport.objects.update_or_create(
+            identifier=destination['identifier'],
+            type=destination['type'],
+            nameAbbreviated=destination['nameAbbreviated'],
+            lat=destination['lat'],
+            lng=destination['lng'],
+            time=destination['time']
+        )
+        destinationData.save()
         
         totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
         flight = data.get('flight')
@@ -509,7 +528,6 @@ class FlightConsumer(WebsocketConsumer):
             self.wellness(text_data_json)
 
     def handleAirport(self, data):
-        print(f"handleAirpot: {data}")
         airportData, created = Airport.objects.update_or_create(
             identifier=data['identifier'],
             type=data['type'],
