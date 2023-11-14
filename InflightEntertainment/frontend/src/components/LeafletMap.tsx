@@ -250,12 +250,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
-  handleFullscreen(full: boolean){
-    this.setState({fullScreen: full})
-    
-    console.log("handle: " + this.state.fullScreen);
-  }
-
   reloadMap(){
     this.map.invalidateSize()
   }

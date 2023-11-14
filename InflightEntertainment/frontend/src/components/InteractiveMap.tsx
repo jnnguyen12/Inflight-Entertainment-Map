@@ -333,20 +333,10 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
   }
 
-  goFullScreen() {
-    this.setState({
-      fullScreen: true,
+  toggleFullscreen = () => {
+    this.setState({fullScreen: !this.state.fullScreen}, () => {
+      this.mapRef.current?.setState({fullScreen: !this.mapRef.current.state.fullScreen});
     });
-    this.mapRef.current?.handleFullscreen(true);
-    console.warn("Full screen");
-  }
-
-  goWindowed() {
-    this.setState({
-      fullScreen: false,
-    });
-    this.mapRef.current?.handleFullscreen(false);
-    console.warn("Windowed");
   }
 
   displayTime() {
@@ -447,7 +437,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
   }
 
   render() {
-    const leafletMap = <LeafletMap ref={this.mapRef} />;
+    const leafletMap = <LeafletMap ref={this.mapRef}/>;
     const calculateDistanceInMiles = (distanceKm: number): number =>
       distanceKm * 0.621371;
 
@@ -562,7 +552,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             <FontAwesomeIcon
               className="expander"
               icon={faCompress}
-              onClick={this.goWindowed.bind(this)}
+              onClick={this.toggleFullscreen.bind(this)}
             />
           </div>
         </>
@@ -613,7 +603,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             <FontAwesomeIcon
               className="expander"
               icon={faExpand}
-              onClick={this.goFullScreen.bind(this)}
+              onClick={this.toggleFullscreen.bind(this)}
             />
           </div>
         </div>
