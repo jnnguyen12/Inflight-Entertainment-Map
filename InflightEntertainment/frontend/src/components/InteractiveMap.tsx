@@ -600,7 +600,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
             style={{
                 position: 'absolute',
                 left: this.state.RndXPosition + this.state.RndWidth - 16,
-                top: this.state.RndYPosition + this.state.RndHeight - 16,
+                top: this.state.RndYPosition,
                 width: '16px', 
                 height: '16px'
             }}>
