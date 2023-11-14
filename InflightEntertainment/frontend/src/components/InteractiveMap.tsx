@@ -451,7 +451,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
     if (this.state.fullScreen) {
       return (
-        <div className="UIcontainer">
+        <div className="UI-container">
           <div className="row container-fluid vh-100 ">
             <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
               {/* main panel that displays information */}
@@ -593,16 +593,24 @@ class InteractiveMap extends React.Component<{}, RndStates> {
               });
               this.mapRef.current?.reloadMap();
             }}
-          >
-            <div className="UI-container">
+            >
               {leafletMap}
-              <FontAwesomeIcon
+          </Rnd>
+         <div className="UI-container"
+            style={{
+                position: 'absolute',
+                left: this.state.RndXPosition + this.state.RndWidth - 16,
+                top: this.state.RndYPosition + this.state.RndHeight - 16,
+                width: '16px', 
+                height: '16px'
+            }}>
+
+                <FontAwesomeIcon
                 className="expander"
                 icon={faExpand}
                 onClick={this.goFullScreen.bind(this)}
-              />
-            </div>
-          </Rnd>
+                />
+         </div>
         </div>
       );
     }
