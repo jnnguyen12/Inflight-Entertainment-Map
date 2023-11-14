@@ -47,15 +47,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       zoomControl: false,     // Removes defaults 
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
-      scrollWheelZoom: true,  
+      scrollWheelZoom: true,
       minZoom: 3,
-      maxZoom: 15
+      maxZoom: 15,
+      worldCopyJump: true,
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
-      noWrap: true
     }).addTo(this.map);
 
     // Offline implementation
@@ -252,11 +252,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
   }
 
-  reloadMap(){
+  reloadMap() {
     this.map.invalidateSize()
   }
 
-  mapStatus(){
+  mapStatus() {
     return this.map.dragging.enabled()
   }
 
