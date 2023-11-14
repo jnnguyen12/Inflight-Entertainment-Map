@@ -54,13 +54,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(this.map);
+    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    //   attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
+    // }).addTo(this.map);
 
     // Offline implementation
     L.tileLayer('OFFLINE/{z}/{x}/{y}.png',
-      { maxZoom: 7 },{ minZoom: 2 }).addTo(this.map);
+      { maxZoom: 7}).addTo(this.map);
   }
 
   //Flys to the position on the map
