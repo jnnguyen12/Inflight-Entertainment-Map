@@ -333,9 +333,9 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
   }
 
-  toggleFullscreen = () => {
+  toggleFullscreen() {
     this.setState({fullScreen: !this.state.fullScreen}, () => {
-      this.mapRef.current?.setState({fullScreen: !this.mapRef.current.state.fullScreen});
+      this.mapRef.current?.setState({fullScreen: this.state.fullScreen});
     });
   }
 
@@ -569,14 +569,15 @@ class InteractiveMap extends React.Component<{}, RndStates> {
               height: this.state.RndHeight,
             }}
             size={{ width: this.state.RndWidth, height: this.state.RndHeight }}
+            position={{
+              x: this.state.RndXPosition,
+              y: this.state.RndYPosition,
+            }}
+            bounds="window"
             onDrag={(e, d) => {
               if (this.mapRef.current?.mapStatus())
                 return false; /* Prevent dragging the Rnd component */
               this.setState({ RndXPosition: d.x, RndYPosition: d.y });
-            }}
-            position={{
-              x: this.state.RndXPosition,
-              y: this.state.RndYPosition,
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
               this.setState({
