@@ -293,23 +293,20 @@ class BackendConsumer(WebsocketConsumer):
 
         payload = {
                 'type': 'setFlight',
-                'parsed': 'True',
-                'flight': {
-                    'flight': flightData.flight,
-                    'hex': flightData.hex,
-                    'lat': flightData.lat,
-                    'lng': flightData.lng,
-                    'alt_baro': flightData.alt_baro,
-                    'alt_geom': flightData.alt_geom,
-                    'track': flightData.track,
-                    'rotation': 0,
-                    'ground_speed': flightData.ground_speed,
-                    'progress': 0,
-                    'aircraftType': flightData.aircraftType,
-                    'registration': flightData.registration,
-                    'travaledKm': 0,
-                    'remainingKm': totalDistance
-                },
+                'flight': flightData.flight,
+                'hex': flightData.hex,
+                'lat': flightData.lat,
+                'lng': flightData.lng,
+                'alt_baro': flightData.alt_baro,
+                'alt_geom': flightData.alt_geom,
+                'track': flightData.track,
+                'rotation': 0,
+                'ground_speed': flightData.ground_speed,
+                'progress': 0,
+                'aircraftType': flightData.aircraftType,
+                'registration': flightData.registration,
+                'travaledKm': 0,
+                'remainingKm': totalDistance,
                 'airportOrigin': {
                       'identifier': originData.identifier,
                       'name': originData.name,
@@ -327,7 +324,7 @@ class BackendConsumer(WebsocketConsumer):
                     'lat': destinationData.lat,
                     'lng': destinationData.lng,
                    # 'time': destinationData.time.strftime("%m/%d/%Y, %H:%M:%S")
-                },
+                }
             }
 
         #self.send(text_data=json.dumps(payload))

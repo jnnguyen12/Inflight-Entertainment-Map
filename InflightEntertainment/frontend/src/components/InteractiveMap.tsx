@@ -1,6 +1,6 @@
 import React from 'react';
 import LeafletMap from './LeafletMap';
-import { RndStates, Flight, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+import { RndStates, Flight, Airport, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/dist/js/bootstrap.js";
@@ -110,14 +110,13 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
     private handleSocketOpen() {
         console.log('WebSocket connection established.');
-        if (this.socket) this.socket.send('Frontend');
     }
 
     private handleSocketClose() {
         console.log('WebSocket connection closed.');
     }
 
-    private handleSocketMessage(event: MessageEvent) {
+    private handleSocketMessage = (event: MessageEvent) => {
         console.log("Received WebSocket Message")
         const text = event.data
         let dataJson;
@@ -132,80 +131,110 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         const data = Array.isArray(dataJson) ? dataJson : [dataJson];
         const response: any[] = [];
         const defaultSpeed = 100;
-        let flightData;
+        
         data.forEach((payload) => {
             console.log(payload);
+            payload = payload.command;
+            const airportOrigin = {
+                id: payload.airportOrigin.identifier,
+                nameAbbreviated: payload.airportOrigin.nameAbbreviated,
+                lat: payload.airportOrigin.lat,
+                lng: payload.airportOrigin.lng,
+                time: payload.airportOrigin.time
+            } as Airport;
+
+            const airportDestination = {
+                id: payload.airportDestination.identifier,
+                nameAbbreviated: payload.airportDestination.nameAbbreviated,
+                lat: payload.airportDestination.lat,
+                lng: payload.airportDestination.lng,
+                time: payload.airportDestination.time
+            } as Airport;
+
+            const flightData = {
+                id: payload.hex,
+                flight: payload.flight,
+                lat: payload.lat,
+                lng: payload.lng,
+                rotation: 0,
+                airportOrigin: payload.airportOrigin,
+                airportDestination: payload.airportDestination,
+                aircraftType: payload.aircraftType,
+            } as Flight;
+
             try {
-                switch (payload.command.type) {
+                switch (payload.type) {
                     case 'setFlight':
-                        console.log("setFlight");
                         // Adds Plane, Airports and polyline to map
-                        flightData = payload as Flight
+                        // flightData = payload.command as Flight;
+                        // flightData = this.parseSetFlight(payload)
+                        console.log(flightData)
                         this.setState({ Flight: flightData })
+                        console.log(this.state.Flight)
                         this.mapRef.current?.addMarkers({ id: flightData.id, param: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
-                        this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, param: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
-                        this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, param: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
-                        this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
+                        this.mapRef.current?.addMarkers({ id: airportOrigin.id, param: "airport", lat: airportOrigin.lat, lng: airportOrigin.lng, rotation: 0 });
+                        this.mapRef.current?.addMarkers({ id: airportDestination.id, param: "airport", lat: airportDestination.lat, lng: airportDestination.lng, rotation: 0 });
+                        this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: airportDestination.id, airportIdFrom: airportOrigin.id });
                         break;
-                    case 'updateFlight':
-                        flightData = payload as Flight
-                        this.setState({ Flight: flightData })
-                        if(flightData.ground_speed){ 
-                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
-                        } else{
-                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
-                        }
-                        break;
-                    case 'removeFlight':
-                        flightData = payload as RemoveData
-                        this.setState({ Flight: emptyFlight })
-                        this.mapRef.current?.removePolyLine({ id: flightData.id, param: "aircraft" });
-                        this.mapRef.current?.removeMarker({ id: flightData.id, param: "aircraft" });
-                        break;
-                    case 'flyToLocation':
-                        // Move camera to given coords and zoom
-                        this.mapRef.current?.flyTo(payload as FlyCameraTo);
-                        break;
-                    case 'addMarker':
-                        flightData = payload as MarkerData
-                        if (flightData.id === this.state.Flight.id) {
-                            response.push("Error cant add marker because it is the current flight")
-                            console.warn("Error cant add marker because it is the current flight")
-                            break;
-                        }
-                        this.mapRef.current?.addMarkers(flightData);
-                        break;
-                    case 'removeMarker':
-                        flightData = payload as RemoveData
-                        if (flightData.id === this.state.Flight.id) {
-                            response.push("Error cant remove marker because it is the current flight")
-                            console.warn("Error cant remove marker because it is the current flight")
-                            break;
-                        }
-                        this.mapRef.current?.removeMarker(flightData);
-                        break;
-                    case 'updateMarker':
-                        flightData = payload as UpdateMarkerData
-                        if (flightData.id === this.state.Flight.id) {
-                            response.push("Error cant update marker because it is the current flight")
-                            console.warn("Error cant update marker because it is the current flight")
-                            break;
-                        }
-                        if(!flightData.speed) flightData.speed = defaultSpeed
-                        this.mapRef.current?.moveMarkers(flightData);
-                        break;
-                    case 'addPolyline':
-                        this.mapRef.current?.drawPolyLine(payload as PolyLineData);
-                        break;
-                    case 'removePolyline':
-                        this.mapRef.current?.removePolyLine(payload as RemoveData);
-                        break;
-                    case 'clearMap':
-                        this.mapRef.current?.clearMap();
-                        break;
-                    case 'wellness':
-                        response.push(this.mapRef.current?.sendData(payload as Wellness));
-                        break;
+                    // case 'updateFlight':
+                    //     flightData = payload as Flight
+                    //     this.setState({ Flight: flightData })
+                    //     if(flightData.ground_speed){ 
+                    //         this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                    //     } else{
+                    //         this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                    //     }
+                    //     break;
+                    // case 'removeFlight':
+                    //     flightData = payload as RemoveData
+                    //     this.setState({ Flight: emptyFlight })
+                    //     this.mapRef.current?.removePolyLine({ id: flightData.id, param: "aircraft" });
+                    //     this.mapRef.current?.removeMarker({ id: flightData.id, param: "aircraft" });
+                    //     break;
+                    // case 'flyToLocation':
+                    //     // Move camera to given coords and zoom
+                    //     this.mapRef.current?.flyTo(payload as FlyCameraTo);
+                    //     break;
+                    // case 'addMarker':
+                    //      flightData = payload as MarkerData
+                    //     if (flightData.id === this.state.Flight.id) {
+                    //         response.push("Error cant add marker because it is the current flight")
+                    //         console.warn("Error cant add marker because it is the current flight")
+                    //         break;
+                    //     }
+                    //     this.mapRef.current?.addMarkers(flightData);
+                    //     break;
+                    // case 'removeMarker':
+                    //     flightData = payload as RemoveData
+                    //     if (flightData.id === this.state.Flight.id) {
+                    //         response.push("Error cant remove marker because it is the current flight")
+                    //         console.warn("Error cant remove marker because it is the current flight")
+                    //         break;
+                    //     }
+                    //     this.mapRef.current?.removeMarker(flightData);
+                    //     break;
+                    // case 'updateMarker':
+                    //     flightData = payload as UpdateMarkerData
+                    //     if (flightData.id === this.state.Flight.id) {
+                    //         response.push("Error cant update marker because it is the current flight")
+                    //         console.warn("Error cant update marker because it is the current flight")
+                    //         break;
+                    //     }
+                    //     if(!flightData.speed) flightData.speed = defaultSpeed
+                    //     this.mapRef.current?.moveMarkers(flightData);
+                    //     break;
+                    // case 'addPolyline':
+                    //     this.mapRef.current?.drawPolyLine(payload as PolyLineData);
+                    //     break;
+                    // case 'removePolyline':
+                    //     this.mapRef.current?.removePolyLine(payload as RemoveData);
+                    //     break;
+                    // case 'clearMap':
+                    //     this.mapRef.current?.clearMap();
+                    //     break;
+                    // case 'wellness':
+                    //     response.push(this.mapRef.current?.sendData(payload as Wellness));
+                    //     break;
                     default:
                         console.warn("Unknown type sent: ", payload.type);
                 }

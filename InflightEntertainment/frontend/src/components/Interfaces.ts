@@ -28,7 +28,7 @@ export interface LeafletPolyline {
 
 export interface Airport{
     id: string                          // Id of Airport
-    name: string;                       // Name of Airport
+    name?: string;                       // Name of Airport
     nameAbbreviated: string;            // Abbreviated name of Airport
     lat: number;                        // Latitude
     lng: number;                        // Longitude
