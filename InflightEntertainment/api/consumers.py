@@ -127,6 +127,63 @@
 #     def new_flight_record(self, event):
 #         self.send(text_data=json.dumps(event))
 
+ #         try:
+    #             flight = Flight.objects.get(hex=flight_data['hex'])
+    #         except Flight.DoesNotExist:
+    #             print("Flight not found with hex:", flight_data['hex'])
+    #             return
+
+    #         FlightRecord.objects.create(
+    #             flight=flight,
+    #             timestamp=datetime.fromisoformat(record_data['timestamp']),
+    #             lat=record_data['lat'],
+    #             lng=record_data['lng'],
+    #             alt_baro=record_data.get('alt_baro'),
+    #             alt_geom=record_data.get('alt_geom'),
+    #             track=record_data.get('track'),
+    #             ground_speed=record_data.get('ground_speed')
+    #         )
+
+    #         print(f"Added flight record for existing flight: {flight.flight}")
+
+    #         async_to_sync(self.channel_layer.group_send)(
+    #             self.room_group_name,
+    #             {
+    #                 'type': 'add_flight_record',
+    #                 'flight': {
+    #                     'flight': flight.flight
+    #                 },
+    #                 'record': {
+    #                     'timestamp': record_data['timestamp'],
+    #                     'lat': record_data['lat'],
+    #                     'lng': record_data['lng']
+    #                 }
+    #             }
+    #         )
+
+    #         # Send response back to the WebSocket client
+    #         self.send(text_data=json.dumps({
+    #             'type': 'add_flight_record',
+    #             'flight': {
+    #                 'hex': flight.hex,
+    #                 'flight': flight.flight,
+    #                 'r': flight.r,
+    #                 't': flight.t
+    #             },
+    #             'record': {
+    #                 'timestamp': record_data['timestamp'],
+    #                 'lat': record_data['lat'],
+    #                 'lng': record_data['lng']
+    #             }
+    #         }))
+
+    
+    # # def add_flight_record(self, event):
+    # #     self.send(text_data=json.dumps(event))
+
+    # # def new_flight_record(self, event):
+    # #     self.send(text_data=json.dumps(event))
+
 
 import json
 from channels.generic.websocket import WebsocketConsumer
@@ -137,16 +194,26 @@ from datetime import datetime
 from math import sin, cos, sqrt, atan2, radians
 from time import strftime
 
-class FlightConsumer(WebsocketConsumer):
+class BackendConsumer(WebsocketConsumer):
     def connect(self):
-        self.room_group_name = 'test'
+        self.room_group_name = 'back'
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
             self.channel_name
         )
-
+        print(self.room_group_name)
+        print(self.channel_name)
         self.accept()
+
+    def disconnect(self):
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    def message(self, payload):
+        self.send(json.dumps(payload))
 
     def calculate_distance_in_km(self, origin_lat, origin_lng, destination_lat, destination_lng):
         def to_radians(degrees):
@@ -176,6 +243,10 @@ class FlightConsumer(WebsocketConsumer):
         return max(0, min(100, progress)) # Ensure progress is within the range [0, 100]
 
     def setFlight(self, data):
+
+        # if data.get('parsed') == 'True':
+        #     return
+        
         origin = data.get('airportOrigin')
         originData, created = Airport.objects.update_or_create(
             identifier=origin.get('identifier'),
@@ -221,7 +292,8 @@ class FlightConsumer(WebsocketConsumer):
         
 
         payload = {
-                'type': 'setFlightFront',
+                'type': 'setFlight',
+                'parsed': 'True',
                 'flight': {
                     'flight': flightData.flight,
                     'hex': flightData.hex,
@@ -257,28 +329,16 @@ class FlightConsumer(WebsocketConsumer):
                    # 'time': destinationData.time.strftime("%m/%d/%Y, %H:%M:%S")
                 },
             }
-        
-        # self.send(data=json.dumps(payload))
-        
-    #     ser = FlightSerializer(flightData)
-    #     # payload = {
-    #     #     'type': 'setFlight',
-    #     #     ser.data
-    #     # }
 
-    #     temp = ser.data
-    #    # temp['type'] = 'setFlight'
-    #     print(f"Before dumps: \n{temp}")
-    #     text_data = json.dumps(temp)
-
-    #     print(f"\nAfter dumps: \n{temp}")
-    #     text_data = '{\n "type": "setFlight",\n\t' + text_data[1:]
-
-    #     print(f"After string modificatoin: \n{text_data}")
-        self.send(text_data=json.dumps(payload))
-        print("\nmade it past send")
-
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+        #self.send(text_data=json.dumps(payload))
+        #print("\nmade it past send")
+        #self.send(text_data=json.dumps(payload))
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
     
     def updateFlight(self, data):
         originData = self.handleAirport(data.get('airportOrigin'))
@@ -513,7 +573,7 @@ class FlightConsumer(WebsocketConsumer):
     def receive(self, text_data):
         print("Received data:", text_data)
         text_data_json = json.loads(text_data)
-        print("JSON: ", text_data_json)
+        #print("JSON: ", text_data_json)
         flight_data = text_data_json.get('flight')
         #print("Extracted flight data:", flight_data)
         record_data = text_data_json.get('record')
@@ -607,60 +667,27 @@ class FlightConsumer(WebsocketConsumer):
         #         }
         #     )
         # elif text_data_json.get('type') == 'add_flight_record':
-    #         try:
-    #             flight = Flight.objects.get(hex=flight_data['hex'])
-    #         except Flight.DoesNotExist:
-    #             print("Flight not found with hex:", flight_data['hex'])
-    #             return
 
-    #         FlightRecord.objects.create(
-    #             flight=flight,
-    #             timestamp=datetime.fromisoformat(record_data['timestamp']),
-    #             lat=record_data['lat'],
-    #             lng=record_data['lng'],
-    #             alt_baro=record_data.get('alt_baro'),
-    #             alt_geom=record_data.get('alt_geom'),
-    #             track=record_data.get('track'),
-    #             ground_speed=record_data.get('ground_speed')
-    #         )
+class FrontendConsumer(WebsocketConsumer):
+    def connect(self):
+        self.room_group_name = 'front'
 
-    #         print(f"Added flight record for existing flight: {flight.flight}")
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
 
-    #         async_to_sync(self.channel_layer.group_send)(
-    #             self.room_group_name,
-    #             {
-    #                 'type': 'add_flight_record',
-    #                 'flight': {
-    #                     'flight': flight.flight
-    #                 },
-    #                 'record': {
-    #                     'timestamp': record_data['timestamp'],
-    #                     'lat': record_data['lat'],
-    #                     'lng': record_data['lng']
-    #                 }
-    #             }
-    #         )
+        self.accept()
 
-    #         # Send response back to the WebSocket client
-    #         self.send(text_data=json.dumps({
-    #             'type': 'add_flight_record',
-    #             'flight': {
-    #                 'hex': flight.hex,
-    #                 'flight': flight.flight,
-    #                 'r': flight.r,
-    #                 't': flight.t
-    #             },
-    #             'record': {
-    #                 'timestamp': record_data['timestamp'],
-    #                 'lat': record_data['lat'],
-    #                 'lng': record_data['lng']
-    #             }
-    #         }))
 
-    
-    # # def add_flight_record(self, event):
-    # #     self.send(text_data=json.dumps(event))
+    def receive(self, text_data):
+        print("\n\n\nFRONTEND\n\n\n")
+        text_data_json = json.loads(text_data)
+        #print("JSON: ", text_data_json)
+        # #self.send(text_data=json.dumps(payload))
+        # self.send(text_data_json)
+        self.setFlight(text_data_json)
+        
 
-    # # def new_flight_record(self, event):
-    # #     self.send(text_data=json.dumps(event))
-
+    def setFlight(self, payload):
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)

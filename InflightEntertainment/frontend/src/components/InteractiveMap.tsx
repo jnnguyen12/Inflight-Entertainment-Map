@@ -110,6 +110,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
     private handleSocketOpen() {
         console.log('WebSocket connection established.');
+        if (this.socket) this.socket.send('Frontend');
     }
 
     private handleSocketClose() {
@@ -117,6 +118,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
 
     private handleSocketMessage(event: MessageEvent) {
+        console.log("Received WebSocket Message")
         const text = event.data
         let dataJson;
         if (text === "") return;
@@ -134,8 +136,9 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         data.forEach((payload) => {
             console.log(payload);
             try {
-                switch (payload.type) {
+                switch (payload.command.type) {
                     case 'setFlight':
+                        console.log("setFlight");
                         // Adds Plane, Airports and polyline to map
                         flightData = payload as Flight
                         this.setState({ Flight: flightData })
