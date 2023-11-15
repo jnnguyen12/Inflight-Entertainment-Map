@@ -31,7 +31,7 @@ from django.db import models
 class Airport(models.Model):
     # id = models.AutoField(primary_key=True)
     identifier = models.CharField(max_length=10)
-    type = models.CharField(max_length=20)
+    airportType = models.CharField(max_length=20)
     name = models.CharField(max_length=20)
     nameAbbreviated = models.CharField(max_length=20, default='airport')
     lat = models.FloatField()

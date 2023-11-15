@@ -152,6 +152,11 @@ class FlightConsumer(WebsocketConsumer):
         def to_radians(degrees):
             return degrees * (3.141592653589793 / 180)
         R = 6371  # Earth's radius in kilometers
+        origin_lat = float(origin_lat)
+        destination_lat = float(destination_lat)
+        origin_lng = float(origin_lng)
+        destination_lng = float(destination_lng)
+
         d_lat = to_radians(destination_lat - origin_lat)
         d_lon = to_radians(destination_lng - origin_lng)
         a = (
@@ -173,40 +178,37 @@ class FlightConsumer(WebsocketConsumer):
     def setFlight(self, data):
         origin = data.get('airportOrigin')
         originData, created = Airport.objects.update_or_create(
-            identifier=origin['identifier'],
-            type=origin['type'],
+            identifier=origin.get('identifier'),
+            airportType=origin.get('airportType'),
             nameAbbreviated=origin['nameAbbreviated'],
             lat=origin['lat'],
             lng=origin['lng'],
-            time=origin['time']
         )
         originData.save()
 
         destination=data.get('airportDestination')
         destinationData, created = Airport.objects.update_or_create(
             identifier=destination['identifier'],
-            type=destination['type'],
+            airportType=destination['airportType'],
             nameAbbreviated=destination['nameAbbreviated'],
             lat=destination['lat'],
             lng=destination['lng'],
-            time=destination['time']
         )
         destinationData.save()
         
         totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
         flight = data.get('flight')
         flightData, created = Flight.objects.update_or_create(
-                hex=flight['hex'],
+                hex=flight.get('hex'),
                 flight= flight['flight'],
-                timestamp= datetime.fromisoformat(flight['timestamp']),
                 lat= flight['lat'],
                 lng= flight['lng'],
-                registration= flight['r'],
-                aircraftType= flight['t'],
+                registration= flight['registration'],
+                aircraftType= flight['aircraftType'],
                 alt_baro= flight['alt_baro'],
                 alt_geom= flight['alt_geom'],
                 track= flight['track'],
-                ground_speed= flight['gs'],
+                ground_speed= flight['ground_speed'],
                 airportOrigin= originData,
                 airportDestination= destinationData,
                 totalDistance= totalDistance
@@ -214,36 +216,46 @@ class FlightConsumer(WebsocketConsumer):
         if(created): 
             print("Created new object!")
         else:
-            print("Now new obj to create")
+            print("No new obj to create")
         flightData.save()
         
 
         payload = {
-                'type': 'setFlight',
-                'flight': data['flight']['flight'],
-                'lat': data['flight']['lat'],
-                'lng': data['flight']['lng'],
-                'rotation': 0,
+                'type': 'setFlightFront',
+                'flight': {
+                    'flight': flightData.flight,
+                    'hex': flightData.hex,
+                    'lat': flightData.lat,
+                    'lng': flightData.lng,
+                    'alt_baro': flightData.alt_baro,
+                    'alt_geom': flightData.alt_geom,
+                    'track': flightData.track,
+                    'rotation': 0,
+                    'ground_speed': flightData.ground_speed,
+                    'progress': 0,
+                    'aircraftType': flightData.aircraftType,
+                    'registration': flightData.registration,
+                    'travaledKm': 0,
+                    'remainingKm': totalDistance
+                },
                 'airportOrigin': {
-                      'id': originData.id,
+                      'identifier': originData.identifier,
                       'name': originData.name,
+                      'airportType': originData.airportType,
                       'nameAbbreviated': originData.nameAbbreviated,
                       'lat': originData.lat,
                       'lng': originData.lng,
-                      'time': originData.time.strftime("%m/%d/%Y, %H:%M:%S")
+                      #'time': originData.time.strftime("%m/%d/%Y, %H:%M:%S")
                 },
                 'airportDestination': {
-                    'id': destinationData.id,
+                    'identifier': destinationData.identifier,
                     'name': destinationData.name,
+                    'airportType': destinationData.airportType,
                     'nameAbbreviated': destinationData.nameAbbreviated,
                     'lat': destinationData.lat,
                     'lng': destinationData.lng,
-                    'time': destinationData.time.strftime("%m/%d/%Y, %H:%M:%S")
+                   # 'time': destinationData.time.strftime("%m/%d/%Y, %H:%M:%S")
                 },
-                'ground_speed': data['flight']['gs'],
-                'progress': 0,
-                'travaledKm': 0,
-                'remainingKm': totalDistance
             }
         
         # self.send(data=json.dumps(payload))
@@ -501,8 +513,9 @@ class FlightConsumer(WebsocketConsumer):
     def receive(self, text_data):
         print("Received data:", text_data)
         text_data_json = json.loads(text_data)
+        print("JSON: ", text_data_json)
         flight_data = text_data_json.get('flight')
-        print("Extracted flight data:", flight_data)
+        #print("Extracted flight data:", flight_data)
         record_data = text_data_json.get('record')
         if text_data_json.get('type') == "setFlight":
             self.setFlight(text_data_json)
@@ -526,11 +539,13 @@ class FlightConsumer(WebsocketConsumer):
             self.clearMap(text_data_json)
         elif text_data_json.get('type') == "wellness":
             self.wellness(text_data_json)
+        else:
+            print("No handler for this message.")
 
     def handleAirport(self, data):
         airportData, created = Airport.objects.update_or_create(
             identifier=data['identifier'],
-            type=data['type'],
+            airportType=data['airportType'],
             nameAbbreviated=data['nameAbbreviated'],
             lat=data['lat'],
             lng=data['lng'],
