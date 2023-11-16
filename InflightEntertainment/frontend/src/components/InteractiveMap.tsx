@@ -20,6 +20,7 @@ import {
   faPlaneUp,
   faChevronRight,
   faExpand,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Rnd
@@ -129,7 +130,7 @@ const testFlight: Flight = {
   ground_speed: "500", // Example ground speed in knots
   estimatedTime: "2 hours",
   progress: 50,
-  travaledKm: 1500,
+  traveledKm: 1500,
   remainingKm: 1500,
 };
 
@@ -151,7 +152,7 @@ const emptyFlight: Flight = {
   airportDestination: emptyAirport,
   aircraftType: "",
   progress: 0,
-  travaledKm: 0,
+  traveledKm: 0,
   remainingKm: 0,
 };
 
@@ -168,6 +169,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       RndHeight: 300,
       fullScreen: true,
       Flight: emptyFlight,
+      matches: window.matchMedia("(max-width: 991px)").matches
     };
   }
 
@@ -179,6 +181,8 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     this.socket.addEventListener("close", this.handleSocketClose);
     this.socket.addEventListener("message", this.handleSocketMessage);
     this.setState({ Flight: testFlight });
+    const handler = e => this.setState({matches: e.matches});
+    window.matchMedia("(max-width: 991px)").addEventListener('change', handler);
   }
 
   componentWillUnmount() {
@@ -440,35 +444,38 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     );
   }
 
+
   render() {
     const leafletMap = <LeafletMap ref={this.mapRef}/>;
     const calculateDistanceInMiles = (distanceKm: number): number =>
       distanceKm * 0.621371;
+    const collapseOrientation = !this.state.matches && "collapse-horizontal";
+    const flexOrientation = this.state.matches && "flex-column";
 
     if (this.state.fullScreen) {
       return (
         <>
           {leafletMap}
           <div className="UI-container">
-            <div className="row container-fluid vh-100 ">
-              <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
+            <div className="row container-fluid vh-100 mx-auto">
+              <div className={`col-xl-4 d-flex ${flexOrientation} align-items-center vh-100 position-relative`}>
                 {/* main panel that displays information */}
                 <a
                   className="btn me-2 yes-click"
                   data-bs-toggle="collapse"
-                  href="#collapseExample"
+                  href="#collapsePanel"
                   role="button"
                   aria-expanded="false"
-                  aria-controls="collapseExample"
+                  aria-controls="collapsePanel"
                 >
                   {/* TODO: turn this into chevron left on expansion */}
-                  <FontAwesomeIcon icon={faChevronRight} />
+                  {!this.state.matches ? <FontAwesomeIcon icon={faChevronRight} /> : <FontAwesomeIcon icon={faChevronDown} />}
                 </a>
                 <div
-                  className="collapse collapse-horizontal yes-click"
-                  id="collapseExample"
+                  className={`collapse ${collapseOrientation} yes-click`}
+                  id="collapsePanel"
                 >
-                  <div className="panel" style={{ width: "500px" }}>
+                  <div className="panel">
                     <div className="container-fluid d-flex flex-column h-100">
                       {/* aircraft type  */}
                       <div className="mx-auto">
@@ -495,7 +502,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         >
                           <div
                             className="progress-bar progress-bar-striped progress-bar-animated"
-                            style={{ width: "75%" }}
+                            style={{ width: this.state.Flight.progress + "%" }}
                           ></div>
                         </div>
                         <div className="cities mt-2 d-flex justify-content-between align-items-center">
@@ -511,9 +518,9 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         {/* distance  */}
                         <div className="distance text-center d-flex flex-column">
                           <h4>
-                            {this.state.Flight.travaledKm} km |{" "}
+                            {this.state.Flight.traveledKm} km |{" "}
                             {calculateDistanceInMiles(
-                              this.state.Flight.travaledKm
+                              this.state.Flight.traveledKm
                             )}{" "}
                             miles
                           </h4>

@@ -18,6 +18,7 @@ export interface RndStates {
     RndHeight: number;
     fullScreen: boolean;
     Flight: Flight;
+    matches: boolean; // media queries
 }
 
 export interface LeafletPolyline {
@@ -49,7 +50,7 @@ export interface Flight {
     ground_speed?: string;                  // Ground Speed
     estimatedTime?: string;                 // Estimated time remaining of flight
     progress: number;                       // Flight progress 
-    travaledKm: number;                     // Distance Traveled in Km
+    traveledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
 }
 
