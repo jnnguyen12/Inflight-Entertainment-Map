@@ -47,17 +47,9 @@ class Command(BaseCommand):
             rec.alt_geom = aircraft.get("alt_geom"),
             rec.track = aircraft.get("track"),
             rec.ground_speed = aircraft.get("ground_speed")
-        else:
-            rec.lat = curLat,
-            rec.lng = curLng,
-            rec.alt_baro = None,
-            rec.alt_geom = None,
-            rec.track = None,
-            rec.ground_speed = None
         rec.save()
 
         if not self.lastRec is None:
-            rec.save(update_fields=['rotation'])
             self.latSpeed = rec.lat - self.lastRec.lat
             self.lngSpeed = rec.lng - self.lastRec.lng
         self.lastRec = rec
@@ -111,5 +103,24 @@ class Command(BaseCommand):
             curLat = self.lastRec.lat + self.latSpeed
             curLng = self.lastRec.lng + self.lngSpeed
             rec = self.createRecord(flight, timestamp, curLat, curLng, None)
+
+        self.foundFlight = False
+
+    # Didn't find flight in record - estimate position
+    def interpolate(self):
+        if(self.foundFlight is False and (not self.lastRec is None)):
+            print("Estimating position")
+            x_diff = self.lastRec.ground_speed * math.cos(self.lastRec.track) / 60
+            y_diff = self.lastRec.ground_speed * math.sin(self.lastRec.track) / 60
+            curLat = self.lastRec.lat + y_diff
+            curLng = self.lastRec.lng + x_diff
+            extras = {
+                'flight': self.lastRec.flight,
+                'alt_baro': self.lastRec.alt_baro, 
+                'alt_geom': self.lastRec.alt_geom,
+                'track': self.lastRec.track,
+                'gs':  self.lastRec.ground_speed
+            }
+            self.createRecord(self.lastRec.flight, self.lastRec.timestamp, extras)
 
         self.foundFlight = False
