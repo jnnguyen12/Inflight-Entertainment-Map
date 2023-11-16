@@ -6,6 +6,7 @@ from datetime import datetime
 from api.models import Flight, FlightRecord
 from django.utils import timezone
 import math
+import re
 
 
 class Command(BaseCommand):
@@ -14,8 +15,6 @@ class Command(BaseCommand):
         self.flightCode = "c07c7b"
         self.foundFlight = False
         self.lastRec = None
-        self.latSpeed = 0
-        self.lngSpeed = 0
         help = 'Process .json.gz flight data files'
     
     def handle(self, *args, **options):
@@ -35,23 +34,32 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'Done with: {file_path}'))
 
     def createRecord(self, flight, timestamp, curLat, curLng, aircraft):
+        alt_baro = aircraft.get('alt_baro')
+        alt_geom = aircraft.get('alt_geom')
+        track = aircraft.get('track')
+        ground_speed = aircraft.get('gs')
+
+        # Sometimes fields come with extra parantheses and commas
+        if isinstance(alt_baro, str):
+            alt_baro = re.search("\(*(\d+.*\d+),*\)*", alt_baro)
+        if isinstance(alt_geom, str):
+            alt_geom = re.search("\(*(\d+.*\d+),*\)*", alt_geom)
+        if isinstance(track, str):
+            track = re.search("\(*(\d+.*\d+),*\)*", track)
+        if isinstance(ground_speed, str):
+            ground_speed = re.search("\(*(\d+.*\d+),*\)*", ground_speed)
+
         rec = FlightRecord.objects.create(
             flight=flight,
-            timestamp=timestamp
+            timestamp=timestamp,
+            lat=curLat,
+            lng=curLng,
+            alt_baro=alt_baro,
+            alt_geom=alt_geom,
+            track=track,
+            ground_speed=ground_speed
         )
-        # Only set lat and lng if its an interpolated record
-        if aircraft:
-            rec.lat = curLat
-            rec.lng = curLng,
-            rec.alt_baro = aircraft.get("alt_baro"),
-            rec.alt_geom = aircraft.get("alt_geom"),
-            rec.track = aircraft.get("track"),
-            rec.ground_speed = aircraft.get("ground_speed")
-        rec.save()
 
-        if not self.lastRec is None:
-            self.latSpeed = rec.lat - self.lastRec.lat
-            self.lngSpeed = rec.lng - self.lastRec.lng
         self.lastRec = rec
 
         print(f"Created FlightRecord: {flight}, {timestamp}, {rec.lat}, {rec.lng}")
@@ -63,8 +71,6 @@ class Command(BaseCommand):
         
         timestamp = timezone.make_aware(datetime.utcfromtimestamp(data['now']))
         flight, _ = Flight.objects.get_or_create(hex=self.flightCode)
-        # alt_baro = aircraft.get('alt_baro')
-        # alt_baro = None if isinstance(alt_baro, str) else alt_baro
         
         for aircraft in data.get('aircraft', []):
             hex_code = aircraft.get('hex')
@@ -96,18 +102,13 @@ class Command(BaseCommand):
                         rec = self.createRecord(flight, timestamp, curLat, curLng, aircraft)
             except Exception as e:
                 print("Error: ", e)
-
-        # Didn't find flight in record - estimate position
-        if(self.foundFlight is False and (not self.lastRec is None)):
-            print("Estimating position")
-            curLat = self.lastRec.lat + self.latSpeed
-            curLng = self.lastRec.lng + self.lngSpeed
-            rec = self.createRecord(flight, timestamp, curLat, curLng, None)
+        if self.foundFlight is False:
+            self.interpolate(flight, timestamp)
 
         self.foundFlight = False
 
     # Didn't find flight in record - estimate position
-    def interpolate(self):
+    def interpolate(self, flight, timestamp):
         if(self.foundFlight is False and (not self.lastRec is None)):
             print("Estimating position")
             x_diff = self.lastRec.ground_speed * math.cos(self.lastRec.track) / 60
@@ -121,6 +122,6 @@ class Command(BaseCommand):
                 'track': self.lastRec.track,
                 'gs':  self.lastRec.ground_speed
             }
-            self.createRecord(self.lastRec.flight, self.lastRec.timestamp, extras)
+            self.createRecord(flight, timestamp, curLat, curLng, extras)
 
         self.foundFlight = False

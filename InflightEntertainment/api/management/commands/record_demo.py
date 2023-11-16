@@ -8,7 +8,7 @@ from datetime import datetime
 import time
 
 from websockets.sync.client import connect
-
+import json 
 from channels.generic.websocket import WebsocketConsumer
 # from api.consumers import consumers
 
@@ -55,7 +55,7 @@ class Command(BaseCommand):
             flight_key.save()
 
         start = FlightRecord.objects.all().order_by("-timestamp")[0]
-        end = FlightRecord.objects.all().order_by("-timestamp")[-1]
+        end = FlightRecord.objects.all().order_by("-timestamp").last()
         airportOrigin = Airport(
             identifier = "DEMO1",
             airportType = "Commercial",
@@ -111,7 +111,7 @@ class Command(BaseCommand):
                 'time': airportDest.time
             }
         }
-        ws.send(payload)
+        ws.send(json.dumps(payload))
 
         # Loop through records
         print("Looping through flight records")      
