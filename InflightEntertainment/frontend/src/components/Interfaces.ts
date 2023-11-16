@@ -8,6 +8,7 @@ export interface LeafletMapState {
     lat: number;                                    // Latitude of the camera's position
     lng: number;                                    // Longitude of the camera's position
     zoom: number;                                   // Zoom level of the camera
+    fullScreen: boolean;
 }
 
 export interface RndStates {
