@@ -11,22 +11,6 @@ from django.db import models
     
 #     def __str__(self):
 #         return self.flight
-    
-# class FlightRecord(models.Model):
-#     flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
-#     timestamp = models.DateTimeField()  # Timestamp of the record
-#     lat = models.FloatField()  # Latitude
-#     lng = models.FloatField()  # Longitude
-#     alt_baro = models.IntegerField(null=True, blank=True)  # Barometric Altitude
-#     alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
-#     track = models.FloatField(null=True, blank=True)  # Track
-#     ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
-
-#     class Meta:
-#         unique_together = ['flight', 'timestamp']  # Each record must be unique per flight and timestamp
-    
-#     def __str__(self):
-#         return f"{self.flight.flight} - {self.timestamp}"
 
 class Airport(models.Model):
     # id = models.AutoField(primary_key=True)
@@ -67,6 +51,22 @@ class Flight(models.Model):
     
     def __str__(self):
         return f"{self.flight} - {self.timestamp}"
+    
+class FlightRecord(models.Model):
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField()  # Timestamp of the record
+    lat = models.FloatField()  # Latitude
+    lng = models.FloatField()  # Longitude
+    alt_baro = models.IntegerField(null=True, blank=True)  # Barometric Altitude
+    alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
+    track = models.FloatField(null=True, blank=True)  # Track
+    ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
+
+    class Meta:
+        unique_together = ['flight', 'timestamp']  # Each record must be unique per flight and timestamp
+    
+    def __str__(self):
+        return f"{self.flight.flight} - {self.timestamp}"
 
 
 

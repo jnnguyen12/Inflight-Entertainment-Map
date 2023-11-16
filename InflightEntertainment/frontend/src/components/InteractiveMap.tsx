@@ -160,6 +160,9 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                 airportOrigin: payload.airportOrigin,
                 airportDestination: payload.airportDestination,
                 aircraftType: payload.aircraftType,
+                currentTimestamp: payload.currentTimestamp,
+                prevTimestamp: payload.prevTimestamp,
+                ground_speed: payload.ground_speed
             } as Flight;
 
             try {
@@ -168,23 +171,22 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         // Adds Plane, Airports and polyline to map
                         // flightData = payload.command as Flight;
                         // flightData = this.parseSetFlight(payload)
-                        console.log(flightData)
                         this.setState({ Flight: flightData })
-                        console.log(this.state.Flight)
                         this.mapRef.current?.addMarkers({ id: flightData.id, param: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: payload?.rotation ?? 0 });
                         this.mapRef.current?.addMarkers({ id: airportOrigin.id, param: "airport", lat: airportOrigin.lat, lng: airportOrigin.lng, rotation: 0 });
                         this.mapRef.current?.addMarkers({ id: airportDestination.id, param: "airport", lat: airportDestination.lat, lng: airportDestination.lng, rotation: 0 });
                         this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: airportDestination.id, airportIdFrom: airportOrigin.id });
                         break;
-                    // case 'updateFlight':
-                    //     flightData = payload as Flight
-                    //     this.setState({ Flight: flightData })
-                    //     if(flightData.ground_speed){ 
-                    //         this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
-                    //     } else{
-                    //         this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
-                    //     }
-                    //     break;
+                    case 'updateFlight':
+                        // flightData = payload as Flight
+                        this.setState({ Flight: flightData })
+                        console.log("flightData: ", flightData);
+                        if(flightData.ground_speed){ 
+                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        } else{
+                            this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
+                        }
+                        break;
                     // case 'removeFlight':
                     //     flightData = payload as RemoveData
                     //     this.setState({ Flight: emptyFlight })
@@ -340,124 +342,130 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
 
     render() {
-        const leafletMap = <LeafletMap ref={this.mapRef} />;
-        const calculateDistanceInMiles = (distanceKm: number): number => distanceKm * 0.621371;
-
-        if (this.state.fullScreen) {
-            return (
-                <>
-                    <div className="row container-fluid vh-100 ">
-                        <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
-                            {/* main panel that displays information */}
-                            <a
-                                className="btn me-2"
-                                data-bs-toggle="collapse"
-                                href="#collapseExample"
-                                role="button"
-                                aria-expanded="false"
-                                aria-controls="collapseExample"
-                            >
-                                {/* TODO: turn this into chevron left on expansion */}
-                                <FontAwesomeIcon icon={faChevronRight} />
-                            </a>
-                            <div className="collapse collapse-horizontal" id="collapseExample">
-                                <div className="panel" style={{ width: "500px" }}>
-                                    <div className="container-fluid d-flex flex-column h-100">
-                                        {/* aircraft type  */}
-                                        <div className="mx-auto">
-                                            <div className="flight-num">{this.state.Flight.flight}</div>
-                                            <div className="small text-center">{this.state.Flight.aircraftType}</div>
-                                        </div>
-                                        {/* time  */}
-                                        {this.displayTime()}
-                                        <hr />
-                                        {/* airports info  */}
-                                        <div className="d-flex-flex-column">
-                                            {this.displayEstimatedTime()}
-                                            <div
-                                                className="progress"
-                                                role="progressbar"
-                                                data-aria-label="Animated striped example"
-                                                data-aria-valuenow={this.state.Flight.progress}
-                                                data-aria-valuemin="0"
-                                                data-aria-valuemax="100"
-                                            >
-                                                <div
-                                                    className="progress-bar progress-bar-striped progress-bar-animated"
-                                                    style={{ width: "75%" }}
-                                                ></div>
-                                            </div>
-                                            <div className="cities mt-2 d-flex justify-content-between align-items-center">
-                                                <p>{this.state.Flight.airportOrigin.name}</p>
-                                                <p className="text-end">{this.state.Flight.airportDestination.name}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* extra info  */}
-                                        <div className="extra-info d-flex flex-column justify-content-evenly">
-                                            {/* distance  */}
-                                            <div className="distance text-center d-flex flex-column">
-                                                <h4>{this.state.Flight.travaledKm} km | {calculateDistanceInMiles(this.state.Flight.travaledKm)} miles</h4>
-                                                <p>traveled</p>
-                                                <div className="position-relative mb-3">
-                                                    <div className="bar" />
-                                                    <FontAwesomeIcon icon={faPlaneUp} />
-                                                    <div className="bar"></div>
-                                                </div>
-                                                <h4>{this.state.Flight.remainingKm} km | {calculateDistanceInMiles(this.state.Flight.remainingKm)} miles</h4>
-                                                <p>remaining</p>
-                                            </div>
-                                            <hr />
-                                            {/* other extra info */}
-                                            {this.displayExtraInfo()}
-                                            <p>Longtitude<span className="float-end">{this.state.Flight.lng}</span></p>
-                                            <p>Latitude<span className="float-end">{this.state.Flight.lat}</span></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <FontAwesomeIcon
-                        className="expander"
-                        icon={faCompress}
-                        onClick={this.goWindowed.bind(this)}
-                    />
-                    {leafletMap}
-                </>
-            )
-        }
-        else {
-            return (
-                <Rnd
-                    className="rnd-container"
-                    default={{
-                        x: 0,
-                        y: 0,
-                        width: this.state.RndWidth,
-                        height: this.state.RndHeight,
-                    }}
-                    size={{ width: this.state.RndWidth, height: this.state.RndHeight }}
-                    onDrag={(e, d) => {
-                        if (this.mapRef.current?.mapStatus()) return false; /* Prevent dragging the Rnd component */
-                        this.setState({ RndXPosition: d.x, RndYPosition: d.y });
-                    }}
-                    position={{ x: this.state.RndXPosition, y: this.state.RndYPosition }}
-                    onResizeStop={(e, direction, ref, delta, position) => {
-                        this.setState({
-                            RndWidth: parseInt(ref.style.width),
-                            RndHeight: parseInt(ref.style.height),
-                            RndXPosition: position.x,
-                            RndYPosition: position.y,
-                        });
-                        this.mapRef.current?.reloadMap();
-                    }}
-                >
-                    {leafletMap}
-                </Rnd >
-            );
-        }
+        return(
+            <LeafletMap ref={this.mapRef} />
+        )
     }
+
+    // render() {
+    //     const leafletMap = <LeafletMap ref={this.mapRef} />;
+    //     const calculateDistanceInMiles = (distanceKm: number): number => distanceKm * 0.621371;
+
+    //     if (this.state.fullScreen) {
+    //         return (
+    //             <>
+    //                 <div className="row container-fluid vh-100 ">
+    //                     <div className="col-xl-4 d-flex align-items-center vh-100 position-relative">
+    //                         {/* main panel that displays information */}
+    //                         <a
+    //                             className="btn me-2"
+    //                             data-bs-toggle="collapse"
+    //                             href="#collapseExample"
+    //                             role="button"
+    //                             aria-expanded="false"
+    //                             aria-controls="collapseExample"
+    //                         >
+    //                             {/* TODO: turn this into chevron left on expansion */}
+    //                             <FontAwesomeIcon icon={faChevronRight} />
+    //                         </a>
+    //                         <div className="collapse collapse-horizontal" id="collapseExample">
+    //                             <div className="panel" style={{ width: "500px" }}>
+    //                                 <div className="container-fluid d-flex flex-column h-100">
+    //                                     {/* aircraft type  */}
+    //                                     <div className="mx-auto">
+    //                                         <div className="flight-num">{this.state.Flight.flight}</div>
+    //                                         <div className="small text-center">{this.state.Flight.aircraftType}</div>
+    //                                     </div>
+    //                                     {/* time  */}
+    //                                     {this.displayTime()}
+    //                                     <hr />
+    //                                     {/* airports info  */}
+    //                                     <div className="d-flex-flex-column">
+    //                                         {this.displayEstimatedTime()}
+    //                                         <div
+    //                                             className="progress"
+    //                                             role="progressbar"
+    //                                             data-aria-label="Animated striped example"
+    //                                             data-aria-valuenow={this.state.Flight.progress}
+    //                                             data-aria-valuemin="0"
+    //                                             data-aria-valuemax="100"
+    //                                         >
+    //                                             <div
+    //                                                 className="progress-bar progress-bar-striped progress-bar-animated"
+    //                                                 style={{ width: "75%" }}
+    //                                             ></div>
+    //                                         </div>
+    //                                         <div className="cities mt-2 d-flex justify-content-between align-items-center">
+    //                                             <p>{this.state.Flight.airportOrigin.name}</p>
+    //                                             <p className="text-end">{this.state.Flight.airportDestination.name}</p>
+    //                                         </div>
+    //                                     </div>
+
+    //                                     {/* extra info  */}
+    //                                     <div className="extra-info d-flex flex-column justify-content-evenly">
+    //                                         {/* distance  */}
+    //                                         <div className="distance text-center d-flex flex-column">
+    //                                             <h4>{this.state.Flight.travaledKm} km | {calculateDistanceInMiles(this.state.Flight.travaledKm)} miles</h4>
+    //                                             <p>traveled</p>
+    //                                             <div className="position-relative mb-3">
+    //                                                 <div className="bar" />
+    //                                                 <FontAwesomeIcon icon={faPlaneUp} />
+    //                                                 <div className="bar"></div>
+    //                                             </div>
+    //                                             <h4>{this.state.Flight.remainingKm} km | {calculateDistanceInMiles(this.state.Flight.remainingKm)} miles</h4>
+    //                                             <p>remaining</p>
+    //                                         </div>
+    //                                         <hr />
+    //                                         {/* other extra info */}
+    //                                         {this.displayExtraInfo()}
+    //                                         <p>Longtitude<span className="float-end">{this.state.Flight.lng}</span></p>
+    //                                         <p>Latitude<span className="float-end">{this.state.Flight.lat}</span></p>
+    //                                     </div>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
+    //                     </div>
+    //                 </div>
+    //                 <FontAwesomeIcon
+    //                     className="expander"
+    //                     icon={faCompress}
+    //                     onClick={this.goWindowed.bind(this)}
+    //                 />
+    //                 {leafletMap}
+    //             </>
+    //         )
+    //     }
+    //     else {
+    //         return (
+    //             <Rnd
+    //                 className="rnd-container"
+    //                 default={{
+    //                     x: 0,
+    //                     y: 0,
+    //                     width: this.state.RndWidth,
+    //                     height: this.state.RndHeight,
+    //                 }}
+    //                 size={{ width: this.state.RndWidth, height: this.state.RndHeight }}
+    //                 onDrag={(e, d) => {
+    //                     if (this.mapRef.current?.mapStatus()) return false; /* Prevent dragging the Rnd component */
+    //                     this.setState({ RndXPosition: d.x, RndYPosition: d.y });
+    //                 }}
+    //                 position={{ x: this.state.RndXPosition, y: this.state.RndYPosition }}
+    //                 onResizeStop={(e, direction, ref, delta, position) => {
+    //                     this.setState({
+    //                         RndWidth: parseInt(ref.style.width),
+    //                         RndHeight: parseInt(ref.style.height),
+    //                         RndXPosition: position.x,
+    //                         RndYPosition: position.y,
+    //                     });
+    //                     this.mapRef.current?.reloadMap();
+    //                 }}
+    //             >
+    //                 {leafletMap}
+    //             </Rnd >
+    //         );
+    //     }
+    // }
 }
 
 export default InteractiveMap;

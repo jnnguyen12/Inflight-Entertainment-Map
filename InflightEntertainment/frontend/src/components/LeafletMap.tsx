@@ -178,6 +178,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       return;
     }
 
+    console.log("aircraft state: ", this.state.aircrafts[payload.id]);
+    console.log("payload: ", payload);
     const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
     
@@ -256,6 +258,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   }
 
   animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {
+    console.log("animating: ", marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp);
     const startPosition = marker.getLatLng();
     const endPosition = newCoords;
     // Calculate distance in meters
