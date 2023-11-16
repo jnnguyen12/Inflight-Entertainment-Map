@@ -46,12 +46,11 @@ export interface Flight {
     airportDestination: Airport;            // Airport To 
     aircraftType: string;                   // Aircraft type (aircraft type pulled from database)
     altitude?: string;                      // Barometric Altitude (altitude in feet as a number OR “ground”)
-    ground_speed?: number;                  // Ground Speed
+    ground_speed?: string;                  // Ground Speed
+    estimatedTime?: string;                 // Estimated time remaining of flight
     progress: number;                       // Flight progress 
     travaledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
-    prevTimestamp?: string;                 // date time of prevous record
-    currentTimestamp: string;              // date time of current record
 }
 
 export interface FlyCameraTo {
@@ -68,7 +67,7 @@ export interface PolyLineMaker {
 
 export interface MarkerData {
     id: string;                 // marker id -- currently using flight id as marker id
-    param: string;               // aircraft, airport -- currently only have aircraft
+    type: string;               // aircraft, airport -- currently only have aircraft
     lat: number;                // Latitude
     lng: number;                // Longitude
     rotation?: number;           // Rotation
@@ -78,9 +77,6 @@ export interface UpdateMarkerData {
     id: string;                 // Aircaft Marker key
     lat: number;                // New Latitude
     lng: number;                // New Longitude
-    speed: number;
-    prevTimestamp: string;
-    currentTimestamp: string;
 }
 
 export interface PolyLineData {
@@ -91,9 +87,9 @@ export interface PolyLineData {
 
 export interface RemoveData {
     id: string;                 // Marker key
-    param?: string;              // Marker param (Aircraft, Airport, ...)
+    type?: string;              // Marker type (Aircraft, Airport, ...)
 }
 
 export interface Wellness {
-    param: string                // Data param (aircraft, airport, landmark, camera)
+    type: string                // Data Type (aircraft, airport, landmark, camera)
 }

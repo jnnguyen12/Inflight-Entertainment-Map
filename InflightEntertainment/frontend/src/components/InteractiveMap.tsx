@@ -141,18 +141,8 @@ const emptyAirport = {
   lng: 0,
   time: "",
 };
+
 const emptyFlight: Flight = {
-    id: '',
-    flight: '',
-    lat: 0,
-    lng: 0,
-    airportOrigin: emptyAirport,
-    airportDestination: emptyAirport,
-    aircraftType: '',
-    progress: 0,
-    travaledKm: 0,
-    remainingKm: 0,
-    currentTimestamp: Date.now.toString()
   id: "",
   flight: "",
   lat: 0,
@@ -164,6 +154,7 @@ const emptyFlight: Flight = {
   travaledKm: 0,
   remainingKm: 0,
 };
+
 
 class InteractiveMap extends React.Component<{}, RndStates> {
   private mapRef = React.createRef<LeafletMap>();

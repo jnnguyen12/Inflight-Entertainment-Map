@@ -4,28 +4,14 @@ import React from 'react';
 import '../App.css';
 
 // Leaflet
-import L, { LatLngExpression } from "leaflet";
+import L, { LatLngExpression, Marker } from "leaflet";
 
 // Functions
-import { BuildMarker, updateRotation} from './functions/BuildMarker';
+import { BuildMarker, updateMarkerRotation } from './functions/BuildMarker';
 
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 import { stat } from 'fs';
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // Earth's radius in meters
-  const phi1 = lat1 * Math.PI / 180;
-  const phi2 = lat2 * Math.PI / 180;
-  const deltaPhi = (lat2 - lat1) * Math.PI / 180;
-  const deltaLambda = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-            Math.cos(phi1) * Math.cos(phi2) *
-            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance in meters
-}
-
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
@@ -68,13 +54,13 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys
-    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    //   attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
-    // }).addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(this.map);
 
     // Offline implementation
-    L.tileLayer('OFFLINE/{z}/{x}/{y}.png',
-      { maxZoom: 7}).addTo(this.map);
+    // L.tileLayer('OFFLINE/{z}/{x}/{y}.png',
+    //   { maxZoom: 7}).addTo(this.map);
   }
 
   //Flys to the position on the map
@@ -102,8 +88,8 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     });
   }
 
-  sendData(dataParam: Wellness) {
-    switch (dataParam.param.toLowerCase()) {
+  sendData(dataType: Wellness) {
+    switch (dataType.type.toLowerCase()) {
       case "aircraft":
         return this.state.aircrafts;
       case "airport":
@@ -117,7 +103,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
           zoom: this.state.zoom
         }
       default:
-        console.warn("sendData: data param not found: ", dataParam.param.toLowerCase())
+        console.warn("sendData: data type not found: ", dataType.type.toLowerCase())
         return { error: "Not found" };
     }
   }
@@ -126,7 +112,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   addMarkers(newMarkerProps: MarkerData) {
     let newMarker;
     let markerState;
-    switch (newMarkerProps.param) {
+    switch (newMarkerProps.type) {
       case "aircraft":
         markerState = this.state.aircrafts;
         break;
@@ -137,15 +123,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         markerState = this.state.landmarks;
         break;
       default:
-        console.warn("addMarkers: param not found");
+        console.warn("addMarkers: type not found");
         return;
     }
     if (markerState.hasOwnProperty(newMarkerProps.id)) {
-      console.warn(`addMarkers: ${newMarkerProps.param} id already exists`);
+      console.warn(`addMarkers: ${newMarkerProps.type} id already exists`);
       return;
     }
     const coords: LatLngExpression = [newMarkerProps.lat, newMarkerProps.lng]
-    newMarker = BuildMarker(newMarkerProps.param, coords, newMarkerProps.rotation);
+    newMarker = BuildMarker(newMarkerProps.type, coords, newMarkerProps.rotation);
     newMarker.addTo(this.map!);
     markerState[newMarkerProps.id] = newMarker;
   }
@@ -153,7 +139,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   // removing a marker based on its index
   removeMarker(payload: RemoveData) {
     let markerState;
-    switch (payload.param.toLowerCase()) {
+    switch (payload.type.toLowerCase()) {
       case "aircraft":
         markerState = this.state.aircrafts;
         break;
@@ -164,11 +150,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         markerState = this.state.landmarks;
         break;
       default:
-        console.warn("removeMarker: param not found:", payload.param);
+        console.warn("removeMarker: type not found:", payload.type);
         return;
     }
     if (!markerState.hasOwnProperty(payload.id)) {
-      console.warn(`removeMarker: Could not find ${payload.param} id`);
+      console.warn(`removeMarker: Could not find ${payload.type} id`);
       return;
     }
     this.map!.removeLayer(markerState[payload.id]);
@@ -181,10 +167,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       console.warn("moveMarkers: Could not find aircraft Id: ", payload.id);
       return;
     }
-    
-    const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
-    this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
-    
+    updateMarkerRotation(this.state.aircrafts[payload.id], this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.state.aircrafts[payload.id].setLatLng([payload.lat, payload.lng])
     if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("moveMarkers: Could not find polyline Id: ", payload.id);
@@ -204,7 +187,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     polyline.polylineFrom.setLatLngs([this.state.aircrafts[payload.id].getLatLng(), this.state.airports[polyline.airportIdFrom].getLatLng()]);
   }
 
-  // Adds a polyline to the map given a aircraft Id as the key to the polyline 
   drawPolyLine(payload: PolyLineData) {
     if (this.state.polylines.hasOwnProperty(payload.aircraftId)) {
       console.warn("Aready made: ", this.state.polylines[payload.aircraftId]);
@@ -250,7 +232,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map);
   }
 
-  // Removes the polyline on the map if it exists
   removePolyLine(payload: RemoveData) {
     if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("removePolyLine: Could not find polyline id");
@@ -260,45 +241,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     this.map!.removeLayer(this.state.polylines[payload.id].polylineTo)
     delete this.state.polylines[payload.id];
   }
-
-  animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {
-    const startPosition = marker.getLatLng();
-    const endPosition = newCoords;
-    // Calculate distance in meters
-    const distance = calculateDistance(startPosition.lat, startPosition.lng, endPosition.lat, endPosition.lng);
-    
-    // Convert speed from knots to meters per second
-    const speedInMetersPerSecond = speed * 0.514444; 
-  
-    // Calculate time to travel the distance at the given speed (time = distance / speed)
-    const timeToTravel = distance / speedInMetersPerSecond;
-    
-    // Calculate animation duration using timestamps (in milliseconds)
-    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
-    const startTime = performance.now();
-    
-    const animate = (currentTime) => {
-      const elapsedTime = currentTime - startTime;
-      const progress = elapsedTime / duration;
-      if (progress < 1) {
-        const currentPosition = {
-          lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,
-          lng: startPosition.lng + (endPosition.lng - startPosition.lng) * progress,
-        };
-        marker.setLatLng(currentPosition);
-        if (rotation !== undefined) {
-          marker.setRotationAngle(rotation);
-        }
-        requestAnimationFrame(animate);
-      } else {
-        marker.setLatLng(endPosition);
-        if (rotation !== undefined) {
-          marker.setRotationAngle(rotation);
-        }
-      }
-    };
-    requestAnimationFrame(animate);
-  };
 
   handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
     // console.log("fullscreen: " + this.state.fullScreen);
