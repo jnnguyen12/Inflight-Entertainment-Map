@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Flight, FlightRecord, Marker, Airport, Polyline
-from .serializers import FlightSerializer, FlightRecordSerializer, MarkerSerializer, PolylineSerializer
+from .models import Flight, Marker, Airport, Polyline
+from .serializers import FlightSerializer, MarkerSerializer, PolylineSerializer
 from django.core.management import call_command
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -34,13 +34,13 @@ def getFlight(request, pk):
     serializer = FlightSerializer(flight, many=False)
     return Response(serializer.data)
 
-@api_view(['GET'])
-def simulateFlight(request, identifier):
-    flight = get_object_or_404(Flight, Q(hex=identifier) | Q(flight=identifier))
-    records = FlightRecord.objects.filter(flight=flight).order_by('timestamp')
-    records_serializer = FlightRecordSerializer(records, many=True)
+# @api_view(['GET'])
+# def simulateFlight(request, identifier):
+#     flight = get_object_or_404(Flight, Q(hex=identifier) | Q(flight=identifier))
+#     records = FlightRecord.objects.filter(flight=flight).order_by('timestamp')
+#     records_serializer = FlightRecordSerializer(records, many=True)
     
-    return Response(records_serializer.data)
+#     return Response(records_serializer.data)
 
 @api_view(['GET'])
 def flyToMarkerID(request, markerID):

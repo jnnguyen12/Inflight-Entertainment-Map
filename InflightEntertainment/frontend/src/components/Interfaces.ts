@@ -30,7 +30,7 @@ export interface LeafletPolyline {
 
 export interface Airport{
     id: string                          // Id of Airport
-    name: string;                       // Name of Airport
+    name?: string;                       // Name of Airport
     nameAbbreviated: string;            // Abbreviated name of Airport
     lat: number;                        // Latitude
     lng: number;                        // Longitude
@@ -47,11 +47,13 @@ export interface Flight {
     airportDestination: Airport;            // Airport To 
     aircraftType: string;                   // Aircraft type (aircraft type pulled from database)
     altitude?: string;                      // Barometric Altitude (altitude in feet as a number OR “ground”)
-    ground_speed?: string;                  // Ground Speed
+    ground_speed?: number;                  // Ground Speed
     estimatedTime?: string;                 // Estimated time remaining of flight
     progress: number;                       // Flight progress 
     traveledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
+    prevTimestamp?: string;                 // date time of prevous record
+    currentTimestamp?: string;              // date time of current record
 }
 
 export interface FlyCameraTo {
@@ -68,7 +70,7 @@ export interface PolyLineMaker {
 
 export interface MarkerData {
     id: string;                 // marker id -- currently using flight id as marker id
-    type: string;               // aircraft, airport -- currently only have aircraft
+    param: string;               // aircraft, airport -- currently only have aircraft
     lat: number;                // Latitude
     lng: number;                // Longitude
     rotation?: number;           // Rotation
@@ -78,19 +80,22 @@ export interface UpdateMarkerData {
     id: string;                 // Aircaft Marker key
     lat: number;                // New Latitude
     lng: number;                // New Longitude
+    speed: number;
+    prevTimestamp: string;
+    currentTimestamp: string;
 }
 
 export interface PolyLineData {
-    aircraftId: string          // Aircaft Marker key
-    airportIdTo: string         // Desitation Airport key
-    airportIdFrom: string       // Origin Airport key
+    aircraftId: string;          // Aircaft Marker key
+    airportIdTo: string;         // Desitation Airport key
+    airportIdFrom: string;       // Origin Airport key
 }  
 
 export interface RemoveData {
     id: string;                 // Marker key
-    type?: string;              // Marker type (Aircraft, Airport, ...)
+    param?: string;              // Marker param (Aircraft, Airport, ...)
 }
 
 export interface Wellness {
-    type: string                // Data Type (aircraft, airport, landmark, camera)
+    param: string                // Data param (aircraft, airport, landmark, camera)
 }
