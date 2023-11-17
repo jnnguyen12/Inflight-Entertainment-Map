@@ -384,14 +384,34 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       stringValid(this.state.Flight.airportOrigin.time) &&
       stringValid(this.state.Flight.airportDestination.time)
     ) {
+      // Convert timestamps to readable format
+      const originDate = new Date(this.state.Flight.airportOrigin.time);
+      const destinationDate = new Date(this.state.Flight.airportOrigin.time);
+      var originFormatted = "Invalid time";
+      var destFormatted = "Invalid time";
+      
+      if (!isNaN(originDate.getTime()) && !isNaN(destinationDate.getTime())) {
+        const options : Intl.DateTimeFormatOptions = {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: true
+        };
+  
+        originFormatted = new Intl.DateTimeFormat('en-US', options).format(originDate);
+        destFormatted = new Intl.DateTimeFormat('en-US', options).format(destinationDate);
+      }
+      
       return (
         <div className="time d-flex justify-content-between align-items-center">
           <div>
-            <h4>{this.state.Flight.airportOrigin.time}</h4>
+            <h4>{originFormatted}</h4>
             <small>Local time</small>
           </div>
           <div className="text-end">
-            <h4>{this.state.Flight.airportDestination.time}</h4>
+            <h4>{destFormatted}</h4>
             <small>Destination time</small>
           </div>
         </div>
