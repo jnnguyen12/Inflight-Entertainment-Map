@@ -219,7 +219,7 @@ class BackendConsumer(WebsocketConsumer):
             'prevTimestamp': str(prevTimestamp),
             'currentTimestamp': str(curTimestamp),
             'progress': progress,
-            'travaledKm': traveledKm,
+            'traveledKm': traveledKm,
             'remainingKm': remainingKm,
             'airportOrigin': {
                     'identifier': originData.identifier,

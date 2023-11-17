@@ -295,9 +295,14 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         aircraftType: payload.aircraftType,
                         currentTimestamp: payload.currentTimestamp,
                         prevTimestamp: payload.prevTimestamp,
-                        ground_speed: payload.ground_speed
+                        ground_speed: payload.ground_speed,
+                        traveledKm: payload.traveledKm,
+                        remainingKm: payload.remainingKm
                     } as Flight;
                     this.setState({ Flight: flightData })
+                    console.log("traveledKm: ", payload.traveledKm);
+                    console.log("remainingKm: ", payload.remainingKm);
+                    console.log("updateMarker Flight State: ", this.state.Flight);
                     if(flightData.ground_speed){ 
                         this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
                     } else{
@@ -415,9 +420,9 @@ class InteractiveMap extends React.Component<{}, RndStates> {
   }
 
   displayExtraInfo() {
-    const knotsToMph = (knots: number): number => knots * 1.15078;
-    const knotsToKph = (knots: number): number => knots * 1.852;
-    const feetToMeters = (feet: number): number => feet * 0.3048;
+    const knotsToMph = (knots: number): number => Math.floor(knots * 1.15078);
+    const knotsToKph = (knots: number): number => Math.floor(knots * 1.852);
+    const feetToMeters = (feet: number): number => Math.floor(feet * 0.3048);
     const tryParseNumber = (input: string): number | string => {
       const parsedNumber = parseFloat(input);
       return isNaN(parsedNumber) ? input : parsedNumber;
@@ -473,9 +478,10 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
 
   render() {
+    console.log("Flight state: ", this.state.Flight);
     const leafletMap = <LeafletMap ref={this.mapRef}/>;
     const calculateDistanceInMiles = (distanceKm: number): number =>
-      distanceKm * 0.621371;
+      Math.floor(distanceKm * 0.621371);
     const collapseOrientation = !this.state.matches && "collapse-horizontal";
     const flexOrientation = this.state.matches && "flex-column";
 
@@ -545,7 +551,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         {/* distance  */}
                         <div className="distance text-center d-flex flex-column">
                           <h4>
-                            {this.state.Flight.traveledKm} km |{" "}
+                            {Math.floor(this.state.Flight.traveledKm)} km |{" "}
                             {calculateDistanceInMiles(
                               this.state.Flight.traveledKm
                             )}{" "}
@@ -558,7 +564,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                             <div className="bar"></div>
                           </div>
                           <h4>
-                            {this.state.Flight.remainingKm} km |{" "}
+                            {Math.floor(this.state.Flight.remainingKm)} km |{" "}
                             {calculateDistanceInMiles(
                               this.state.Flight.remainingKm
                             )}{" "}
