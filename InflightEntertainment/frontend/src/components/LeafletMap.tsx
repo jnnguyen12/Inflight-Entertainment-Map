@@ -11,6 +11,7 @@ import { BuildMarker, updateRotation} from './functions/BuildMarker';
 
 // types
 import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+import { stat } from 'fs';
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3; // Earth's radius in meters
@@ -24,7 +25,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c; // Distance in meters
 }
-
 
 //The map class
 class LeafletMap extends React.Component<{}, LeafletMapState> {
@@ -42,6 +42,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       lat: 0,
       lng: 0,
       zoom: 0,
+      fullScreen: true  // default is fullscreen for now
     };
   }
 
@@ -59,18 +60,20 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       zoomControl: false,     // Removes defaults 
       zoomAnimation: true,    // Enable smooth zoom animation
       fadeAnimation: true,    // Makes it look better
-      scrollWheelZoom: true,  
+      scrollWheelZoom: true,
+      minZoom: 3,
+      maxZoom: 15,
+      worldCopyJump: true,
     }).setView([this.state.lat, this.state.lng], this.state.zoom)
 
     // The maps propertys
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
-      noWrap: true
     }).addTo(this.map);
 
     // Offline implementation
-    L.tileLayer('InflightEntertainment\frontend\src\components\functions\OSMPublicTransport/{z}/{x}/{y}.png',
-      { maxZoom: 7 }).addTo(this.map);
+    // L.tileLayer('OFFLINE/{z}/{x}/{y}.png',
+    //   { maxZoom: 7}).addTo(this.map);
   }
 
   //Flys to the position on the map
@@ -184,6 +187,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     }
     console.log("moveMarkers: ", payload)
 
+    // from websockets merge: updateMarkerRotation(this.state.aircrafts[payload.id], this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
     
@@ -303,18 +307,20 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   };
 
   handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
-    if (e.touches.length <= 1) {
+    // console.log("fullscreen: " + this.state.fullScreen);
+    // if there is only one touch on the screen and the map is fullscreen, enable dragging
+    if (e.touches.length <= 1 && !this.state.fullScreen) {
       if (this.map) this.map.dragging.disable(); // Disable dragging of map when there's only one touch
     } else {
       if (this.map) this.map.dragging.enable(); // Enable dragging of map when there are multiple touches
     }
   }
 
-  reloadMap(){
+  reloadMap() {
     this.map.invalidateSize()
   }
 
-  mapStatus(){
+  mapStatus() {
     return this.map.dragging.enabled()
   }
 
@@ -325,13 +331,6 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         <div
           id="map"
           className="leaflet-map"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%"
-          }}
           onTouchMove={(e) => this.handleMapTouch(e)}
           ref={this.mapRef}
         ></div>

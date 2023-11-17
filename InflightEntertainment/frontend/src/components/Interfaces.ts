@@ -8,6 +8,7 @@ export interface LeafletMapState {
     lat: number;                                    // Latitude of the camera's position
     lng: number;                                    // Longitude of the camera's position
     zoom: number;                                   // Zoom level of the camera
+    fullScreen: boolean;
 }
 
 export interface RndStates {
@@ -17,6 +18,7 @@ export interface RndStates {
     RndHeight: number;
     fullScreen: boolean;
     Flight: Flight;
+    matches: boolean; // media queries
 }
 
 export interface LeafletPolyline {
@@ -46,8 +48,9 @@ export interface Flight {
     aircraftType: string;                   // Aircraft type (aircraft type pulled from database)
     altitude?: string;                      // Barometric Altitude (altitude in feet as a number OR “ground”)
     ground_speed?: number;                  // Ground Speed
+    estimatedTime?: string;                 // Estimated time remaining of flight
     progress: number;                       // Flight progress 
-    travaledKm: number;                     // Distance Traveled in Km
+    traveledKm: number;                     // Distance Traveled in Km
     remainingKm: number;                    // Distance Remaining in Km
     prevTimestamp?: string;                 // date time of prevous record
     currentTimestamp?: string;              // date time of current record
@@ -83,9 +86,9 @@ export interface UpdateMarkerData {
 }
 
 export interface PolyLineData {
-    aircraftId: string          // Aircaft Marker key
-    airportIdTo: string         // Desitation Airport key
-    airportIdFrom: string       // Origin Airport key
+    aircraftId: string;          // Aircaft Marker key
+    airportIdTo: string;         // Desitation Airport key
+    airportIdFrom: string;       // Origin Airport key
 }  
 
 export interface RemoveData {

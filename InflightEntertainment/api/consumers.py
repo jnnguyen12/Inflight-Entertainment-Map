@@ -58,6 +58,21 @@ class BackendConsumer(WebsocketConsumer):
         progress = ((total_distance - remaining_distance) / total_distance) * 100
         return max(0, min(100, progress)) # Ensure progress is within the range [0, 100]
 
+
+    def handleAirport(self, data):
+        airportData, created = Airport.objects.update_or_create(
+            id=data['id'],
+            identifier=data['identifier'],
+            type=data['type'],
+            nameAbbreviated=data['nameAbbreviated'],
+            lat=data['lat'],
+            lng=data['lng'],
+            time=data['time']
+        )
+        airportData.save()
+        return airportData
+        
+
     def setFlight(self, data):
 
         # if data.get('parsed') == 'True':
@@ -284,6 +299,7 @@ class BackendConsumer(WebsocketConsumer):
                     airportDestination=destinationData,
                     totalDistance=totalDistance
             )
+            flightData.save()
             thisID = flightData.hex
             
         elif markerType == 'airport':
@@ -380,6 +396,7 @@ class BackendConsumer(WebsocketConsumer):
             airportIDFrom=airportOrigin.id,
             onMap=True
         )
+        polyLineData.save()
         payload = {
             'type': 'addPolyline',
             'aircraftId': polyLineData.aircraftID,
@@ -392,8 +409,8 @@ class BackendConsumer(WebsocketConsumer):
     def removePolyline(self, data):
         # TODO Check if this is correct
         polyline = Polyline.objects.get(data['id'])
-        polyline.onMap = False
-        polyline.save
+        polyline.delete()
+
         payload = {
             'type': 'removePolyline',
             'id': data['data'],

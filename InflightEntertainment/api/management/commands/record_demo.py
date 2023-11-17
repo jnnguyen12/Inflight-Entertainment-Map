@@ -145,7 +145,7 @@ class Command(BaseCommand):
         print("Looping through flight records")      
         records = FlightRecord.objects.all().filter(flight=flight_key)
         for rec in records:
-            time.sleep(10)
+            time.sleep(2)
             flight_key.lat = rec.lat
             flight_key.lng = rec.lng
             flight_key.timestamp = rec.timestamp

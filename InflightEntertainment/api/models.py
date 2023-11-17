@@ -39,10 +39,10 @@ class Flight(models.Model):
     track = models.FloatField(null=True, blank=True)            # Track
     ground_speed = models.FloatField(null=True, blank=True)     # Ground Speed
     totalDistance = models.FloatField(null=True, blank=True)    # total Distance of the flight
-    # estimatedTime = models.CharField(null=True, blank=True)     # time Remaining on Flight
-    # progress = models.FloatField(null=True, blank=True)         # Flight progress 
-    # travaled = models.FloatField(null=True, blank=True)         # Distance Traveled in Km
-    # remaining = models.FloatField(null=True, blank=True)        # Distance Remaining in Km
+    estimatedTime = models.CharField(null=True, blank=True, max_length=20)     # time Remaining on Flight
+    progress = models.FloatField(null=True, blank=True)         # Flight progress 
+    travaled = models.FloatField(null=True, blank=True)         # Distance Traveled in Km
+    remaining = models.FloatField(null=True, blank=True)        # Distance Remaining in Km
     airportOrigin = models.ForeignKey(Airport, on_delete=models.SET_NULL, null=True, related_name="origin") 
     airportDestination = models.ForeignKey(Airport, on_delete=models.SET_NULL, null=True, related_name="destination") 
     
