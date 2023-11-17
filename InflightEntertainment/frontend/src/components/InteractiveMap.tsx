@@ -51,7 +51,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         setInterval(this.handleAddPolyline, 7000);
         setInterval(this.handleRemovePolyline, 2500);
         //setInterval(this.handleClearMap, 10000);
-
+        
         for (let record of this.props.flightRecords) {
             this.addFlightRecordAsMarker(record);
         }
@@ -246,7 +246,7 @@ class InteractiveMap extends React.Component<InteractiveMapProps> {
         }
         setTimeout(() => { this.handleResponseWellnessCheck(); }, 1000);
     };
-    
+
     addFlightRecordAsMarker = (record: FlightRecord) => {
         //this.mapRef.current?.removeMarker({ id: String(record.flight.id), type: "aircraft" });
         const defaultSpeed = 100;
