@@ -64,13 +64,16 @@ svg.expander {
   color: white !important;
 }
 
-.flex-column a.btn {
-  align-self: flex-start;
+a.btn {
   margin: 10px 0 0 -10px;
   padding: 0;
 }
 
-.flex-column a.btn svg {
+.flex-column a.btn {
+  align-self: flex-start;
+}
+
+a.btn svg {
   height: 1rem !important;
   width: 1.1rem;
   vertical-align: -0.2em;
@@ -151,15 +154,33 @@ svg ~ .bar {
 }
 
 /*
-* ipad vertical and mobile screen
+* ipad horizontal only
 */
 @media (max-width: 991px)
 {
+  /**
+  * set it so the menu will appear center on mobile screens
+  */
+  :is(.collapse, .collapsing) {
+    position: absolute;
+    left: 0;
+    top: 46px;
+  }
 
-  /* .collapsing.collapse-horizontal 
-  {
-    height: 0 !important;
-    width: auto !important;
-    transition: height 0.35s ease !important;
-  } */
+}
+
+/*
+* mobile screen
+*/
+@media (max-width: 414px)
+{
+  /**
+  * set it so the menu will appear center on mobile screens
+  */
+  :is(.collapse, .collapsing) {
+    position: absolute;
+    left: auto;
+    margin: 0 auto;
+  }
+
 }
