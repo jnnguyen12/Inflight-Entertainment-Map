@@ -1,17 +1,12 @@
 from rest_framework import serializers
-from .models import Flight, FlightRecord, Marker, Airport, Polyline
+from .models import Flight, Marker, Airport, Polyline
 
-class FlightRecordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FlightRecord
-        fields = ['lat', 'lng', 'timestamp', 'alt_baro', 'alt_geom', 'track', 'ground_speed']
+# class FlightRecordSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = FlightRecord
+#         fields = ['lat', 'lng', 'timestamp', 'alt_baro', 'alt_geom', 'track', 'ground_speed']
 
-class FlightSerializer(serializers.ModelSerializer):
-    records = FlightRecordSerializer(many=True, read_only=True)
     
-    class Meta:
-        model = Flight
-        fields = ['hex', 'flight', 'r', 't', 'records']
 
 # class CameraPositionSerializer(serializers.Serializer):
 #     lat = serializers.FloatField()
@@ -25,6 +20,16 @@ class AirportSerializer(serializers.Serializer):
     name = serializers.CharField()
     lat = serializers.FloatField()
     lng = serializers.FloatField()
+
+class FlightSerializer(serializers.ModelSerializer):
+    airportOrigin = AirportSerializer(many=False)
+    airportDestination = AirportSerializer(many=False)
+
+    class Meta:
+        model = Flight
+        fields = ['id', 'flight', 'lat', 'lng', 'registration',
+                  'airportOrigin', 'airportDestination', 'aircraftType',
+                  'alt_geom', 'alt_baro', 'ground_speed', 'track', 'totalDistance']
 
 class MarkerSerializer(serializers.ModelSerializer):
     flight = FlightSerializer(many=False, read_only=True)
