@@ -178,6 +178,11 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
       return;
     }
 
+    if(isNaN(payload.lat) || isNaN(payload.lng)){
+      console.warn("moveMarkers: Could not find aircraft lat: ", payload.lat, " and lng: ", payload.lng);
+      return;
+    }
+
     console.log("aircraft state: ", this.state.aircrafts[payload.id]);
     console.log("payload: ", payload);
     const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);

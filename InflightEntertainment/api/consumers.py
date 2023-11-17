@@ -316,7 +316,7 @@ class BackendConsumer(WebsocketConsumer):
                     'nameAbbreviated': originData.nameAbbreviated,
                     'lat': originData.lat,
                     'lng': originData.lng,
-                    #'time': originData.time.strftime("%m/%d/%Y, %H:%M:%S")
+                    'time': originData.time
             },
             'airportDestination': {
                 'identifier': destinationData.identifier,
@@ -325,7 +325,7 @@ class BackendConsumer(WebsocketConsumer):
                 'nameAbbreviated': destinationData.nameAbbreviated,
                 'lat': destinationData.lat,
                 'lng': destinationData.lng,
-                # 'time': destinationData.time.strftime("%m/%d/%Y, %H:%M:%S")
+                'time': destinationData.time
             }
         }
 
@@ -390,7 +390,7 @@ class BackendConsumer(WebsocketConsumer):
                     'nameAbbreviated': originData.nameAbbreviated,
                     'lat': originData.lat,
                     'lng': originData.lng,
-                    #'time': originData.time.strftime("%m/%d/%Y, %H:%M:%S")
+                    'time': originData.time
             },
             'airportDestination': {
                 'identifier': destinationData.identifier,
@@ -399,7 +399,7 @@ class BackendConsumer(WebsocketConsumer):
                 'nameAbbreviated': destinationData.nameAbbreviated,
                 'lat': destinationData.lat,
                 'lng': destinationData.lng,
-                # 'time': destinationData.time.strftime("%m/%d/%Y, %H:%M:%S")
+                'time': destinationData.time
             }
         }
         
@@ -413,13 +413,20 @@ class BackendConsumer(WebsocketConsumer):
      
     def removeFlight(self, data):
         # TODO Make sure this removes the data
-        flightData = Flight.objects.get(data['hex'])
+        flight = data.get('flight')
+        flightData = get_object_or_404(Flight, Q(hex=flight['hex']))
+
         payload = {
             'type': 'removeFlight',
-            'id': data['hex'],
+            'id': flight.get('hex'),
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
     
     def flyToLocation(self, data):
         payload = {
@@ -686,27 +693,3 @@ class BackendConsumer(WebsocketConsumer):
         #         }
         #     )
         # elif text_data_json.get('type') == 'add_flight_record':
-
-class FrontendConsumer(WebsocketConsumer):
-    def connect(self):
-        self.room_group_name = 'front'
-
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        self.accept()
-
-
-    def receive(self, text_data):
-        print("\n\n\nFRONTEND\n\n\n")
-        text_data_json = json.loads(text_data)
-        #print("JSON: ", text_data_json)
-        # #self.send(text_data=json.dumps(payload))
-        # self.send(text_data_json)
-        self.setFlight(text_data_json)
-        
-
-    def setFlight(self, payload):
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)

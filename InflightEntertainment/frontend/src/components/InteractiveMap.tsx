@@ -135,39 +135,39 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         data.forEach((payload) => {
             console.log(payload);
             payload = payload.command;
-            const airportOrigin = {
-                id: payload.airportOrigin.identifier,
-                nameAbbreviated: payload.airportOrigin.nameAbbreviated,
-                lat: payload.airportOrigin.lat,
-                lng: payload.airportOrigin.lng,
-                time: payload.airportOrigin.time
-            } as Airport;
-
-            const airportDestination = {
-                id: payload.airportDestination.identifier,
-                nameAbbreviated: payload.airportDestination.nameAbbreviated,
-                lat: payload.airportDestination.lat,
-                lng: payload.airportDestination.lng,
-                time: payload.airportDestination.time
-            } as Airport;
-
-            const flightData = {
-                id: payload.hex,
-                flight: payload.flight,
-                lat: payload.lat,
-                lng: payload.lng,
-                rotation: 0,
-                airportOrigin: payload.airportOrigin,
-                airportDestination: payload.airportDestination,
-                aircraftType: payload.aircraftType,
-                currentTimestamp: payload.currentTimestamp,
-                prevTimestamp: payload.prevTimestamp,
-                ground_speed: payload.ground_speed
-            } as Flight;
 
             try {
                 switch (payload.type) {
                     case 'setFlight':
+                        var airportOrigin = {
+                            id: payload.airportOrigin.identifier,
+                            nameAbbreviated: payload.airportOrigin.nameAbbreviated,
+                            lat: payload.airportOrigin.lat,
+                            lng: payload.airportOrigin.lng,
+                            time: payload.airportOrigin.time
+                        } as Airport;
+            
+                        var airportDestination = {
+                            id: payload.airportDestination.identifier,
+                            nameAbbreviated: payload.airportDestination.nameAbbreviated,
+                            lat: payload.airportDestination.lat,
+                            lng: payload.airportDestination.lng,
+                            time: payload.airportDestination.time
+                        } as Airport;
+            
+                        var flightData = {
+                            id: payload.hex,
+                            flight: payload.flight,
+                            lat: payload.lat,
+                            lng: payload.lng,
+                            rotation: 0,
+                            airportOrigin: payload.airportOrigin,
+                            airportDestination: payload.airportDestination,
+                            aircraftType: payload.aircraftType,
+                            currentTimestamp: payload.currentTimestamp,
+                            prevTimestamp: payload.prevTimestamp,
+                            ground_speed: payload.ground_speed
+                        } as Flight;
                         // Adds Plane, Airports and polyline to map
                         // flightData = payload.command as Flight;
                         // flightData = this.parseSetFlight(payload)
@@ -178,6 +178,35 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: airportDestination.id, airportIdFrom: airportOrigin.id });
                         break;
                     case 'updateFlight':
+                        var airportOrigin = {
+                            id: payload.airportOrigin.identifier,
+                            nameAbbreviated: payload.airportOrigin.nameAbbreviated,
+                            lat: payload.airportOrigin.lat,
+                            lng: payload.airportOrigin.lng,
+                            time: payload.airportOrigin.time
+                        } as Airport;
+            
+                        var airportDestination = {
+                            id: payload.airportDestination.identifier,
+                            nameAbbreviated: payload.airportDestination.nameAbbreviated,
+                            lat: payload.airportDestination.lat,
+                            lng: payload.airportDestination.lng,
+                            time: payload.airportDestination.time
+                        } as Airport;
+            
+                        var flightData = {
+                            id: payload.hex,
+                            flight: payload.flight,
+                            lat: payload.lat,
+                            lng: payload.lng,
+                            rotation: 0,
+                            airportOrigin: payload.airportOrigin,
+                            airportDestination: payload.airportDestination,
+                            aircraftType: payload.aircraftType,
+                            currentTimestamp: payload.currentTimestamp,
+                            prevTimestamp: payload.prevTimestamp,
+                            ground_speed: payload.ground_speed
+                        } as Flight;
                         // flightData = payload as Flight
                         this.setState({ Flight: flightData })
                         console.log("flightData: ", flightData);
@@ -187,12 +216,12 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                             this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
                         }
                         break;
-                    // case 'removeFlight':
-                    //     flightData = payload as RemoveData
-                    //     this.setState({ Flight: emptyFlight })
-                    //     this.mapRef.current?.removePolyLine({ id: flightData.id, param: "aircraft" });
-                    //     this.mapRef.current?.removeMarker({ id: flightData.id, param: "aircraft" });
-                    //     break;
+                    case 'removeFlight':
+                        var id = payload.id;
+                        this.setState({ Flight: emptyFlight })
+                        this.mapRef.current?.removePolyLine({ id: id, param: "aircraft" });
+                        this.mapRef.current?.removeMarker({ id: id, param: "aircraft" });
+                        break;
                     // case 'flyToLocation':
                     //     // Move camera to given coords and zoom
                     //     this.mapRef.current?.flyTo(payload as FlyCameraTo);

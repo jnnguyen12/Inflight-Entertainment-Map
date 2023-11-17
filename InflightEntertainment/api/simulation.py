@@ -3,8 +3,6 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from api.models import Flight, Airport, Marker, FlightRecord, Polyline
 from django.utils import timezone
-from api.consumers import BackendConsumer
-from channels.layers import get_channel_layer
 
 from datetime import datetime
 import time
@@ -16,12 +14,13 @@ from channels.generic.websocket import WebsocketConsumer
 # from api.consumers import consumers
 
 # Creates flight between ames and des moines airports and updates DB
-class Command(BaseCommand):
-
     # def __init__(self):
     #     self.client = FlightConsumer(WebsocketConsumer)
     #     self.client.connect()
+class Simulation():
 
+    def __init__(self):
+        self.handle()
 
     def add_arguments(self, parser):
         parser.add_argument('flight', type=str, nargs='?', default="ACA765")
@@ -43,14 +42,11 @@ class Command(BaseCommand):
 
         #flight.delete()
 
-    def handle(self, *args, **options):
+    async def handle(self, *args, **options):
         # Create objects
         print("Commencing demo -- creating objects")
         hex_key = options.get('hex_key')
         flightSign = options.get('flight')
-        ws = BackendConsumer().as_asgi()
-        channel = get_channel_layer()
-        
         
         # Initialize demo
         try: 
@@ -119,12 +115,11 @@ class Command(BaseCommand):
                 'time': str(airportDest.time)
             }
         }
-        ws(scope=channel, send=payload, receive=None)
-        # with websockets.connect("ws://127.0.0.1:8000/ws/socket-server/") as ws:
-        #     ws.send(json.dumps(payload))
+        with await websockets.connect("ws://127.0.0.1:8000/ws/socket-server/") as ws:
+            await ws.send(json.dumps(payload))
 
         # Loop through records
-        print("Looping through flight records")      
+        print("Looping through flight records")
         records = FlightRecord.objects.all().filter(flight=flight_key)
         for rec in records:
             time.sleep(2)
@@ -173,11 +168,13 @@ class Command(BaseCommand):
                 'currentTimestamp': str(rec.timestamp),
                 'prevTimestamp': str(lastRec.timestamp)
             }
-            ws(scope=channel ,send=payload, receive=None)
-            # with websockets.connect("ws://127.0.0.1:8000/ws/socket-server/") as ws:
-            #     ws.send(json.dumps(payload))
-            #     message = await asyncio.wait_for(ws.recv(), timeout=10)
+            with await websockets.connect("ws://127.0.0.1:8000/ws/socket-server/") as ws:
+                await ws.send(json.dumps(payload))
+                message = await asyncio.wait_for(ws.recv(), timeout=10)
             
             lastRec = rec
         self.clearDemo(**options)
 
+
+if __name__ == '__main__':
+    Simulation()
