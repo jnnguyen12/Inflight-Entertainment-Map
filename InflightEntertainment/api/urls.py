@@ -23,7 +23,7 @@ urlpatterns = [
     path('addPolylinePayload/', views.addPolyline, name="addPolyline"),
     path('removePolylinePayload/', views.removePolyline, name="removePolyline"),
 
-    path('timezone/', views.get_timezone, name="getTimezone"),
+    path('timezone/', views.getTimezone, name="getTimezone"),
 #    path('WellnessCheck/', views.wellnessCheck, name="Wellness Check")
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
