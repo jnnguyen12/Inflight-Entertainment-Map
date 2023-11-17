@@ -335,7 +335,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   updateOrCreateMarker = (markerProps: ExtendedMakeMaker) => {
     const { id, type, coords, rotation, element, speed, prevTimestamp, currentTimestamp } = markerProps;
     const existingMarker = this.state.aircrafts[id];
-  
+
     if (existingMarker) {
       // Marker exists, so animate to new position
       this.animateMarkerMovement(existingMarker, coords, rotation, speed, prevTimestamp, currentTimestamp);
@@ -352,45 +352,51 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
   animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {
     const startPosition = marker.getLatLng();
     const endPosition = L.latLng(newCoords.lat, newCoords.lng);
-  
+
     // Calculate distance in meters
     const distance = calculateDistance(startPosition.lat, startPosition.lng, endPosition.lat, endPosition.lng);
-  
+
     // Convert speed from knots to meters per second
-    const speedInMetersPerSecond = speed * 0.514444; 
-  
+    const speedInMetersPerSecond = speed * 0.514444;
+
     // Calculate time to travel the distance at the given speed (time = distance / speed)
     const timeToTravel = distance / speedInMetersPerSecond;
-  
+
     // Calculate animation duration using timestamps (in milliseconds)
     const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
 
     const startTime = performance.now();
-  
+
     const animate = (currentTime) => {
       const elapsedTime = currentTime - startTime;
       const progress = elapsedTime / duration;
-  
+
       if (progress < 1) {
         const currentPosition = {
           lat: startPosition.lat + (endPosition.lat - startPosition.lat) * progress,
           lng: startPosition.lng + (endPosition.lng - startPosition.lng) * progress,
         };
         marker.setLatLng(currentPosition);
-        if (rotation !== undefined) {
-          marker.setRotationAngle(rotation);
-        }
+
+        // Recalculate rotation based on the current position
+        const currentRotation = calculateRotation(currentPosition.lat, currentPosition.lng, endPosition.lat, endPosition.lng);
+        marker.setRotationAngle(currentRotation);
+
         requestAnimationFrame(animate);
       } else {
         marker.setLatLng(endPosition);
-        if (rotation !== undefined) {
-          marker.setRotationAngle(rotation);
-        }
+        marker.setRotationAngle(rotation);
       }
     };
-  
+
     requestAnimationFrame(animate);
   };
+
+  getCurrentTime = () => {
+    const now = new Date();
+    return now.toISOString();
+  }
+
   //render the map
   render() {
     return (
@@ -432,10 +438,23 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const deltaLambda = (lon2 - lon1) * Math.PI / 180;
 
   const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-            Math.cos(phi1) * Math.cos(phi2) *
-            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    Math.cos(phi1) * Math.cos(phi2) *
+    Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c; // Distance in meters
 }
+
+function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRadians = (degree: number) => degree * (Math.PI / 180);
+  const toDegrees = (radians: number) => radians * (180 / Math.PI);
+  const radLat1 = toRadians(lat1);
+  const radLat2 = toRadians(lat2);
+  const diffLng = toRadians(lng2 - lng1);
+  return (toDegrees(Math.atan2(
+    Math.sin(diffLng) * Math.cos(radLat2),
+    Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
+  )) + 360) % 360;
+}
+
 export default LeafletMap;

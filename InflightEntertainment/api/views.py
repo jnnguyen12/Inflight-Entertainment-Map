@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.http import HttpResponse
-
+from timezonefinder import TimezoneFinder
 
 @api_view(['GET'])
 def getRoutes(request):
@@ -139,6 +139,21 @@ def removePolyline(request):
         p.delete()
     return Response(data)
 
+@api_view(['GET'])
+def getTimezone(request):
+    try:
+        latitude = float(request.GET.get('lat'))
+        longitude = float(request.GET.get('lon'))
+    except (TypeError, ValueError):
+        return Response({"error": "Invalid latitude or longitude"}, status=400)
+
+    tf = TimezoneFinder()
+    timezone_str = tf.timezone_at(lat=latitude, lng=longitude)
+
+    if timezone_str:
+        return Response({"timezone": timezone_str})
+    else:
+        return Response({"error": "Timezone not found"}, status=404)
 # @api_view(['GET'])
 # def wellnessCheck(request):
 #     return Response("airports")
