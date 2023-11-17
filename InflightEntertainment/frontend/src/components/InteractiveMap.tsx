@@ -178,6 +178,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                         this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: airportDestination.id, airportIdFrom: airportOrigin.id });
                         break;
                     case 'updateFlight':
+                        console.log("updateFlight: ", payload);
                         var airportOrigin = {
                             id: payload.airportOrigin.identifier,
                             nameAbbreviated: payload.airportOrigin.nameAbbreviated,
@@ -207,9 +208,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
                             prevTimestamp: payload.prevTimestamp,
                             ground_speed: payload.ground_speed
                         } as Flight;
-                        // flightData = payload as Flight
                         this.setState({ Flight: flightData })
-                        console.log("flightData: ", flightData);
                         if(flightData.ground_speed){ 
                             this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp});
                         } else{

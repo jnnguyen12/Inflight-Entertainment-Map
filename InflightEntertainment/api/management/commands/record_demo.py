@@ -5,11 +5,12 @@ from api.models import Flight, Airport, Marker, FlightRecord, Polyline
 from django.utils import timezone
 from api.consumers import BackendConsumer
 from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from datetime import datetime
 import time
 
-import websockets
+import websockets.sync.client
 import asyncio
 import json 
 from channels.generic.websocket import WebsocketConsumer
@@ -18,9 +19,8 @@ from channels.generic.websocket import WebsocketConsumer
 # Creates flight between ames and des moines airports and updates DB
 class Command(BaseCommand):
 
-    # def __init__(self):
-    #     self.client = FlightConsumer(WebsocketConsumer)
-    #     self.client.connect()
+    def __init__(self):
+        self.ws = websockets.sync.client.connect("ws://127.0.0.1:8000/ws/socket-server/")
 
 
     def add_arguments(self, parser):
@@ -34,12 +34,25 @@ class Command(BaseCommand):
 
         hex_key = options.get('hex_key')
         flightSign = options.get('flight')
-        flight = get_object_or_404(Flight, Q(hex=hex_key) | Q(flight=flightSign))
 
-        markers = Marker.objects.all().filter(flight=flight)
-        for m in markers:
-            m.toRemove = True
-            m.save(update_fields=['toRemove'])
+        self.ws.send(
+            json.dumps({
+                'type': 'removeFlight',
+                'flight': {
+                    'hex': hex_key,
+                    'flight': flightSign
+                }   
+            }))
+        
+        airports = Airport.objects.all().delete()
+        self.ws = None
+                
+        # flight = get_object_or_404(Flight, Q(hex=hex_key) | Q(flight=flightSign))
+
+        # markers = Marker.objects.all().filter(flight=flight)
+        # for m in markers:
+        #     m.toRemove = True
+        #     m.save(update_fields=['toRemove'])
 
         #flight.delete()
 
@@ -48,9 +61,6 @@ class Command(BaseCommand):
         print("Commencing demo -- creating objects")
         hex_key = options.get('hex_key')
         flightSign = options.get('flight')
-        ws = BackendConsumer().as_asgi()
-        channel = get_channel_layer()
-        
         
         # Initialize demo
         try: 
@@ -59,8 +69,8 @@ class Command(BaseCommand):
             flight_key = Flight(hex=hex_key, flight=flightSign)
             flight_key.save()
 
-        start = FlightRecord.objects.all().order_by("-timestamp")[0]
-        end = FlightRecord.objects.all().order_by("-timestamp").last()
+        end = FlightRecord.objects.all().order_by("-timestamp")[0]
+        start = FlightRecord.objects.all().order_by("-timestamp").last()
         lastRec = start
 
         airportOrigin = Airport(
@@ -90,8 +100,8 @@ class Command(BaseCommand):
             'flight': {
                 'flight': flight_key.flight,
                 'hex': flight_key.hex,
-                'lat': flight_key.lat,
-                'lng': flight_key.lng,
+                'lat': airportOrigin.lat,
+                'lng': airportOrigin.lng,
                 'alt_baro': flight_key.alt_baro,
                 'alt_geom': flight_key.alt_geom,
                 'track': flight_key.track,
@@ -99,6 +109,7 @@ class Command(BaseCommand):
                 'ground_speed': flight_key.ground_speed,
                 'aircraftType': flight_key.aircraftType,
                 'registration': flight_key.registration,
+                'totalDistance': 0
             },
             'airportOrigin': {
                     'identifier': airportOrigin.identifier,
@@ -119,15 +130,22 @@ class Command(BaseCommand):
                 'time': str(airportDest.time)
             }
         }
-        ws(scope=channel, send=payload, receive=None)
-        # with websockets.connect("ws://127.0.0.1:8000/ws/socket-server/") as ws:
-        #     ws.send(json.dumps(payload))
+        # async_to_sync(channel.group_send)('back', 
+        #     {
+        #         'type': 'message',
+        #         'command': payload
+        #     }
+        # )
+        # async_to_sync(channel.group_send)('back', payload)
+        # ws(scope=channel, send=payload, receive=None)
+        
+        self.ws.send(json.dumps(payload))
 
         # Loop through records
         print("Looping through flight records")      
         records = FlightRecord.objects.all().filter(flight=flight_key)
         for rec in records:
-            time.sleep(2)
+            time.sleep(10)
             flight_key.lat = rec.lat
             flight_key.lng = rec.lng
             flight_key.timestamp = rec.timestamp
@@ -173,10 +191,16 @@ class Command(BaseCommand):
                 'currentTimestamp': str(rec.timestamp),
                 'prevTimestamp': str(lastRec.timestamp)
             }
-            ws(scope=channel ,send=payload, receive=None)
-            # with websockets.connect("ws://127.0.0.1:8000/ws/socket-server/") as ws:
-            #     ws.send(json.dumps(payload))
-            #     message = await asyncio.wait_for(ws.recv(), timeout=10)
+            # async_to_sync(channel.group_send)('back', 
+            #     {
+            #         'type': 'message',
+            #         'command': payload
+            #     }
+            # )
+            # async_to_sync(channel.group_send)('back', payload)
+            # ws(scope=channel ,send=payload, receive=None)
+            # ws = websockets.sync.client.connect("ws://127.0.0.1:8000/ws/socket-server/")
+            self.ws.send(json.dumps(payload))
             
             lastRec = rec
         self.clearDemo(**options)
