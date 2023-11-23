@@ -10,7 +10,7 @@ import L, { LatLngExpression } from "leaflet";
 import { BuildMarker, updateRotation} from './functions/BuildMarker';
 
 // types
-import { LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
+import { LeafletProps, LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerData, PolyLineData, RemoveData, Wellness } from './Interfaces'
 import { stat } from 'fs';
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -27,27 +27,34 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 //The map class
-class LeafletMap extends React.Component<{}, LeafletMapState> {
+class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
   private map: L.Map | null
-  constructor(props) {
+  constructor(props:LeafletProps) {
     super(props)
     this.map = null;
     this.mapRef = React.createRef();
     this.state = {
-      airports: {},
-      aircrafts: {},
-      landmarks: {},
-      polylines: {},
-      lat: 0,
-      lng: 0,
-      zoom: 0,
+      airports: props.airports,
+      aircrafts: props.aircrafts,
+      landmarks: props.landmarks,
+      polylines: props.polylines,
+      lat: props.lat,
+      lng: props.lng,
+      zoom: props.zoom,
       fullScreen: true  // default is fullscreen for now
     };
   }
 
   componentDidMount() {
     this.makeMap()
+    Object.values(this.state.aircrafts).forEach( async (marker) => { marker.addTo(this.map!); });
+    Object.values(this.state.airports).forEach( async (marker) => { marker.addTo(this.map!); });
+    Object.values(this.state.landmarks).forEach((marker) => { marker.addTo(this.map!); });
+    Object.values(this.state.polylines).forEach((line) => { 
+      line.polylineTo.addTo(this.map!); 
+      if(line.polylineFrom) line.polylineFrom.addTo(this.map!); 
+    });
   }
 
   // Cleanup removes map
@@ -147,6 +154,7 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     newMarker = BuildMarker(newMarkerProps.param, coords, newMarkerProps.rotation);
     newMarker.addTo(this.map!);
     markerState[newMarkerProps.id] = newMarker;
+    return newMarker
   }
 
   // removing a marker based on its index
@@ -164,14 +172,15 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
         break;
       default:
         console.warn("removeMarker: param not found:", payload.param);
-        return;
+        return false;
     }
     if (!markerState.hasOwnProperty(payload.id)) {
       console.warn(`removeMarker: Could not find ${payload.param} id`);
-      return;
+      return false;
     }
     this.map!.removeLayer(markerState[payload.id]);
     delete markerState[payload.id];
+    return true;
   }
 
   // Moveing a marker based on its index
@@ -190,24 +199,29 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
     // from websockets merge: updateMarkerRotation(this.state.aircrafts[payload.id], this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     const rotation = updateRotation(this.state.aircrafts[payload.id].getLatLng().lat, this.state.aircrafts[payload.id].getLatLng().lng, payload.lat, payload.lng);
     this.animateMarkerMovement(this.state.aircrafts[payload.id], L.latLng(payload.lat, payload.lng), rotation, payload.speed, payload.prevTimestamp, payload.currentTimestamp);
-    
     this.state.aircrafts[payload.id].setLatLng([payload.lat, payload.lng])
+
+    const update = {marker: this.state.aircrafts[payload.id], polyline: null}
+    
     if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("moveMarkers: Could not find polyline Id: ", payload.id);
-      return;
+      return update;
     }
     const polyline = this.state.polylines[payload.id]
     if (!this.state.airports.hasOwnProperty(polyline.airportIdTo)) {
       console.warn("moveMarkers: Could not find airport To Id: ", polyline.airportIdTo);
-      return;
+      return update;
     }
     polyline.polylineTo.setLatLngs([this.state.aircrafts[payload.id].getLatLng(), this.state.airports[polyline.airportIdTo].getLatLng()]);
-    if (!polyline.polylineFrom) return;
+    update['polyline'] = polyline
+    if (!polyline.polylineFrom) return update;
     if (!this.state.airports.hasOwnProperty(polyline.airportIdFrom)) {
       console.warn("moveMarkers: Could not find airport from Id: ", polyline.airportIdFrom);
-      return;
+      return update;
     }
     polyline.polylineFrom.setLatLngs([this.state.aircrafts[payload.id].getLatLng(), this.state.airports[polyline.airportIdFrom].getLatLng()]);
+    update['polyline'] = polyline
+    return update
   }
 
   drawPolyLine(payload: PolyLineData) {
@@ -253,16 +267,18 @@ class LeafletMap extends React.Component<{}, LeafletMapState> {
 
     if (this.state.polylines[payload.aircraftId].polylineFrom) this.state.polylines[payload.aircraftId].polylineFrom.addTo(this.map);
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map);
+    return this.state.polylines[payload.aircraftId]
   }
 
   removePolyLine(payload: RemoveData) {
     if (!this.state.polylines.hasOwnProperty(payload.id)) {
       console.warn("removePolyLine: Could not find polyline id");
-      return;
+      return false;
     }
     if (this.state.polylines[payload.id].polylineFrom) this.map!.removeLayer(this.state.polylines[payload.id].polylineFrom);
     this.map!.removeLayer(this.state.polylines[payload.id].polylineTo)
     delete this.state.polylines[payload.id];
+    return true
   }
 
   animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {

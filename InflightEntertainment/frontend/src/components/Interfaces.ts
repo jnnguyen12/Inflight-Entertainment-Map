@@ -11,6 +11,16 @@ export interface LeafletMapState {
     fullScreen: boolean;
 }
 
+export interface LeafletProps {
+    airports: { [key: string]: Marker };            // airport markers on the map
+    aircrafts: { [key: string]: Marker };           // aircrafts markers on the map
+    landmarks: { [key: string]: Marker };           // The polylines on the flight
+    polylines: { [key: string]: LeafletPolyline };  // the key for the polyline is the aircraft key
+    lat: number;
+    lng: number;
+    zoom: number
+}
+
 export interface RndStates {
     RndXPosition: number;
     RndYPosition: number;
@@ -19,6 +29,13 @@ export interface RndStates {
     fullScreen: boolean;
     Flight: Flight;
     matches: boolean; // media queries
+    airports: { [key: string]: Marker };            // airport markers on the map
+    aircrafts: { [key: string]: Marker };           // aircrafts markers on the map
+    landmarks: { [key: string]: Marker };           // The polylines on the flight
+    polylines: { [key: string]: LeafletPolyline };  // the key for the polyline is the aircraft key
+    lat: number;
+    lng: number;
+    zoom: number;
 }
 
 export interface LeafletPolyline {
@@ -31,7 +48,7 @@ export interface LeafletPolyline {
 export interface Airport{
     id: string                          // Id of Airport
     name?: string;                       // Name of Airport
-    nameAbbreviated: string;            // Abbreviated name of Airport
+    nameAbbreviated?: string;            // Abbreviated name of Airport
     lat: number;                        // Latitude
     lng: number;                        // Longitude
     time: string                        // Time at Airport
@@ -49,9 +66,9 @@ export interface Flight {
     altitude?: string;                      // Barometric Altitude (altitude in feet as a number OR “ground”)
     ground_speed?: number;                  // Ground Speed
     estimatedTime?: string;                 // Estimated time remaining of flight
-    progress: number;                       // Flight progress 
-    traveledKm: number;                     // Distance Traveled in Km
-    remainingKm: number;                    // Distance Remaining in Km
+    progress?: number;                       // Flight progress 
+    traveledKm?: number;                     // Distance Traveled in Km
+    remainingKm?: number;                    // Distance Remaining in Km
     prevTimestamp?: string;                 // date time of prevous record
     currentTimestamp?: string;              // date time of current record
 }

@@ -134,7 +134,7 @@ class BackendConsumer(WebsocketConsumer):
         payload = {
             'type': 'setFlight',
             'flight': flightData.flight,
-            'hex': flightData.hex,
+            'id': flightData.hex,
             'lat': flightData.lat,
             'lng': flightData.lng,
             'alt_baro': flightData.alt_baro,
@@ -199,14 +199,14 @@ class BackendConsumer(WebsocketConsumer):
         flightData.save()
         curTimestamp = data.get('currentTimestamp')
         prevTimestamp = data.get('prevTimestamp')
-        
+        totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
         remainingKm = self.calculate_distance_in_km(flight.get('lat'), flight.get("lng"), destinationData.lat, destinationData.lng)
         traveledKm = self.calculate_distance_in_km(originData.lat, originData.lng, flight.get("lat"), flight.get("lng"))
-        progress = self.calculate_progress(int(flightData.totalDistance), remainingKm)
+        progress = self.calculate_progress(totalDistance, remainingKm)
         payload = {
             'type': 'updateFlight',
             'flight': flightData.flight,
-            'hex': flightData.hex,
+            'id': flightData.hex,
             'lat': flight.get("lat"),
             'lng': flight.get("lng"),
             'alt_baro': flight.get("alt_baro"),
