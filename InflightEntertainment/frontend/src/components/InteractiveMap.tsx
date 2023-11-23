@@ -214,6 +214,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
   private handleSocketMessage = async (event: MessageEvent) => {
     console.log("Received WebSocket Message");
+    // Parsing the message from the websockets in a JSON object
     const text = event.data;
     if (text === "") return;
     let dataJson;
@@ -224,10 +225,12 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       return;
     }
     console.log(dataJson);
+    // Making the JSON into a an array so that we can handle bulk messages
     const data = Array.isArray(dataJson) ? dataJson : [dataJson];
     const response: any[] = [];
     for (const payload of data) {
       try {
+        // Processing the JSON
         const resp = await this.processPayload(payload.command);
         if (resp) response.push(resp);
       } catch (error) {
@@ -238,7 +241,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
   }
 
   private async processPayload(payload: any) {
-    // Handle different command types
+    // Handle different command types from the JSON data
     switch (payload.type) {
       case 'setFlight':
         return await this.handleSetFlight(payload as Flight);
@@ -257,14 +260,18 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       case 'removePolyline':
         return this.handleRemovePolyline(payload as RemoveData);
       case 'flyToLocation':
+        // Sets the camera of the map
         const fly = payload as FlyCameraTo
         this.setState({ lat: fly.lat, lng: fly.lng, zoom: fly.zoom })
         this.mapRef.current?.flyTo(fly);
         return;
       case 'clearMap':
+        // Deletes everything and removes flight
         this.mapRef.current?.clearMap();
+        this.setState({ airports: {}, aircrafts: {}, landmarks: {}, polylines: {}, Flight: emptyFlight })
         return;
       case 'wellness':
+        // returns the (aircraft, airport, landmark, camera) data
         return this.mapRef.current?.sendData(payload as Wellness);
       default:
         console.warn("Unknown type sent: ", payload.type);
@@ -272,22 +279,35 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
   }
 
+  /**
+   * Handles setting flight data and updating the map with markers and polylines.
+   * @param flightData - The flight data to be set.
+   */
   private async handleSetFlight(flightData: Flight) {
-    // Adds Plane, Airports and polyline to map
-    console.log("----> ",flightData)
+    console.log("----> ", flightData)
+    // Update the state with the new flight data for the UI to process
     this.setState({ Flight: flightData })
+    // Add aircraft marker to the map
     var aircraft = await this.mapRef.current?.addMarkers({ id: flightData.id, param: "aircraft", lat: flightData.lat, lng: flightData.lng, rotation: flightData.rotation ?? 0 });
+    // Update the state with the added aircraft marker
     if (aircraft) this.state.aircrafts[flightData.id] = aircraft;
+    // Add origin airport marker to the map
     var airportOrigin = await this.mapRef.current?.addMarkers({ id: flightData.airportOrigin.id, param: "airport", lat: flightData.airportOrigin.lat, lng: flightData.airportOrigin.lng, rotation: 0 });
+    // Update the state with the added origin airport marker if created
     if (airportOrigin) this.state.airports[flightData.airportOrigin.id] = airportOrigin;
+    // Add destination airport marker to the map
     var airportDestination = await this.mapRef.current?.addMarkers({ id: flightData.airportDestination.id, param: "airport", lat: flightData.airportDestination.lat, lng: flightData.airportDestination.lng, rotation: 0 });
+    // Update the state with the added destination airport marker if created
     if (airportDestination) this.state.airports[flightData.airportDestination.id] = airportDestination;
+    // Draw a polyline on the map connecting the aircraft and airports
     var polyline = await this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
+    // Update the state with the new polyline if created
     if (polyline) this.state.polylines[flightData.id] = polyline;
   }
 
+  // Updates the flight and UI
   private async handleUpdateFlight(flightData: Flight) {
-    console.log("#---> ",flightData)
+    console.log("#---> ", flightData)
     this.setState({ Flight: flightData })
     console.log("traveledKm: ", flightData.traveledKm);
     console.log("remainingKm: ", flightData.remainingKm);
@@ -302,6 +322,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     if (update.polyline) this.state.polylines[flightData.id] = update.polyline
   }
 
+  // Removes flight and UI
   private async handleRemoveFlight(payload: RemoveData) {
     this.setState({ Flight: emptyFlight })
     const bool = await this.mapRef.current?.removePolyLine({ id: payload.id })
@@ -336,11 +357,11 @@ class InteractiveMap extends React.Component<{}, RndStates> {
   private async handleRemoveMarker(payload: RemoveData) {
     // Implement 'removeMarker' logic
     if (payload.id === this.state.Flight.id) {
-        console.warn("Error cant remove marker because it is the current flight")
-        return "Error cant remove marker because it is the current flight";
+      console.warn("Error cant remove marker because it is the current flight")
+      return "Error cant remove marker because it is the current flight";
     }
     const bool = await this.mapRef.current?.removeMarker({ id: payload.id, param: "aircraft" })
-    if (bool){
+    if (bool) {
       switch (payload.param) {
         case "aircraft":
           delete this.state.aircrafts[payload.id];
@@ -360,8 +381,8 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
   private async handleUpdateMarker(payload: UpdateMarkerData) {
     if (payload.id === this.state.Flight.id) {
-        console.warn("Error cant update marker because it is the current flight")
-        return "Error cant update marker because it is the current flight";
+      console.warn("Error cant update marker because it is the current flight")
+      return "Error cant update marker because it is the current flight";
     }
     if (!payload.speed) payload.speed = this.defaultSpeed;
     const update = await this.mapRef.current?.moveMarkers(payload);
