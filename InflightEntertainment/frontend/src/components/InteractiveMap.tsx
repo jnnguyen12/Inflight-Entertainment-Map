@@ -104,36 +104,36 @@ function stringValid(myString: string | null): boolean {
 
 const numberValid = (myNumber: number | null): boolean => myNumber !== null && !isNaN(myNumber);
 
-const testFlight: Flight = {
-  id: "F1",
-  flight: "FLIGHT01",
-  lat: 35.6895,
-  lng: 139.6917,
-  rotation: 45,
-  airportOrigin: {
-    id: "A1",
-    name: "Airport 1",
-    nameAbbreviated: "A1",
-    lat: 37.7749,
-    lng: -122.4194,
-    time: "12:00 PM",
-  },
-  airportDestination: {
-    id: "A2",
-    name: "Airport 2",
-    nameAbbreviated: "A2",
-    lat: 40.7128,
-    lng: -74.006,
-    time: "02:30 PM",
-  },
-  aircraftType: "Boeing 747",
-  altitude: "35000", // Example barometric altitude in feet
-  ground_speed: 500, // Example ground speed in knots
-  estimatedTime: "2 hours",
-  progress: 50,
-  traveledKm: 1500,
-  remainingKm: 1500,
-};
+// const testFlight: Flight = {
+//   id: "F1",
+//   flight: "FLIGHT01",
+//   lat: 35.6895,
+//   lng: 139.6917,
+//   rotation: 45,
+//   airportOrigin: {
+//     id: "A1",
+//     name: "Airport 1",
+//     nameAbbreviated: "A1",
+//     lat: 37.7749,
+//     lng: -122.4194,
+//     time: "12:00 PM",
+//   },
+//   airportDestination: {
+//     id: "A2",
+//     name: "Airport 2",
+//     nameAbbreviated: "A2",
+//     lat: 40.7128,
+//     lng: -74.006,
+//     time: "02:30 PM",
+//   },
+//   aircraftType: "Boeing 747",
+//   altitude: "35000", // Example barometric altitude in feet
+//   ground_speed: 500, // Example ground speed in knots
+//   estimatedTime: "2 hours",
+//   progress: 50,
+//   traveledKm: 1500,
+//   remainingKm: 1500,
+// };
 
 const emptyAirport = {
   id: "",
@@ -188,7 +188,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     this.socket.addEventListener("open", this.handleSocketOpen);
     this.socket.addEventListener("close", this.handleSocketClose);
     this.socket.addEventListener("message", this.handleSocketMessage);
-    this.setState({ Flight: testFlight });
+    this.setState({ Flight: emptyFlight });
     const handler = e => this.setState({ matches: e.matches });
     window.matchMedia("(max-width: 991px)").addEventListener('change', handler);
   }
@@ -309,12 +309,12 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     if (this.mapRef.current?.removeMarker({ id: payload.id, param: "aircraft" })) delete this.state.aircrafts[payload.id];
   }
 
-  private handleAddMarker(payload: MarkerData) {
+  private async handleAddMarker(payload: MarkerData) {
     if (payload.id === this.state.Flight.id) {
       console.warn("Error cant add marker because it is the current flight")
       return "Error cant add marker because it is the current flight";
     }
-    const marker = this.mapRef.current?.addMarkers(payload);
+    const marker = await this.mapRef.current?.addMarkers(payload);
     if (marker) {
       switch (payload.param) {
         case "aircraft":
@@ -333,13 +333,14 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
   }
 
-  private handleRemoveMarker(payload: RemoveData) {
+  private async handleRemoveMarker(payload: RemoveData) {
     // Implement 'removeMarker' logic
     if (payload.id === this.state.Flight.id) {
         console.warn("Error cant remove marker because it is the current flight")
         return "Error cant remove marker because it is the current flight";
     }
-    if (this.mapRef.current?.removeMarker({ id: payload.id, param: "aircraft" })){
+    const bool = await this.mapRef.current?.removeMarker({ id: payload.id, param: "aircraft" })
+    if (bool){
       switch (payload.param) {
         case "aircraft":
           delete this.state.aircrafts[payload.id];
