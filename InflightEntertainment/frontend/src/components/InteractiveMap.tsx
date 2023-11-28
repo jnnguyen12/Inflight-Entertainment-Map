@@ -185,12 +185,13 @@ class InteractiveMap extends React.Component<{}, RndStates> {
   componentDidMount() {
     const url = `ws://${window.location.host}/ws/socket-server/`; // Clients URL
     this.socket = new WebSocket(url);
-    this.socket.addEventListener("open", this.handleSocketOpen);
+    this.socket.addEventListener("open", this.handleSocketOpen.bind(this));
     this.socket.addEventListener("close", this.handleSocketClose);
     this.socket.addEventListener("message", this.handleSocketMessage);
     this.setState({ Flight: emptyFlight });
     const handler = e => this.setState({ matches: e.matches });
     window.matchMedia("(max-width: 991px)").addEventListener('change', handler);
+    console.log("componentDidMount: ", this.socket);
   }
 
   componentWillUnmount() {
@@ -204,7 +205,15 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     if (this.socket) this.socket.close();
   }
 
-  private handleSocketOpen() {
+  handleSocketOpen() {
+    console.log("handleSocketOpen: ", this.socket);
+    this.socket.send(
+      JSON.stringify({
+        type: "loadFront",
+        data: "",
+      })
+    );
+
     console.log("WebSocket connection established.");
   }
 

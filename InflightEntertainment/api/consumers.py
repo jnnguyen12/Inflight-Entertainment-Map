@@ -58,12 +58,10 @@ class BackendConsumer(WebsocketConsumer):
         progress = ((total_distance - remaining_distance) / total_distance) * 100
         return max(0, min(100, progress)) # Ensure progress is within the range [0, 100]
 
-
     def handleAirport(self, data):
         airportData, created = Airport.objects.update_or_create(
-            id=data['id'],
             identifier=data['identifier'],
-            type=data['type'],
+            airportType=data['airportType'],
             nameAbbreviated=data['nameAbbreviated'],
             lat=data['lat'],
             lng=data['lng'],
@@ -71,13 +69,60 @@ class BackendConsumer(WebsocketConsumer):
         )
         airportData.save()
         return airportData
+
+    def loadFront(self, data):
+        try: 
+            originData = get_object_or_404(Airport, airportType='Origin')
+            destinationData = get_object_or_404(Airport, airportType='Destination')
+            flightData = Flight.objects.get()
+            totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
+        except Exception as e:
+            print(f"Failed to find existing flight in loadFront: {e}")
         
+        payload = {
+            'type': 'setFlight',
+            'flight': flightData.flight,
+            'id': flightData.hex,
+            'lat': flightData.lat,
+            'lng': flightData.lng,
+            'alt_baro': flightData.alt_baro,
+            'alt_geom': flightData.alt_geom,
+            'track': flightData.track,
+            'rotation': 0,
+            'ground_speed': flightData.ground_speed,
+            'progress': 0,
+            'aircraftType': flightData.aircraftType,
+            'registration': flightData.registration,
+            'travaledKm': 0,
+            'remainingKm': totalDistance,
+            'airportOrigin': {
+                    'identifier': originData.identifier,
+                    'name': originData.name,
+                    'airportType': originData.airportType,
+                    'nameAbbreviated': originData.nameAbbreviated,
+                    'lat': originData.lat,
+                    'lng': originData.lng,
+                    'time': str(originData.time)
+            },
+            'airportDestination': {
+                'identifier': destinationData.identifier,
+                'name': destinationData.name,
+                'airportType': destinationData.airportType,
+                'nameAbbreviated': destinationData.nameAbbreviated,
+                'lat': destinationData.lat,
+                'lng': destinationData.lng,
+                'time': str(destinationData.time)
+            }
+        }
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
 
     def setFlight(self, data):
-
-        # if data.get('parsed') == 'True':
-        #     return
-        
         origin = data.get('airportOrigin')
         originData, created = Airport.objects.update_or_create(
             identifier=origin.get('identifier'),
@@ -437,7 +482,7 @@ class BackendConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)      
     
     def receive(self, text_data):
-        print("Received data:", text_data)
+        print("Received data:", text_data, "\n")
         text_data_json = json.loads(text_data)
         #print("JSON: ", text_data_json)
         flight_data = text_data_json.get('flight')
@@ -465,71 +510,73 @@ class BackendConsumer(WebsocketConsumer):
             self.clearMap(text_data_json)
         elif text_data_json.get('type') == "wellness":
             self.wellness(text_data_json)
+        elif text_data_json.get('type') == "loadFront":
+            self.loadFront(text_data_json)
         else:
             print("No handler for this message.")
 
-    def handleAirport(self, data):
-        airportData, created = Airport.objects.update_or_create(
-            identifier=data['identifier'],
-            airportType=data['airportType'],
-            nameAbbreviated=data['nameAbbreviated'],
-            lat=data['lat'],
-            lng=data['lng'],
-            time=data['time']
-        )
-        airportData.save()
-        return airportData
+    # def handleAirport(self, data):
+    #     airportData, created = Airport.objects.update_or_create(
+    #         identifier=data['identifier'],
+    #         airportType=data['airportType'],
+    #         nameAbbreviated=data['nameAbbreviated'],
+    #         lat=data['lat'],
+    #         lng=data['lng'],
+    #         time=data['time']
+    #     )
+    #     airportData.save()
+    #     return airportData
         
         
-        # if text_data_json.get('type') == 'new_flight_record':
-        #     flight, created = Flight.objects.get_or_create(
-        #         hex=flight_data['hex'],
-        #         defaults={
-        #             'flight': flight_data['flight'],
-        #             'r': flight_data['r'],
-        #             't': flight_data['t'],
-        #         }
-        #     )
+    #     # if text_data_json.get('type') == 'new_flight_record':
+    #     #     flight, created = Flight.objects.get_or_create(
+    #     #         hex=flight_data['hex'],
+    #     #         defaults={
+    #     #             'flight': flight_data['flight'],
+    #     #             'r': flight_data['r'],
+    #     #             't': flight_data['t'],
+    #     #         }
+    #     #     )
 
-        #     FlightRecord.objects.create(
-        #         flight=flight,
-        #         timestamp=datetime.fromisoformat(record_data['timestamp']),
-        #         lat=record_data['lat'],
-        #         lng=record_data['lng'],
-        #         alt_baro=record_data.get('alt_baro'),
-        #         alt_geom=record_data.get('alt_geom'),
-        #         track=record_data.get('track'),
-        #         ground_speed=record_data.get('ground_speed')
+    #     #     FlightRecord.objects.create(
+    #     #         flight=flight,
+    #     #         timestamp=datetime.fromisoformat(record_data['timestamp']),
+    #     #         lat=record_data['lat'],
+    #     #         lng=record_data['lng'],
+    #     #         alt_baro=record_data.get('alt_baro'),
+    #     #         alt_geom=record_data.get('alt_geom'),
+    #     #         track=record_data.get('track'),
+    #     #         ground_speed=record_data.get('ground_speed')
                 
-        #     )
+    #     #     )
             
             
-        #     self.send(text_data=json.dumps({
-        #         'type': 'new_flight_record',
-        #         'flight': {
-        #               'hex': flight.hex,
-        #               'flight': flight.flight,
-        #                 'r': flight.r,
-        #                 't': flight.t
-        #               },
-        #         'record': {
-        #             'timestamp': record_data['timestamp'],
-        #             'lat': record_data['lat'],
-        #             'lng': record_data['lng']
-        #         }
-        #     }))
-        #     async_to_sync(self.channel_layer.group_send)(
-        #         self.room_group_name,
-        #         {
-        #             'type': 'new_flight_record',
-        #             'flight': {
-        #                 'flight': flight_data['flight']
-        #             },
-        #             'record': {
-        #                 'timestamp': record_data['timestamp'],
-        #                 'lat': record_data['lat'],
-        #                 'lng': record_data['lng']
-        #             }
-        #         }
-        #     )
-        # elif text_data_json.get('type') == 'add_flight_record':
+    #     #     self.send(text_data=json.dumps({
+    #     #         'type': 'new_flight_record',
+    #     #         'flight': {
+    #     #               'hex': flight.hex,
+    #     #               'flight': flight.flight,
+    #     #                 'r': flight.r,
+    #     #                 't': flight.t
+    #     #               },
+    #     #         'record': {
+    #     #             'timestamp': record_data['timestamp'],
+    #     #             'lat': record_data['lat'],
+    #     #             'lng': record_data['lng']
+    #     #         }
+    #     #     }))
+    #     #     async_to_sync(self.channel_layer.group_send)(
+    #     #         self.room_group_name,
+    #     #         {
+    #     #             'type': 'new_flight_record',
+    #     #             'flight': {
+    #     #                 'flight': flight_data['flight']
+    #     #             },
+    #     #             'record': {
+    #     #                 'timestamp': record_data['timestamp'],
+    #     #                 'lat': record_data['lat'],
+    #     #                 'lng': record_data['lng']
+    #     #             }
+    #     #         }
+    #     #     )
+    #     # elif text_data_json.get('type') == 'add_flight_record':

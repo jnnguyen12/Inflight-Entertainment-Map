@@ -45,7 +45,7 @@ class Command(BaseCommand):
             }))
         
         airports = Airport.objects.all().delete()
-        self.ws = None
+        self.ws.close()
                 
         # flight = get_object_or_404(Flight, Q(hex=hex_key) | Q(flight=flightSign))
 
@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
         airportOrigin = Airport(
             identifier = "DEMO1",
-            airportType = "Commercial",
+            airportType = "Origin",
             name = "John Hopkins Airport",
             nameAbbreviated = "JHA",
             lat = start.lat,
@@ -84,7 +84,7 @@ class Command(BaseCommand):
         )
         airportDest = Airport(
             identifier = "DEMO2",
-            airportType = "Commercial",
+            airportType = "Destination",
             name = "Mary Collins Airport",
             nameAbbreviated = "MCA",
             lat = end.lat,
