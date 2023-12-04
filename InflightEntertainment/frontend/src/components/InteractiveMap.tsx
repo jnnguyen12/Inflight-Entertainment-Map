@@ -312,6 +312,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     var polyline = await this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
     // Update the state with the new polyline if created
     if (polyline) this.state.polylines[flightData.id] = polyline;
+    console.log("Set flight polyline: ", this.state.polylines[flightData.id]);
   }
 
   // Updates the flight and UI
@@ -528,6 +529,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
   }
 
   render() {
+    console.log("render: ", this.state.polylines);
     const leafletMap = <LeafletMap ref={this.mapRef} airports={this.state.airports} aircrafts={this.state.aircrafts} landmarks={this.state.landmarks} polylines={this.state.polylines} lat={this.state.lat} lng={this.state.lng} zoom={this.state.zoom} />;
     const calculateDistanceInMiles = (distanceKm: number): number => Math.floor(distanceKm * 0.621371);
     const collapseOrientation = !this.state.matches && "collapse-horizontal";

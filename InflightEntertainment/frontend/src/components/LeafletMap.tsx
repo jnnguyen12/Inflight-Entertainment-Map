@@ -225,6 +225,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
   }
 
   drawPolyLine(payload: PolyLineData) {
+    console.log("drawPolyline: ", payload);
     if (this.state.polylines.hasOwnProperty(payload.aircraftId)) {
       console.warn("Aready made: ", this.state.polylines[payload.aircraftId]);
       return;
@@ -267,6 +268,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
 
     if (this.state.polylines[payload.aircraftId].polylineFrom) this.state.polylines[payload.aircraftId].polylineFrom.addTo(this.map);
     this.state.polylines[payload.aircraftId].polylineTo.addTo(this.map);
+    console.log("drawPolyline: ", this.state.polylines[payload.aircraftId]);
     return this.state.polylines[payload.aircraftId]
   }
 

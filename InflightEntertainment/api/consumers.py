@@ -78,6 +78,7 @@ class BackendConsumer(WebsocketConsumer):
             totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
         except Exception as e:
             print(f"Failed to find existing flight in loadFront: {e}")
+            return
         
         payload = {
             'type': 'setFlight',
@@ -96,6 +97,7 @@ class BackendConsumer(WebsocketConsumer):
             'travaledKm': 0,
             'remainingKm': totalDistance,
             'airportOrigin': {
+                    'id': originData.id,
                     'identifier': originData.identifier,
                     'name': originData.name,
                     'airportType': originData.airportType,
@@ -105,6 +107,7 @@ class BackendConsumer(WebsocketConsumer):
                     'time': str(originData.time)
             },
             'airportDestination': {
+                'id': destinationData.id,
                 'identifier': destinationData.identifier,
                 'name': destinationData.name,
                 'airportType': destinationData.airportType,
@@ -193,6 +196,7 @@ class BackendConsumer(WebsocketConsumer):
             'travaledKm': 0,
             'remainingKm': totalDistance,
             'airportOrigin': {
+                    'id': originData.id,
                     'identifier': originData.identifier,
                     'name': originData.name,
                     'airportType': originData.airportType,
@@ -202,6 +206,7 @@ class BackendConsumer(WebsocketConsumer):
                     'time': str(originData.time)
             },
             'airportDestination': {
+                'id': destinationData.id,
                 'identifier': destinationData.identifier,
                 'name': destinationData.name,
                 'airportType': destinationData.airportType,
