@@ -128,33 +128,6 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
   }
 
   /**
-   * Retrieves specific data based on the provided parameter type.
-   * @param dataParam - Object containing a parameter type (e.g., "aircraft", "airport") to determine the requested data.
-   * @returns Data corresponding to the specified parameter type or an error object if not found.
-   */
-  sendData(dataParam: Wellness) {
-    // Switch statement to handle different data parameter types
-    switch (dataParam.param.toLowerCase()) {
-      case "aircraft":
-        return this.state.aircrafts;
-      case "airport":
-        return this.state.airports;
-      case "landmark":
-        return this.state.landmarks;
-      // Case: "camera" - Return the current map's camera position (lat, lng, zoom)
-      case "camera":
-        return {
-          lat: this.state.lat,
-          lng: this.state.lng,
-          zoom: this.state.zoom
-        }
-      default:
-        console.warn("sendData: data param not found: ", dataParam.param.toLowerCase())
-        return { error: "Not found" };
-    }
-  }
-
-  /**
    * Adds a new marker to the map and updates the component's state with the new marker.
    * @param newMarkerProps - Object containing properties for the new marker (id, param, lat, lng, rotation).
    * @returns The newly created marker or false if unsuccessful.

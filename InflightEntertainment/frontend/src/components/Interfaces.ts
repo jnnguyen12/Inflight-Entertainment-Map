@@ -128,5 +128,5 @@ export interface RemoveData {
 
 // Interface defining data structure for wellness data
 export interface Wellness {
-    param: string                // Data param (aircraft, airport, landmark, camera)
+    param: string                // Data param (aircraft, airport, landmark, polyline, camera)
 }
