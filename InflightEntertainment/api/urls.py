@@ -3,6 +3,10 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+### THESE ENDPOINTS ARE DEPRECATED 
+### ALL FUNCTIONALITY IS CURRENTLY THROUGH WEBSOCKETS
+### see routing.py for websocket url
+
 urlpatterns = [
     path('', views.getRoutes, name="routes"),
 

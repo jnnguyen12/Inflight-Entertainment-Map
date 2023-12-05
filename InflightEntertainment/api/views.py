@@ -9,6 +9,9 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from django.http import HttpResponse
 
+### THESE ENDPOINTS ARE DEPRECATED 
+### ALL FUNCTIONALITY IS CURRENTLY THROUGH WEBSOCKETS
+### see consumers.py for websocket backend
 
 @api_view(['GET'])
 def getRoutes(request):

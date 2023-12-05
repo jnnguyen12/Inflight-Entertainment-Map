@@ -70,6 +70,7 @@ class BackendConsumer(WebsocketConsumer):
         airportData.save()
         return airportData
 
+    # TODO: Need to handle markers, polylines, landmarks as well.
     def loadFront(self, data):
         try: 
             originData = get_object_or_404(Airport, airportType='Origin')
@@ -217,9 +218,6 @@ class BackendConsumer(WebsocketConsumer):
             }
         }
 
-        #self.send(text_data=json.dumps(payload))
-        #print("\nmade it past send")
-        #self.send(text_data=json.dumps(payload))
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
             {
                 'type': 'message',
@@ -233,26 +231,15 @@ class BackendConsumer(WebsocketConsumer):
         
         flight = data.get('flight')
         flightData = get_object_or_404(Flight, Q(hex=flight['hex']))
-                # flight = flight['flight'],
-                # timestamp=datetime.fromisoformat(flight['timestamp']),
-                # lat=flight['lat'],
-                # lng=flight['lng'],
-                # registration=flight['registration'],
-                # aircraftType=flight['aircraftType'],
-                # alt_baro=flight['alt_baro'],
-                # alt_geom=flight['alt_geom'],
-                # track=flight['track'],
-                # ground_speed=flight['ground_speed'],
-                # airportOrigin=originData,
-                # airportDestination=destinationData
-        #)
         flightData.save()
+
         curTimestamp = data.get('currentTimestamp')
         prevTimestamp = data.get('prevTimestamp')
         totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
         remainingKm = self.calculate_distance_in_km(flight.get('lat'), flight.get("lng"), destinationData.lat, destinationData.lng)
         traveledKm = self.calculate_distance_in_km(originData.lat, originData.lng, flight.get("lat"), flight.get("lng"))
         progress = self.calculate_progress(totalDistance, remainingKm)
+
         payload = {
             'type': 'updateFlight',
             'flight': flightData.flight,
@@ -291,7 +278,6 @@ class BackendConsumer(WebsocketConsumer):
             }
         }
         
-        # self.send(data=json.dumps(payload))
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
             {
                 'type': 'message',
@@ -327,65 +313,71 @@ class BackendConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
 
     def addMarker(self, data):
-        # TODO Check if this is correct  
-        markerType = data['param'] 
-        if markerType == 'aircraft':
-            originData = self.handleAirport(data.get('airportOrigin'))
-            destinationData = self.handleAirport(data.get('airportDestination'))
-            totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
-            flightData, created =Flight.objects.update_or_create(
-                    hex=data['hex'],
-                    flight = data['flight'],
-                    timestamp=datetime.fromisoformat(data['timestamp']),
-                    lat=data['lat'],
-                    lng=data['lng'],
-                    registration=data['r'],
-                    aircraftType=data['t'],
-                    alt_baro=data['alt_baro'],
-                    alt_geom=data['alt_geom'],
-                    track=data['track'],
-                    ground_speed=data['gs'],
-                    airportOrigin=originData,
-                    airportDestination=destinationData,
-                    totalDistance=totalDistance
+        marker = data.get('marker')
+        type = marker.get('param')
+        markerObj = None
+
+        if type == 'aircraft':
+            markerObj, etc = Marker.objects.get_or_create(
+                type='aircraft',
+                flight = marker.get('flight'),
+                lat=marker.get('lat'),
+                lng=marker.get('lng'),
             )
-            flightData.save()
-            thisID = flightData.hex
-            
-        elif markerType == 'airport':
-            airportdata = self.handleAirport(data.get('airport'))
-            Marker.objects.get_or_create(
-                type=data['param'],
-                flight=airportdata,
-                timestamp=data['timestamp'],
-                lat=airportdata.lat,
-                lng=airportdata.lng,
-                onMap=True,               
+        elif type == 'airport':
+            markerObj, etc = Marker.objects.get_or_create(
+                type='airport',
+                airport=marker.get('airport'),
+                lat=marker.get('lat'),
+                lng=marker.get('lng'),
             ) 
+        elif type == 'landmark':
+            markerObj, etc = Marker.objects.get_or_create(
+                type='landmark',
+                landmark=marker.get('landmark'),
+                lat=marker.get('lat'),
+                lng=marker.get('lng'),
+            ) 
+
+        markerObj.save()
         
         payload = {
             'type': 'addMarker',
-            'id': thisID,
-            'param': data['param'],
-            'lat': data['lat'],
-            'lng': data['lng'],
-            'rotation': data.get('rotation', 0)
+            'marker': {
+                'id': markerObj.id,
+                'param': marker.get('param'),
+                'lat': marker.get('lat'),
+                'lng': marker.get('lng'),
+                'rotation': marker.get('rotation')
+            }
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
         
     def removeMarker(self, data):
-        # TODO Check if this is correct  
-        MarkerData = Marker.objects.get(data['id'])
-        MarkerData.onMap = False
-        MarkerData.toRemove = True       
+        try:
+            Marker.objects.get(id=data['id']).delete()
+        except:
+            print("In removeMarker -- couldn't find Marker to remove.")
+            return
+        
         payload = {
             'type': 'removeMarker',
             'id': data['id'],
             'param': data['param']
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
 
     def updateMarker(self, data):
         # TODO Check if this is correct  
@@ -470,21 +462,36 @@ class BackendConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
 
     def clearMap(self, data):
-        # TODO Clear database 
+        # Delete from DB
+        Flight.objects.all().delete()
+        Marker.objects.all().delete()
+        Airport.objects.all().delete()
+
+        # Tell front to delete from map
         payload = {
             'type': 'clearMap',
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
 
     def wellness(self, data):
         # TODO Check if correct 
         payload = {
             'type': 'wellness',
-            'param': data['wellness']
+            'param': data['param']
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)      
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )    
     
     def receive(self, text_data):
         print("Received data:", text_data, "\n")
@@ -519,69 +526,3 @@ class BackendConsumer(WebsocketConsumer):
             self.loadFront(text_data_json)
         else:
             print("No handler for this message.")
-
-    # def handleAirport(self, data):
-    #     airportData, created = Airport.objects.update_or_create(
-    #         identifier=data['identifier'],
-    #         airportType=data['airportType'],
-    #         nameAbbreviated=data['nameAbbreviated'],
-    #         lat=data['lat'],
-    #         lng=data['lng'],
-    #         time=data['time']
-    #     )
-    #     airportData.save()
-    #     return airportData
-        
-        
-    #     # if text_data_json.get('type') == 'new_flight_record':
-    #     #     flight, created = Flight.objects.get_or_create(
-    #     #         hex=flight_data['hex'],
-    #     #         defaults={
-    #     #             'flight': flight_data['flight'],
-    #     #             'r': flight_data['r'],
-    #     #             't': flight_data['t'],
-    #     #         }
-    #     #     )
-
-    #     #     FlightRecord.objects.create(
-    #     #         flight=flight,
-    #     #         timestamp=datetime.fromisoformat(record_data['timestamp']),
-    #     #         lat=record_data['lat'],
-    #     #         lng=record_data['lng'],
-    #     #         alt_baro=record_data.get('alt_baro'),
-    #     #         alt_geom=record_data.get('alt_geom'),
-    #     #         track=record_data.get('track'),
-    #     #         ground_speed=record_data.get('ground_speed')
-                
-    #     #     )
-            
-            
-    #     #     self.send(text_data=json.dumps({
-    #     #         'type': 'new_flight_record',
-    #     #         'flight': {
-    #     #               'hex': flight.hex,
-    #     #               'flight': flight.flight,
-    #     #                 'r': flight.r,
-    #     #                 't': flight.t
-    #     #               },
-    #     #         'record': {
-    #     #             'timestamp': record_data['timestamp'],
-    #     #             'lat': record_data['lat'],
-    #     #             'lng': record_data['lng']
-    #     #         }
-    #     #     }))
-    #     #     async_to_sync(self.channel_layer.group_send)(
-    #     #         self.room_group_name,
-    #     #         {
-    #     #             'type': 'new_flight_record',
-    #     #             'flight': {
-    #     #                 'flight': flight_data['flight']
-    #     #             },
-    #     #             'record': {
-    #     #                 'timestamp': record_data['timestamp'],
-    #     #                 'lat': record_data['lat'],
-    #     #                 'lng': record_data['lng']
-    #     #             }
-    #     #         }
-    #     #     )
-    #     # elif text_data_json.get('type') == 'add_flight_record':

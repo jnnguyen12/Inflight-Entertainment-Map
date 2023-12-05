@@ -2,18 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-# TODO: Rename to aircraft
-# class Flight(models.Model):
-#     hex = models.CharField(max_length=10, unique=True)  # Hex ID of the flight
-#     flight = models.CharField(max_length=20)  # Flight number
-#     r = models.CharField(max_length=10)  # Registration
-#     t = models.CharField(max_length=10)  # Aircraft type
-    
-#     def __str__(self):
-#         return self.flight
-
 class Airport(models.Model):
-    # id = models.AutoField(primary_key=True)
     identifier = models.CharField(max_length=10)
     airportType = models.CharField(max_length=20)
     name = models.CharField(max_length=20)
@@ -52,6 +41,16 @@ class Flight(models.Model):
     def __str__(self):
         return f"{self.flight} - {self.timestamp}"
     
+class Landmark(models.Model):
+    name = models.CharField(max_length=30)
+    location = models.CharField(max_length=20)
+    lat = models.FloatField()
+    lng = models.FloatField()
+    image = models.ImageField()
+
+    def __str__(self):
+        return f"{self.name} - {self.location} - ({self.lat}, {self.lng})"
+    
 class FlightRecord(models.Model):
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()  # Timestamp of the record
@@ -68,19 +67,14 @@ class FlightRecord(models.Model):
     def __str__(self):
         return f"{self.flight.flight} - {self.timestamp}"
 
-
-
 class Marker(models.Model):
-    id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=20)
     flight = models.ForeignKey(Flight, on_delete=models.SET_NULL, blank=True, null=True)
     airport = models.ForeignKey(Airport, on_delete=models.SET_NULL, blank=True, null=True)
-    timestamp = models.DateTimeField()  # Timestamp of the record
+    landmark = models.ForeignKey(Landmark, on_delete=models.SET_NULL, blank=True, null=True)
     lat = models.FloatField()
     lng = models.FloatField()
-    onMap = models.BooleanField(default=False)
     flyTo = models.BooleanField(default=False)
-    toRemove = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.id}, type: {self.type}, lat: {self.lat}, lng: {self.lng}"

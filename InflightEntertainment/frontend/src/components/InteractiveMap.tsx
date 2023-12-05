@@ -268,6 +268,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     if (isMarkerRemoved) delete this.state.aircrafts[flightData.id];
   }
   
+  // 
   /**
    * Adds a marker to the map. 
    * Note: The marker data id should not be the same as the flight id.
@@ -275,13 +276,12 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
    */
   private async handleAddMarker(markerData: MarkerData) {
     // Check if the marker belongs to the current flight
+    markerData = markerData['marker'];
     if (markerData.id === this.state.Flight.id) {
       if(DEBUG) console.warn("Error cant add marker because it is the current flight")
       return "Error cant add marker because it is the current flight";
     }
-    // Add the marker to the map using the map reference
     const marker = await this.mapRef.current?.addMarkers(markerData);
-    // If the marker is successfully added, update the corresponding state to be stored
     if (marker) {
       switch (markerData.param) {
         case "aircraft":

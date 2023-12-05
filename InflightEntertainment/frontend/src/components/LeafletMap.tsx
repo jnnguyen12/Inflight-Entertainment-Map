@@ -115,7 +115,8 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
    * Useful for cleanup or resetting the map to its initial state.
    */
   clearMap() {
-    // Create a new map to replace the existing one
+    // Just makes a new map
+    this.map.remove();
     this.makeMap();
     // Clear lists in the component's state
     this.setState({
