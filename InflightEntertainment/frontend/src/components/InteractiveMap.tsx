@@ -98,7 +98,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     window.matchMedia("(max-width: 991px)").addEventListener('change', handler);
     if(DEBUG) console.log("componentDidMount: ", this.socket);
   }
-
+  // On unload
   componentWillUnmount() {
     // Sending a message to the backend if the page closed
     this.socket.send(
@@ -197,8 +197,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
         this.setState({ airports: {}, aircrafts: {}, landmarks: {}, polylines: {}, Flight: emptyFlight })
         return;
       case 'wellness':
-        // returns the (aircraft, airport, landmark, camera) data
-        return this.mapRef.current?.sendData(payload as Wellness);
+        return this.handleWellness(payload as Wellness);
       default:
         if(DEBUG) console.warn("Unknown type sent: ", payload.type);
         return "unknown type sent for: " + payload.type
@@ -374,6 +373,51 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     const removalSuccess = await this.mapRef.current?.removePolyLine({ id: polyLineData.id });
     // If the removal was successful, update the state by deleting the corresponding polyline entry
     if (removalSuccess) delete this.state.polylines[polyLineData.id];
+  }
+
+  private async handleWellness(payload: Wellness){
+    // gets the (aircraft, airport, landmark, polyline camera) data
+    let markerState;
+    let isPolyline = false
+    switch(payload.param){
+      case "aircraft":
+        markerState = this.state.aircrafts;
+        break;
+      case "airport":
+        markerState = this.state.airports;
+        break;
+      case "landmark":
+        markerState = this.state.landmarks;
+        break;
+      case "polyline":
+        isPolyline = true
+        break;
+      case "camera":
+        return "lat:"+this.state.lat.toString()+", lng:"+this.state.lng.toString()+", zoom:"+this.state.zoom.toString()
+      default: 
+        return "Wellness: Unknown param";
+    }
+    const jsonObjects = {}
+    if(isPolyline){
+      for (const poly in this.state.polylines) {
+        if (this.state.polylines.hasOwnProperty(poly)) {          
+          jsonObjects[poly] = {
+            aircraftId: this.state.polylines[poly].airportIdTo,
+            airportIdFrom: this.state.polylines[poly].airportIdFrom
+          }
+        }
+      }
+    } else {
+      for (const marker in markerState) {
+        if (markerState.hasOwnProperty(marker)) {          
+          jsonObjects[marker] = {
+            lat: markerState[marker].lat,
+            lng: markerState[marker].lng
+          }
+        }
+      }
+    }
+    return JSON.stringify(jsonObjects);
   }
 
   /**
