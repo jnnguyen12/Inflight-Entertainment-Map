@@ -1,7 +1,7 @@
 import React from "react";
 import LeafletMap from "./LeafletMap";
 import {
-  RndStates,
+  InteractiveMapStates,
   Flight,
   FlyCameraTo,
   MarkerData,
@@ -9,7 +9,6 @@ import {
   PolyLineData,
   RemoveData,
   Wellness,
-  Airport,
 } from "./Interfaces";
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -27,137 +26,43 @@ import {
 // Rnd
 import { Rnd } from "react-rnd";
 
-// function calculateDistanceInKm(
-//   originLat: number,
-//   originLng: number,
-//   destinationLat: number,
-//   destinationLng: number
-// ): number {
-//   const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
-//   const R = 6371; // Earth's radius in kilometers
-//   const dLat = toRadians(destinationLat - originLat);
-//   const dLon = toRadians(destinationLng - originLng);
-//   const a =
-//     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-//     Math.cos(toRadians(originLat)) *
-//     Math.cos(toRadians(destinationLat)) *
-//     Math.sin(dLon / 2) *
-//     Math.sin(dLon / 2);
-//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-//   return R * c; // Distance in kilometers
-// }
-
-// function calculateProgress(
-//   totalDistance: number,
-//   remainingDistance: number
-// ): number {
-//   if (totalDistance <= 0 || remainingDistance < 0) {
-//     console.error(
-//       "Invalid input: totalDistance and remainingDistance must be positive numbers."
-//     );
-//     return 0;
-//   }
-//   const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
-//   // Ensure progress is within the range [0, 100]
-//   return Math.max(0, Math.min(100, progress));
-// }
-
-// function calculateEstimatedTime(
-//   remainingKm: number,
-//   groundSpeedKnots: number
-// ): string {
-//   if (remainingKm < 0 || groundSpeedKnots <= 0) {
-//     console.error(
-//       "Invalid input: remainingKm and groundSpeedKnots must be positive numbers."
-//     );
-//     return "Error";
-//   }
-
-//   // Calculate estimated time in hours
-//   const estimatedHours = remainingKm / groundSpeedKnots;
-
-//   // Convert estimated time to days, hours, and minutes
-//   const days = Math.floor(estimatedHours / 24);
-//   const hours = Math.floor(estimatedHours % 24);
-//   const minutes = Math.round((estimatedHours % 1) * 60);
-
-//   let resultString = "";
-
-//   if (days !== 0) {
-//     resultString += `${days} ${days === 1 ? "day" : "days"}, `;
-//   }
-
-//   if (hours !== 0) {
-//     resultString += `${hours} ${hours === 1 ? "hour" : "hours"}, `;
-//   }
-
-//   if (minutes !== 0 || (days === 0 && hours === 0)) {
-//     resultString += `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-//   }
-
-//   return resultString;
-// }
-
+// Helper function
 function stringValid(myString: string | null): boolean {
   return myString !== null && myString !== "";
 }
 
-const numberValid = (myNumber: number | null): boolean => myNumber !== null && !isNaN(myNumber);
-
-// const testFlight: Flight = {
-//   id: "F1",
-//   flight: "FLIGHT01",
-//   lat: 35.6895,
-//   lng: 139.6917,
-//   rotation: 45,
-//   airportOrigin: {
-//     id: "A1",
-//     name: "Airport 1",
-//     nameAbbreviated: "A1",
-//     lat: 37.7749,
-//     lng: -122.4194,
-//     time: "12:00 PM",
-//   },
-//   airportDestination: {
-//     id: "A2",
-//     name: "Airport 2",
-//     nameAbbreviated: "A2",
-//     lat: 40.7128,
-//     lng: -74.006,
-//     time: "02:30 PM",
-//   },
-//   aircraftType: "Boeing 747",
-//   altitude: "35000", // Example barometric altitude in feet
-//   ground_speed: 500, // Example ground speed in knots
-//   estimatedTime: "2 hours",
-//   progress: 50,
-//   traveledKm: 1500,
-//   remainingKm: 1500,
-// };
-
-const emptyAirport = {
-  id: "",
-  name: "",
-  nameAbbreviated: "",
-  lat: 0,
-  lng: 0,
-  time: "",
-};
-
+// Default for UI
 const emptyFlight: Flight = {
   id: "",
   flight: "",
   lat: 0,
   lng: 0,
-  airportOrigin: emptyAirport,
-  airportDestination: emptyAirport,
+  airportOrigin: {
+    id: "",
+    name: "",
+    nameAbbreviated: "",
+    lat: 0,
+    lng: 0,
+    time: "",
+  },
+  airportDestination: {
+    id: "",
+    name: "",
+    nameAbbreviated: "",
+    lat: 0,
+    lng: 0,
+    time: "",
+  },
   aircraftType: "",
   progress: 0,
   traveledKm: 0,
   remainingKm: 0,
 };
 
-class InteractiveMap extends React.Component<{}, RndStates> {
+// For testing the frontend
+const DEBUG = false;
+
+class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   private mapRef = React.createRef<LeafletMap>();
   private socket: WebSocket | null = null; // WebSocket connection
   private defaultSpeed = 100;
@@ -191,7 +96,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     this.setState({ Flight: emptyFlight });
     const handler = e => this.setState({ matches: e.matches });
     window.matchMedia("(max-width: 991px)").addEventListener('change', handler);
-    console.log("componentDidMount: ", this.socket);
+    if(DEBUG) console.log("componentDidMount: ", this.socket);
   }
 
   componentWillUnmount() {
@@ -205,50 +110,62 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     if (this.socket) this.socket.close();
   }
 
+  // On load
   handleSocketOpen() {
-    console.log("handleSocketOpen: ", this.socket);
+    if(DEBUG) console.log("handleSocketOpen: ", this.socket);
     this.socket.send(
       JSON.stringify({
         type: "loadFront",
         data: "",
       })
     );
-
     console.log("WebSocket connection established.");
   }
-
+  // On close 
   private handleSocketClose() {
-    console.log("WebSocket connection closed.");
+    if(DEBUG) console.log("WebSocket connection closed.");
   }
 
+  /**
+   * Handles incoming WebSocket messages from the backend.
+   * @param {MessageEvent} event - The WebSocket message event.
+   */
   private handleSocketMessage = async (event: MessageEvent) => {
-    console.log("Received WebSocket Message");
+    if(DEBUG) console.log("Received WebSocket Message");
     // Parsing the message from the websockets in a JSON object
     const text = event.data;
     if (text === "") return;
     let dataJson;
     try {
+      // Attempt to parse the received JSON data.
       dataJson = JSON.parse(text);
     } catch (error) {
-      console.error('Error parsing JSON:', error);
+      if(DEBUG) console.error('Error parsing JSON:', error);
       return;
     }
-    console.log(dataJson);
-    // Making the JSON into a an array so that we can handle bulk messages
+    if(DEBUG) console.log(dataJson);
+    // Convert the JSON into an array to handle bulk messages.
     const data = Array.isArray(dataJson) ? dataJson : [dataJson];
-    const response: any[] = [];
+    const response: any[] = [];   // An array to store responses generated during payload processing.
     for (const payload of data) {
       try {
-        // Processing the JSON
+        // Process the JSON payload and get a response.
         const resp = await this.processPayload(payload.command);
+        // If a response is received, add it to the response array.
         if (resp) response.push(resp);
       } catch (error) {
-        console.error('Error processing payload:', error);
+        if(DEBUG) console.error('Error processing payload:', error);
       }
     }
+    // If there are responses, send them back to the backend.
     if (response.length > 0) this.socket.send(JSON.stringify({ action: 'FrontEndResponse', data: response }));
   }
-
+  
+  /**
+   * Processes a payload containing commands for map manipulation.
+   * @param {any} payload - The payload containing commands.
+   * @returns {Promise<void | string>} - A promise that resolves with success or an error message.
+   */
   private async processPayload(payload: any) {
     // Handle different command types from the JSON data
     switch (payload.type) {
@@ -265,7 +182,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       case 'updateMarker':
         return this.handleUpdateMarker(payload as UpdateMarkerData);
       case 'addPolyline':
-        return this.mapRef.current?.drawPolyLine(payload as PolyLineData);
+        return this.handleAddPolyline(payload as PolyLineData);
       case 'removePolyline':
         return this.handleRemovePolyline(payload as RemoveData);
       case 'flyToLocation':
@@ -283,17 +200,17 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         // returns the (aircraft, airport, landmark, camera) data
         return this.mapRef.current?.sendData(payload as Wellness);
       default:
-        console.warn("Unknown type sent: ", payload.type);
+        if(DEBUG) console.warn("Unknown type sent: ", payload.type);
         return "unknown type sent for: " + payload.type
     }
   }
 
   /**
-   * Handles setting flight data and updating the map with markers and polylines.
+   * Handles setting flight data and updating the map with markers and polylines. 
+   * Also triggers UI to update.
    * @param flightData - The flight data to be set.
    */
   private async handleSetFlight(flightData: Flight) {
-    console.log("----> ", flightData)
     // Update the state with the new flight data for the UI to process
     this.setState({ Flight: flightData })
     // Add aircraft marker to the map
@@ -312,106 +229,171 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     var polyline = await this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
     // Update the state with the new polyline if created
     if (polyline) this.state.polylines[flightData.id] = polyline;
-    console.log("Set flight polyline: ", this.state.polylines[flightData.id]);
   }
 
-  // Updates the flight and UI
+  /**
+   * Updates the flight information and triggers UI changes 
+   * @param flightData - The flight data to be set.
+   */
   private async handleUpdateFlight(flightData: Flight) {
-    console.log("#---> ", flightData)
-    this.setState({ Flight: flightData })
-    console.log("traveledKm: ", flightData.traveledKm);
-    console.log("remainingKm: ", flightData.remainingKm);
-    console.log("updateMarker Flight State: ", this.state.Flight);
+    this.setState({ Flight: flightData }) // Update the state with the new flight data
     let update;
+    // Check if the flight has ground speed information
     if (flightData.ground_speed) {
+      // If ground speed is available, move markers with the provided speed
       update = await this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp });
     } else {
+      // If ground speed is not available, move markers with the default speed
       update = await this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: this.defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp });
     }
+    // Update the state with the new marker and polyline if available
     if (update.marker) this.state.aircrafts[flightData.id] = update.marker
     if (update.polyline) this.state.polylines[flightData.id] = update.polyline
   }
 
-  // Removes flight and UI
-  private async handleRemoveFlight(payload: RemoveData) {
+  /**
+   * Removes the flight information and triggers UI changes 
+   * @param flightData - The data to be removed
+   */
+  private async handleRemoveFlight(flightData: RemoveData) {
+    // Reset the flight information to an empty state
     this.setState({ Flight: emptyFlight })
-    const bool = await this.mapRef.current?.removePolyLine({ id: payload.id })
-    if (bool) delete this.state.polylines[payload.id];
-    if (this.mapRef.current?.removeMarker({ id: payload.id, param: "aircraft" })) delete this.state.aircrafts[payload.id];
+    // Remove the polyline associated with the specified flight ID
+    const isPolylineRemoved = await this.mapRef.current?.removePolyLine({ id: flightData.id })
+    // If the polyline was successfully removed, delete it from the state
+    if (isPolylineRemoved) delete this.state.polylines[flightData.id];
+    // Remove the aircraft marker associated with the specified flight ID
+    const isMarkerRemoved = await this.mapRef.current?.removeMarker({ id: flightData.id, param: "aircraft" }) 
+    // If the aircraft marker was successfully removed, delete it from the state
+    if (isMarkerRemoved) delete this.state.aircrafts[flightData.id];
   }
-
-  private async handleAddMarker(payload: MarkerData) {
-    if (payload.id === this.state.Flight.id) {
-      console.warn("Error cant add marker because it is the current flight")
+  
+  /**
+   * Adds a marker to the map. 
+   * Note: The marker data id should not be the same as the flight id.
+   * @param markerData - The marker data 
+   */
+  private async handleAddMarker(markerData: MarkerData) {
+    // Check if the marker belongs to the current flight
+    if (markerData.id === this.state.Flight.id) {
+      if(DEBUG) console.warn("Error cant add marker because it is the current flight")
       return "Error cant add marker because it is the current flight";
     }
-    const marker = await this.mapRef.current?.addMarkers(payload);
+    // Add the marker to the map using the map reference
+    const marker = await this.mapRef.current?.addMarkers(markerData);
+    // If the marker is successfully added, update the corresponding state to be stored
     if (marker) {
-      switch (payload.param) {
+      switch (markerData.param) {
         case "aircraft":
-          this.state.aircrafts[payload.id] = marker;
-          return;
+          this.state.aircrafts[markerData.id] = marker;
+          return "addMarkers: added aircraft : "+markerData.id;
         case "airport":
-          this.state.airports[payload.id] = marker;
-          return;
+          this.state.airports[markerData.id] = marker;
+          return "addMarkers: added airport : "+markerData.id;
         case "landmark":
-          this.state.landmarks[payload.id] = marker;
-          return;
+          this.state.landmarks[markerData.id] = marker;
+          return "addMarkers: added landmark : "+markerData.id;
         default:
           console.warn("addMarkers: param not found");
-          return "addMarkers: param not found";
+          return "addMarkers: param not found: "+markerData.id;
       }
     }
   }
 
-  private async handleRemoveMarker(payload: RemoveData) {
-    // Implement 'removeMarker' logic
-    if (payload.id === this.state.Flight.id) {
+  /**
+   * Removes a marker on the map. 
+   * Note: The marker data id should not be the same as the flight id.
+   * @param markerData - The marker data 
+   */
+  private async handleRemoveMarker(markerData: RemoveData) {
+    // Check if the marker belongs to the current flight
+    if (markerData.id === this.state.Flight.id) {
       console.warn("Error cant remove marker because it is the current flight")
       return "Error cant remove marker because it is the current flight";
     }
-    const bool = await this.mapRef.current?.removeMarker({ id: payload.id, param: "aircraft" })
-    if (bool) {
-      switch (payload.param) {
+    // Attempt to remove the marker from the map using the map reference
+    const isMarkerRemoved = await this.mapRef.current?.removeMarker({ id: markerData.id, param: "aircraft" })
+    // If the marker is successfully removed, update the corresponding state
+    if (isMarkerRemoved) {
+      switch (markerData.param) {
         case "aircraft":
-          delete this.state.aircrafts[payload.id];
-          return;
+          delete this.state.aircrafts[markerData.id];
+          return "removeMarker: removed aircraft : "+markerData.id;
         case "airport":
-          delete this.state.airports[payload.id];
-          return;
+          delete this.state.airports[markerData.id];
+          return "removeMarker: removed airport : "+markerData.id;
         case "landmark":
-          delete this.state.landmarks[payload.id];
-          return;
+          delete this.state.landmarks[markerData.id];
+          return "removeMarker: removed landmark : "+markerData.id;
         default:
-          console.warn("addMarkers: param not found");
-          return "addMarkers: param not found";
+          console.warn("removeMarker: param not found");
+          return "removeMarker: param not found : "+markerData.id;
       }
     }
   }
 
-  private async handleUpdateMarker(payload: UpdateMarkerData) {
-    if (payload.id === this.state.Flight.id) {
+  /**
+   * Updates a marker on the map. 
+   * Note: The marker data id should not be the same as the flight id.
+   * @param markerData - The marker data to be updated on the map 
+   */
+  private async handleUpdateMarker(markerData: UpdateMarkerData) {
+    // Check if the marker belongs to the current flight
+    if (markerData.id === this.state.Flight.id) {
       console.warn("Error cant update marker because it is the current flight")
       return "Error cant update marker because it is the current flight";
     }
-    if (!payload.speed) payload.speed = this.defaultSpeed;
-    const update = await this.mapRef.current?.moveMarkers(payload);
-    if (update.marker) this.state.aircrafts[payload.id] = update.marker
-    if (update.polyline) this.state.polylines[payload.id] = update.polyline
+    // Set default speed if not provided in markerData
+    if (!markerData.speed) markerData.speed = this.defaultSpeed;
+    // Update markers and polylines on the map using the ref
+    const update = await this.mapRef.current?.moveMarkers(markerData);
+    // Update the state with the new marker and polyline data
+    if (update.marker) this.state.aircrafts[markerData.id] = update.marker
+    if (update.polyline) this.state.polylines[markerData.id] = update.polyline
   }
 
-  private async handleRemovePolyline(payload: RemoveData) {
-    const bool = await this.mapRef.current?.removePolyLine({ id: payload.id });
-    if (bool) delete this.state.polylines[payload.id];
+  /**
+   * Handles the addition of a polyline to the map for a specific aircraft.
+   * @param {PolyLineData} polyLineData - Data for drawing the polyline, including aircraft ID.
+   * @returns {string | undefined} - A message indicating success or failure.
+   */
+  private async handleAddPolyline(polyLineData: PolyLineData){
+    // Draw the polyline on the map using the provided data.
+    const polyline = await this.mapRef.current?.drawPolyLine(polyLineData);
+    // Check if the polyline was successfully drawn on the map else return failure
+    if(polyline) this.state.polylines[polyLineData.aircraftId] = polyline
+    else return "AddPolyline: polyline failed to make"
   }
 
+  /**
+   * Removes a polyline from the map based on the provided polyLineData.
+   * @param polyLineData - The data containing the ID of the polyline to be removed.
+   */
+  private async handleRemovePolyline(polyLineData: RemoveData) {
+    // Attempt to remove the polyline from the map using the ref
+    const removalSuccess = await this.mapRef.current?.removePolyLine({ id: polyLineData.id });
+    // If the removal was successful, update the state by deleting the corresponding polyline entry
+    if (removalSuccess) delete this.state.polylines[polyLineData.id];
+  }
+
+  /**
+   * Toggles the fullscreen mode for the map.
+   * Updates the component state and the map's state accordingly.
+   */
   toggleFullscreen() {
     this.setState({ fullScreen: !this.state.fullScreen }, () => {
+      // Update the map's state with the new fullscreen mode
       this.mapRef.current?.setState({ fullScreen: this.state.fullScreen });
     });
   }
 
+  /**
+   * Displays the origin and destination times for the current flight.
+   * Converts and formats timestamps to a readable format.
+   * @returns JSX element containing the formatted times or an empty fragment if times are invalid.
+   */
   displayTime() {
+    // Check if origin and destination times are valid before proceeding
     if (
       stringValid(this.state.Flight.airportOrigin.time) &&
       stringValid(this.state.Flight.airportDestination.time)
@@ -419,10 +401,12 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       // Convert timestamps to readable format
       const originDate = new Date(this.state.Flight.airportOrigin.time);
       const destinationDate = new Date(this.state.Flight.airportOrigin.time);
+      // Initialize variables for formatted time strings
       var originFormatted = "Invalid time";
       var destFormatted = "Invalid time";
-
+      // Check if timestamps are valid before formatting
       if (!isNaN(originDate.getTime()) && !isNaN(destinationDate.getTime())) {
+        // Define formatting options for the Intl.DateTimeFormat
         const options: Intl.DateTimeFormatOptions = {
           year: 'numeric',
           month: 'numeric',
@@ -431,11 +415,11 @@ class InteractiveMap extends React.Component<{}, RndStates> {
           minute: 'numeric',
           hour12: true
         };
-
+        // Format the origin and destination times using the defined options
         originFormatted = new Intl.DateTimeFormat('en-US', options).format(originDate);
         destFormatted = new Intl.DateTimeFormat('en-US', options).format(destinationDate);
       }
-
+      // Return JSX element with formatted times
       return (
         <div className="time d-flex justify-content-between align-items-center">
           <div>
@@ -452,7 +436,13 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     return <></>;
   }
 
+  /**
+   * Displays information related to the estimated time for the current flight.
+   * Shows the abbreviated names of the origin and destination airports, as well as the remaining estimated time.
+   * @returns JSX element containing flight information or an empty fragment if data is insufficient.
+   */
   displayEstimatedTime() {
+    // Check if ground speed and estimated time are valid before proceeding
     if (this.state.Flight.ground_speed && stringValid(this.state.Flight.estimatedTime)) {
       return (
         <div className="d-flex justify-content-between align-items-center">
@@ -470,25 +460,35 @@ class InteractiveMap extends React.Component<{}, RndStates> {
     }
     return <></>;
   }
-
+  
+  /**
+   * Displays additional information related to the current flight, such as ground speed and altitude.
+   * Converts units and formats data for better readability.
+   * @returns JSX elements containing the formatted extra information or empty fragments if data is insufficient.
+   */
   displayExtraInfo() {
+    // Helper functions for unit conversion
     const knotsToMph = (knots: number): number => Math.floor(knots * 1.15078);
     const knotsToKph = (knots: number): number => Math.floor(knots * 1.852);
     const feetToMeters = (feet: number): number => Math.floor(feet * 0.3048);
+    // Helper function for parsing and validating numbers
     const tryParseNumber = (input: string): number | string => {
       const parsedNumber = parseFloat(input);
       return isNaN(parsedNumber) ? input : parsedNumber;
     };
+    // Helper function to check if a number is valid
     const numberValid = (myNumber: number | null): boolean =>
       myNumber !== null && !isNaN(myNumber);
 
-    let x = <></>;
-    let y = <></>;
+      // Initialize JSX elements for ground speed and altitude
+    let groundSpeedElement = <></>;
+    let altitudeElement = <></>;
 
+    // Check if ground speed is valid before displaying
     if (this.state.Flight.ground_speed && stringValid(this.state.Flight.ground_speed.toString())) {
       const speed = tryParseNumber(this.state.Flight.ground_speed.toString());
       if (typeof speed === "number" && numberValid(speed)) {
-        x = (
+        groundSpeedElement = (
           <p>
             Ground speed{" "}
             <span className="float-end">
@@ -499,17 +499,18 @@ class InteractiveMap extends React.Component<{}, RndStates> {
       }
     }
 
+    // Check if altitude is valid before displaying
     if (this.state.Flight && stringValid(this.state.Flight.altitude)) {
       const altitude = tryParseNumber(this.state.Flight.altitude);
       if (typeof altitude === "string") {
-        y = (
+        altitudeElement = (
           <p>
             Altitude{" "}
             <span className="float-end">{this.state.Flight.altitude}</span>
           </p>
         );
       } else if (typeof altitude === "number" && numberValid(altitude)) {
-        y = (
+        altitudeElement = (
           <p>
             Altitude{" "}
             <span className="float-end">
@@ -522,19 +523,28 @@ class InteractiveMap extends React.Component<{}, RndStates> {
 
     return (
       <>
-        {x}
-        {y}
+        {groundSpeedElement}
+        {altitudeElement}
       </>
     );
   }
 
+  /**
+   * Renders the main component, including the Leaflet map and UI elements for flight information.
+   * The rendering logic adapts based on the fullscreen state and responsiveness.
+   * @returns JSX elements containing the map, flight information, and UI controls.
+   */
   render() {
-    console.log("render: ", this.state.polylines);
+    // JSX element for the Leaflet map
     const leafletMap = <LeafletMap ref={this.mapRef} airports={this.state.airports} aircrafts={this.state.aircrafts} landmarks={this.state.landmarks} polylines={this.state.polylines} lat={this.state.lat} lng={this.state.lng} zoom={this.state.zoom} />;
+    // Helper function for calculating distance in miles
     const calculateDistanceInMiles = (distanceKm: number): number => Math.floor(distanceKm * 0.621371);
+    // Helper variables for controlling UI responsiveness
     const collapseOrientation = !this.state.matches && "collapse-horizontal";
     const flexOrientation = this.state.matches && "flex-column";
+    
     if (this.state.fullScreen) {
+      // Render full-screen view
       return (
         <>
           {leafletMap}
@@ -651,6 +661,7 @@ class InteractiveMap extends React.Component<{}, RndStates> {
         </>
       );
     } else {
+      // Render non-full-screen view using the React Resizable and Draggable (Rnd) component
       return (
         <div>
           <Rnd
