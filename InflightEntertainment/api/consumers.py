@@ -380,70 +380,46 @@ class BackendConsumer(WebsocketConsumer):
         )
 
     def updateMarker(self, data):
-        # TODO Check if this is correct  
-        markerType = data['param'] 
-        if markerType == 'aircraft':
-            originData = self.handleAirport(data.get('airportOrigin'))
-            destinationData = self.handleAirport(data.get('airportDestination'))
-            totalDistance = self.calculate_distance_in_km(originData.lat, originData.lng, destinationData.lat, destinationData.lng)
-            flightData, created =Flight.objects.update_or_create(
-                    hex=data['hex'],
-                    flight = data['flight'],
-                    timestamp=datetime.fromisoformat(data['timestamp']),
-                    lat=data['lat'],
-                    lng=data['lng'],
-                    registration=data['r'],
-                    aircraftType=data['t'],
-                    alt_baro=data['alt_baro'],
-                    alt_geom=data['alt_geom'],
-                    track=data['track'],
-                    ground_speed=data['gs'],
-                    airportOrigin=originData,
-                    airportDestination=destinationData,
-                    totalDistance=totalDistance
-            )
-            thisID = flightData.hex
-            
-        elif markerType == 'airport':
-            airportData = self.handleAirport(data.get('airport'))
+        marker = data.get('marker')
+        markerType = marker.get('param') 
 
-            Marker.objects.get_or_create(
-                id=airportData.id,
-                type=data['param'],
-                flight=airportData,
-                timestamp=data['timestamp'],
-                lat=airportData.lat,
-                lng=airportData.lng,
-                onMap=True,               
-            ) 
-            thisID = airportData.id
+        #update record in DB
+        record = get_object_or_404(Marker, id=marker.get('id'))
+        record.lat = marker.get('lat')
+        record.lng = marker.get('lng')
+        record.save(update_fields=['lat', 'lng'])            
         
         payload = {
             'type': 'updateMarker',
-            'id': thisID,
-            'lat': data['lat'],
-            'lng': data['lng'],
+            'id': marker.get('id'),
+            'lat': marker.get('lat'),
+            'lng': marker.get('lng'),
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
-        
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
+
     def addPolyline(self, data):
         # TODO Check if this is correct
-        aircraft = Flight.objects.get(data['hex'])
-        airportOrigin = Airport.objects.get(data['airportOriginId'])
-        airportDestination = Airport.objects.get(data['airportDestinationId'])
+        aircraft = Flight.objects.get(hex=data['hex'])
+        airportOrigin = aircraft.airportOrigin
+        airportDestination = aircraft.airportDestination
+
         polyLineData, created = Polyline.objects.update_or_create(
             aircraftID=aircraft.hex,
             airportIDTo=airportDestination.id,
             airportIDFrom=airportOrigin.id,
-            onMap=True
         )
         polyLineData.save()
         payload = {
             'type': 'addPolyline',
-            'aircraftId': polyLineData.aircraftID,
-            'airportIdTo': polyLineData.airportIDTo,
-            'airportIdFrom': polyLineData.airportIDFrom,
+            'aircraftId': aircraft.hex,
+            'airportIdTo': airportOrigin.id,
+            'airportIdFrom': airportDestination.id,
         }
         self.send(data=json.dumps(payload))
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
@@ -480,7 +456,6 @@ class BackendConsumer(WebsocketConsumer):
         )
 
     def wellness(self, data):
-        # TODO Check if correct 
         payload = {
             'type': 'wellness',
             'param': data['param']

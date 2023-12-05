@@ -156,7 +156,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     }
     // Create a new marker with specified properties
     const coords: LatLngExpression = [newMarkerProps.lat, newMarkerProps.lng]
-    const newMarker = BuildMarker(newMarkerProps.param, coords, newMarkerProps.rotation);
+    const newMarker = BuildMarker(newMarkerProps.param, coords, newMarkerProps.rotation, newMarkerProps.extra);
     // If the new marker is successfully created, add it to the map and update the state
     if(newMarker){
       newMarker.addTo(this.map!);

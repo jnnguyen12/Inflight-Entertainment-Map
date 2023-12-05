@@ -96,11 +96,12 @@ export interface PolyLineMaker {
 
 // Interface defining the structure of Marker data
 export interface MarkerData {
-    id: string;                 // Marker ID (currently using flight ID as marker ID)
-    param: string;               // Type of marker (aircraft, airport, ...)
-    lat: number;                // Latitude
-    lng: number;                // Longitude
-    rotation?: number;           // Rotation
+    id: string;                         // Marker ID (currently using flight ID as marker ID)
+    param: string;                      // Type of marker (aircraft, airport, ...)
+    lat: number;                        // Latitude
+    lng: number;                        // Longitude
+    rotation?: number;                  // Rotation
+    extra?: HTMLElement|JSX.Element     // Popup content 
 }
 
 // Interface defining the structure of an update to Marker data

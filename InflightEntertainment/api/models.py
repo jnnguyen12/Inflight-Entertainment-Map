@@ -83,8 +83,6 @@ class Polyline(models.Model):
     aircraftID = models.IntegerField(null=True)
     airportIDTo = models.IntegerField(null=True)
     airportIDFrom = models.IntegerField(null=True)
-    onMap = models.BooleanField(default=False)
-    toRemove = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.id}"

@@ -60,7 +60,7 @@ const emptyFlight: Flight = {
 };
 
 // For testing the frontend
-const DEBUG = false;
+const DEBUG = true;
 
 class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   private mapRef = React.createRef<LeafletMap>();
@@ -159,6 +159,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     }
     // If there are responses, send them back to the backend.
     if (response.length > 0) this.socket.send(JSON.stringify({ action: 'FrontEndResponse', data: response }));
+    console.log("Frontend Resposne: ", JSON.stringify({ action: 'FrontEndResponse', data: response }));
   }
   
   /**
@@ -311,7 +312,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
       return "Error cant remove marker because it is the current flight";
     }
     // Attempt to remove the marker from the map using the map reference
-    const isMarkerRemoved = await this.mapRef.current?.removeMarker({ id: markerData.id, param: "aircraft" })
+    const isMarkerRemoved = await this.mapRef.current?.removeMarker(markerData)
     // If the marker is successfully removed, update the corresponding state
     if (isMarkerRemoved) {
       switch (markerData.param) {
@@ -338,6 +339,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
    */
   private async handleUpdateMarker(markerData: UpdateMarkerData) {
     // Check if the marker belongs to the current flight
+    // markerData = markerData['marker'];
     if (markerData.id === this.state.Flight.id) {
       console.warn("Error cant update marker because it is the current flight")
       return "Error cant update marker because it is the current flight";
@@ -365,7 +367,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   }
 
   /**
-   * Removes a polyline from the map based on the provided polyLineData.
+   * Removes a polyline from the map based on the provided polyLineData
    * @param polyLineData - The data containing the ID of the polyline to be removed.
    */
   private async handleRemovePolyline(polyLineData: RemoveData) {
@@ -409,14 +411,18 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
       }
     } else {
       for (const marker in markerState) {
-        if (markerState.hasOwnProperty(marker)) {          
+        if (markerState.hasOwnProperty(marker)) {   
+          const latlng = markerState[marker].getLatLng()
+          console.log(latlng)
+
           jsonObjects[marker] = {
-            lat: markerState[marker].lat,
-            lng: markerState[marker].lng
+            lat: latlng.lat,
+            lng: latlng.lng
           }
         }
       }
     }
+    console.log("jsonObjects wellness: ", jsonObjects);
     return JSON.stringify(jsonObjects);
   }
 
