@@ -4,9 +4,9 @@ from django.db import models
 
 class Airport(models.Model):
     identifier = models.CharField(max_length=10)
-    airportType = models.CharField(max_length=20)
+    airportType = models.CharField(max_length=20, null=True)
     name = models.CharField(max_length=20)
-    nameAbbreviated = models.CharField(max_length=20, default='airport')
+    nameAbbreviated = models.CharField(max_length=20, default='airport', null=True)
     lat = models.FloatField()
     lng = models.FloatField()
     time = models.DateTimeField(null=True, blank=True) 
@@ -21,8 +21,8 @@ class Flight(models.Model):
     timestamp = models.DateTimeField(null=True)                          # Timestamp of the record
     lat = models.FloatField(default=0.0)                                   # Latitude
     lng = models.FloatField(default=0.0)                                   # Longitude
-    registration = models.CharField(max_length=10)              # Registration
-    aircraftType = models.CharField(max_length=10)              # Aircraft type
+    registration = models.CharField(max_length=10, null=True)              # Registration
+    aircraftType = models.CharField(max_length=10, null=True)              # Aircraft type
     alt_baro = models.CharField(null=True, blank=True, max_length=6)          # Barometric Altitude (altitude in feet as a number OR “ground”)
     alt_geom = models.IntegerField(null=True, blank=True)       # Geometric Altitude
     track = models.FloatField(null=True, blank=True)            # Track
@@ -80,7 +80,7 @@ class Marker(models.Model):
         return f"{self.id}, type: {self.type}, lat: {self.lat}, lng: {self.lng}"
     
 class Polyline(models.Model):
-    aircraftID = models.IntegerField(null=True)
+    aircraftID = models.CharField(max_length=12, null=True)
     airportIDTo = models.IntegerField(null=True)
     airportIDFrom = models.IntegerField(null=True)
 

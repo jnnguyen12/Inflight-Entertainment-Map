@@ -152,7 +152,7 @@ class BackendConsumer(WebsocketConsumer):
         flight = data.get('flight')
         flightData, created = Flight.objects.update_or_create(
                 hex=flight.get('hex'),
-                flight= flight['flight'],
+                flight= flight.get('flight'),
                 defaults = {
                     'hex': flight.get('hex'),
                     'flight': flight['flight'],
@@ -318,19 +318,50 @@ class BackendConsumer(WebsocketConsumer):
         markerObj = None
 
         if type == 'aircraft':
+            try: 
+                originID = get_object_or_404(Airport, id=marker.get('airportOrigin'))
+                destID = get_object_or_404(Airport, id=marker.get('airportDestination'))
+            except:
+                originID = None
+                destID = None
+
+            flight, created = Flight.objects.update_or_create(
+                    hex=marker.get('hex'), 
+                    defaults = {
+                        'hex': marker.get('hex'),
+                        'flight': marker.get('flight'),
+                        'airportOrigin': originID,
+                        'airportDestination': destID,
+                        'lat': marker.get('lat'),
+                        'lng': marker.get('lng')
+                    }
+            )
             markerObj, etc = Marker.objects.get_or_create(
                 type='aircraft',
-                flight = marker.get('flight'),
+                flight = flight,
                 lat=marker.get('lat'),
                 lng=marker.get('lng'),
             )
+
         elif type == 'airport':
+            airport, created = Airport.objects.update_or_create(
+                    identifier=marker.get('identifier'), 
+                    defaults = {
+                        'identifier': marker.get('identifier'),
+                        'airportType': marker.get('airportType'),
+                        'name': marker.get('name'),
+                        'nameAbbreviated': marker.get('nameAbbreviated'),
+                        'lat': marker.get('lat'),
+                        'lng': marker.get('lng')
+                    }
+            )
             markerObj, etc = Marker.objects.get_or_create(
                 type='airport',
-                airport=marker.get('airport'),
+                airport=airport,
                 lat=marker.get('lat'),
                 lng=marker.get('lng'),
             ) 
+
         elif type == 'landmark':
             markerObj, etc = Marker.objects.get_or_create(
                 type='landmark',
@@ -403,11 +434,18 @@ class BackendConsumer(WebsocketConsumer):
             }
         )
 
+    # TODO: Standardize all IDs. Marker IDs should match Flight / Airport IDs
+    # TODO: Flight should use IDs like the rest and not hex
+    # TODO: All marker functions should work for flights, landmarks, and airports
     def addPolyline(self, data):
         # TODO Check if this is correct
         aircraft = Flight.objects.get(hex=data['hex'])
         airportOrigin = aircraft.airportOrigin
         airportDestination = aircraft.airportDestination
+
+        markerAircraft = Marker.objects.get(flight=aircraft)
+        markerOrigin = Marker.objects.get(airport=airportOrigin)
+        markerDest = Marker.objects.get(airport=airportDestination)
 
         polyLineData, created = Polyline.objects.update_or_create(
             aircraftID=aircraft.hex,
@@ -417,12 +455,17 @@ class BackendConsumer(WebsocketConsumer):
         polyLineData.save()
         payload = {
             'type': 'addPolyline',
-            'aircraftId': aircraft.hex,
-            'airportIdTo': airportOrigin.id,
-            'airportIdFrom': airportDestination.id,
+            'aircraftId': markerAircraft.id,
+            'airportIdTo': markerDest.id,
+            'airportIdFrom': markerOrigin.id,
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
         
     def removePolyline(self, data):
         # TODO Check if this is correct
@@ -434,8 +477,13 @@ class BackendConsumer(WebsocketConsumer):
             'id': data['data'],
             'param': 'polyline',
         }
-        self.send(data=json.dumps(payload))
-        async_to_sync(self.channel_layer.group_send)(self.room_group_name, payload)
+
+        async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
+            {
+                'type': 'message',
+                'command': payload
+            }
+        )
 
     def clearMap(self, data):
         # Delete from DB
