@@ -116,6 +116,7 @@
     "noEmit": true,
   },
   "include": [
-    "src"
+    "src",
+    "src/**/*"
   ]
 }

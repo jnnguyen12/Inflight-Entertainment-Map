@@ -847,4 +847,17 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   }
 }
 
+// Improved 
+function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const toRadians = (degree: number) => degree * (Math.PI / 180);
+    const toDegrees = (radians: number) => radians * (180 / Math.PI);
+    const radLat1 = toRadians(lat1);
+    const radLat2 = toRadians(lat2);
+    const diffLng = toRadians(lng2 - lng1);
+    return (toDegrees(Math.atan2(
+        Math.sin(diffLng) * Math.cos(radLat2),
+        Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
+    )) + 360) % 360;
+}
+
 export default InteractiveMap;

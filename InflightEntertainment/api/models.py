@@ -60,6 +60,7 @@ class FlightRecord(models.Model):
     alt_geom = models.IntegerField(null=True, blank=True)  # Geometric Altitude
     track = models.FloatField(null=True, blank=True)  # Track
     ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
+    ground_speed = models.FloatField(null=True, blank=True)  # Ground Speed
 
     class Meta:
         unique_together = ['flight', 'timestamp']  # Each record must be unique per flight and timestamp
