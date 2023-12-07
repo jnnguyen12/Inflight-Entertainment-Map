@@ -1,6 +1,6 @@
 import L from "leaflet";
-import airport from '../assets/airport.png'
-import aircraft from '../assets/plane.png';
+import airport from '../assets/circle-solid.svg'
+import aircraft from '../assets/plane-solid.svg';
 import 'leaflet-rotatedmarker';
 import ReactDOMServer from 'react-dom/server';
 
