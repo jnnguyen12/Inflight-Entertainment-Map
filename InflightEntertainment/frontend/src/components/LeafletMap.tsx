@@ -224,7 +224,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     const rotation = updateRotation(this.state.aircrafts[updateData.id].getLatLng().lat, this.state.aircrafts[updateData.id].getLatLng().lng, updateData.lat, updateData.lng);
     
     // Animate the marker movement, update the marker's position, and store the update
-    this.animateMarkerMovement(this.state.aircrafts[updateData.id], L.latLng(updateData.lat, updateData.lng), rotation, updateData.speed, updateData.prevTimestamp, updateData.currentTimestamp);
+    this.animateMarkerMovement(this.state.aircrafts[updateData.id], L.latLng(updateData.lat, updateData.lng), rotation, updateData.speed, updateData.prevTimestamp, updateData.currentTimestamp, updateData.simulationSpeedup);
     
     // Set the new position for the aircraft marker
     this.state.aircrafts[updateData.id].setLatLng([updateData.lat, updateData.lng])
@@ -346,7 +346,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     return true
   }
 
-  animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp) => {
+  animateMarkerMovement = (marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp, simulationSpeedup) => {
     // console.log("animateMarker: ", marker, newCoords, rotation, speed, prevTimestamp, currentTimestamp);
     const startPosition = marker.getLatLng();
     const endPosition = newCoords;
@@ -360,7 +360,8 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     const timeToTravel = distance / speedInMetersPerSecond;
     
     // Calculate animation duration using timestamps (in milliseconds)
-    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime());
+    // simulationSpeedup is defined in record_demo. It adjusts for backend sending faster than realtime
+    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime()) / simulationSpeedup;
     const startTime = performance.now();
     // console.log("animateMarker\nduration: ", duration, "\ntimeToTravel: ", timeToTravel, "\nspeed: ", speedInMetersPerSecond, "\ndistance: ", distance);
     

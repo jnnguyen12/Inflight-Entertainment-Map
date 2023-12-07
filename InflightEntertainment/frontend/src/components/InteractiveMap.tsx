@@ -280,13 +280,14 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   private async handleUpdateFlight(flightData: Flight) {
     this.setState({ Flight: flightData }) // Update the state with the new flight data
     let update;
+    if (!flightData.simulationSpeedup) flightData.simulationSpeedup = 1;
     // Check if the flight has ground speed information
     if (flightData.ground_speed) {
       // If ground speed is available, move markers with the provided speed
-      update = await this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp });
+      update = await this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: flightData.ground_speed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp, simulationSpeedup: flightData.simulationSpeedup });
     } else {
       // If ground speed is not available, move markers with the default speed
-      update = await this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: this.defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp });
+      update = await this.mapRef.current?.moveMarkers({ id: flightData.id, lat: flightData.lat, lng: flightData.lng, speed: this.defaultSpeed, prevTimestamp: flightData.prevTimestamp, currentTimestamp: flightData.currentTimestamp, simulationSpeedup: flightData.simulationSpeedup });
     }
     // Update the state with the new marker and polyline if available
     if (update.marker) this.state.aircrafts[flightData.id] = update.marker
@@ -401,11 +402,13 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
    * @returns {string | undefined} - A message indicating success or failure.
    */
   private async handleAddPolyline(polyLineData: PolyLineData){
+    console.log("AddPolyline before handling: ", this.state.polylines); //TODO: REMOVE
     // Draw the polyline on the map using the provided data.
     const polyline = await this.mapRef.current?.drawPolyLine(polyLineData);
     // Check if the polyline was successfully drawn on the map else return failure
     if(polyline) this.state.polylines[polyLineData.aircraftId] = polyline
     else return "AddPolyline: polyline failed to make"
+    console.log("AddPolyline after handling: ", this.state.polylines); //TODO: REMOVE
   }
 
   /**

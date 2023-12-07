@@ -32,29 +32,11 @@ class Command(BaseCommand):
         print("Exiting demo -- deleting objects.")
         time.sleep(4)
 
-        hex_key = options.get('hex_key')
-        flightSign = options.get('flight')
-
         self.ws.send(
             json.dumps({
-                'type': 'removeFlight',
-                'flight': {
-                    'hex': hex_key,
-                    'flight': flightSign
-                }   
+                'type': 'clearMap'
             }))
-        
-        airports = Airport.objects.all().delete()
         self.ws.close()
-                
-        # flight = get_object_or_404(Flight, Q(hex=hex_key) | Q(flight=flightSign))
-
-        # markers = Marker.objects.all().filter(flight=flight)
-        # for m in markers:
-        #     m.toRemove = True
-        #     m.save(update_fields=['toRemove'])
-
-        #flight.delete()
 
     def handle(self, *args, **options):
         # Create objects
@@ -130,20 +112,20 @@ class Command(BaseCommand):
                 'time': str(airportDest.time)
             }
         }
-        # async_to_sync(channel.group_send)('back', 
-        #     {
-        #         'type': 'message',
-        #         'command': payload
-        #     }
-        # )
-        # async_to_sync(channel.group_send)('back', payload)
-        # ws(scope=channel, send=payload, receive=None)
         
         self.ws.send(json.dumps(payload))
 
         # Loop through records
         print("Looping through flight records")      
         records = FlightRecord.objects.all().filter(flight=flight_key)
+
+        # Notes on simulation speed below. NOTE: record_demo is meant for demonstration, not final product!
+        # Currently we are storing 60 second intervals of flight records in DB (see process_flight_data.py)
+        # Because we are sleeping for 2 seconds, this means every minute we send 30 minutes of records
+        # Thus we speed up simulation by 30 to make frontend match
+        # If we wanted to sim realtime, we would sleep for 60 seconds and have no speedup
+        simSpeedup = 30
+
         for rec in records:
             time.sleep(2)
             flight_key.lat = rec.lat
@@ -169,6 +151,7 @@ class Command(BaseCommand):
                     'ground_speed': flight_key.ground_speed,
                     'aircraftType': flight_key.aircraftType,
                     'registration': flight_key.registration,
+                    'simulationSpeedup': simSpeedup,
                 },
                 'airportOrigin': {
                         'identifier': airportOrigin.identifier,
@@ -191,17 +174,8 @@ class Command(BaseCommand):
                 'currentTimestamp': str(rec.timestamp),
                 'prevTimestamp': str(lastRec.timestamp)
             }
-            # async_to_sync(channel.group_send)('back', 
-            #     {
-            #         'type': 'message',
-            #         'command': payload
-            #     }
-            # )
-            # async_to_sync(channel.group_send)('back', payload)
-            # ws(scope=channel ,send=payload, receive=None)
-            # ws = websockets.sync.client.connect("ws://127.0.0.1:8000/ws/socket-server/")
+
             self.ws.send(json.dumps(payload))
-            
             lastRec = rec
         self.clearDemo(**options)
 
