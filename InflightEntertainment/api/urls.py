@@ -3,13 +3,17 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+### THESE ENDPOINTS ARE DEPRECATED 
+### ALL FUNCTIONALITY IS CURRENTLY THROUGH WEBSOCKETS
+### see routing.py for websocket url
+
 urlpatterns = [
     path('', views.getRoutes, name="routes"),
 
     # Flights
     path('flights/', views.getFlights, name="flights"),
     path('flights/<str:pk>/', views.getFlight, name="flights"),
-    path('flights/<str:identifier>/simulate/', views.simulateFlight, name="flights"),
+    # path('flights/<str:identifier>/simulate/', views.simulateFlight, name="flights"),
 
     # Markers
     path('<str:markerID>/flyToMarkerID/', views.flyToMarkerID, name="fly"),

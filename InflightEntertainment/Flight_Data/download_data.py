@@ -25,5 +25,5 @@ def download_files(start_time, end_time, base_url):
 if __name__ == "__main__":
     base_url = "https://samples.adsbexchange.com/readsb-hist/2023/01/01/"
     start_time = "000000"
-    end_time = "000015"
+    end_time = "010000"
     download_files(start_time, end_time, base_url)
