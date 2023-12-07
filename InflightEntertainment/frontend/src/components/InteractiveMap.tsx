@@ -21,6 +21,8 @@ import {
   faChevronRight,
   faExpand,
   faChevronDown,
+  faSun,
+  faMoon,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Rnd
@@ -83,6 +85,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
       lat: 0,
       lng: 0,
       zoom: 0,
+      lightMode: false
     };
   }
 
@@ -97,7 +100,46 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     const handler = e => this.setState({ matches: e.matches });
     window.matchMedia("(max-width: 991px)").addEventListener('change', handler);
     if(DEBUG) console.log("componentDidMount: ", this.socket);
+    this.demo()
+    // this.handleAddMarker({
+    //   id: "1",
+    //   param: "landmark",
+    //   lat: 45.21199,
+    //   lng: -90.815281} as MarkerData)
+    // this.handleAddMarker(payload as MarkerData)
   }
+
+  demo = () => {
+    const Airport1 = {
+      id: "426",
+      name: "",
+      nameAbbreviated: "",
+      lat: 45.358246,
+      lng: -77.289603,
+      time: "",
+    };
+    const Airport2 = {
+      id: "427",
+      name: "",
+      nameAbbreviated: "",
+      lat: 44.833343,
+      lng: -84.102887,
+      time: "",
+    };
+    const demoFlight: Flight = {
+      id: "c07c7b",
+      flight: "",
+      lat: 45.21199,
+      lng: -79.815281,
+      airportOrigin: Airport1,
+      airportDestination: Airport2,
+      aircraftType: "",
+      progress: 50,
+      traveledKm: 0,
+      remainingKm: 0,
+    };
+    this.handleSetFlight(demoFlight)
+  }; 
   // On unload
   componentWillUnmount() {
     // Sending a message to the backend if the page closed
@@ -438,6 +480,26 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   }
 
   /**
+   * toggles light mode on and off
+   * sets filter on map and color of aircraft and airport
+   */
+  toggleLightMode() {
+    this.setState({lightMode: !this.state.lightMode}, () => {
+      document.documentElement.style
+        .setProperty('--dark-mode-filter', this.state.lightMode ? 'none' : 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)');
+      document.documentElement.style
+        .setProperty('--aircraft-color', this.state.lightMode ? 'var(--bs-primary-text-emphasis)' : 'white');
+      document.documentElement.style
+        .setProperty('--airport-color', this.state.lightMode ? 'var(--bs-link-color)' : 'var(--bs-primary-border-subtle)');
+      document.documentElement.style
+        .setProperty('--btn-bg-color', this.state.lightMode ? 'var(--bs-blue)' : 'white');
+      document.documentElement.style
+        .setProperty('--btn-color', this.state.lightMode ? 'white' : 'var(--bs-blue)');
+
+    });
+  }
+
+  /**
    * Displays the origin and destination times for the current flight.
    * Converts and formats timestamps to a readable format.
    * @returns JSX element containing the formatted times or an empty fragment if times are invalid.
@@ -592,6 +654,7 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     // Helper variables for controlling UI responsiveness
     const collapseOrientation = !this.state.matches && "collapse-horizontal";
     const flexOrientation = this.state.matches && "flex-column";
+
     
     if (this.state.fullScreen) {
       // Render full-screen view
@@ -702,11 +765,18 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
                 </div>
               </div>
             </div>
-            <FontAwesomeIcon
-              className="expander"
-              icon={faCompress}
-              onClick={this.toggleFullscreen.bind(this)}
-            />
+            <div className="buttonDock">
+              <FontAwesomeIcon 
+                className="round-button"
+                icon={!this.state.lightMode ? faSun : faMoon} 
+                onClick={this.toggleLightMode.bind(this)}
+              />
+              <FontAwesomeIcon
+                className="round-button"
+                icon={faCompress}
+                onClick={this.toggleFullscreen.bind(this)}
+              />
+            </div>
           </div>
         </>
       );
@@ -755,11 +825,18 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
               height: "16px",
             }}
           >
-            <FontAwesomeIcon
-              className="expander"
-              icon={faExpand}
-              onClick={this.toggleFullscreen.bind(this)}
-            />
+            <div className="buttonDock">
+              <FontAwesomeIcon 
+                className="round-button"
+                icon={!this.state.lightMode ? faSun : faMoon} 
+                onClick={this.toggleLightMode.bind(this)}
+              />
+              <FontAwesomeIcon
+                className="round-button"
+                icon={faExpand}
+                onClick={this.toggleFullscreen.bind(this)}
+              />
+            </div>
           </div>
         </div>
       );

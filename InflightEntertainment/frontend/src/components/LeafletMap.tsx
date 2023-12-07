@@ -298,7 +298,6 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
       airportIdTo: polyLineData.airportIdTo,
       airportIdFrom: polyLineData.airportIdFrom,
       polylineTo: L.polyline([this.state.aircrafts[polyLineData.aircraftId].getLatLng(), this.state.airports[polyLineData.airportIdTo].getLatLng()], {
-        // dashArray: [10],
         interactive: false,
         stroke: true,
         lineCap: 'butt',
@@ -309,12 +308,11 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
       }),
       polylineFrom: polyLineData.airportIdFrom 
         ? L.polyline([this.state.aircrafts[polyLineData.aircraftId].getLatLng(), this.state.airports[polyLineData.airportIdFrom].getLatLng()], {
-            // dashArray: [10],
             interactive: false,
             stroke: true,
             lineCap: 'butt',
             color: getComputedStyle(document.documentElement)
-            .getPropertyValue('--bs-primary'),
+            .getPropertyValue('--bs-link-color'),
             smoothFactor: 100,
             opacity: 1.0,
         })

@@ -39,6 +39,7 @@ export interface InteractiveMapStates {
     lat: number;                                    // Latitude
     lng: number;                                    // Longitude
     zoom: number;                                   // Zoom level
+    lightMode: boolean;                             // whether the marker and map is light mode
 }
 
 // Interface defining the structure of Leaflet polylines
