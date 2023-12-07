@@ -77,6 +77,7 @@ export interface Flight {
     remainingKm?: number;                    // Distance Remaining in Km
     prevTimestamp?: string;                 // date time of prevous record
     currentTimestamp?: string;              // date time of current record
+    simulationSpeedup?: number;             // Only for simulation of flights > real time
 }
 
 // Interface defining the camera position
@@ -112,6 +113,7 @@ export interface UpdateMarkerData {
     speed: number;              // ground speed
     prevTimestamp: string;      // previous timestamp of marker
     currentTimestamp: string;   // current timestamp of marker
+    simulationSpeedup: number;  // for simulation at speeds > real time, adjusts animation
 }
 
 // Interface defining the structure of PolyLine data

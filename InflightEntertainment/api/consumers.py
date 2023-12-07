@@ -84,7 +84,8 @@ class BackendConsumer(WebsocketConsumer):
         payload = {
             'type': 'setFlight',
             'flight': flightData.flight,
-            'id': flightData.hex,
+            'id': flightData.id,
+            'hex': flightData.hex,
             'lat': flightData.lat,
             'lng': flightData.lng,
             'alt_baro': flightData.alt_baro,
@@ -183,7 +184,8 @@ class BackendConsumer(WebsocketConsumer):
         payload = {
             'type': 'setFlight',
             'flight': flightData.flight,
-            'id': flightData.hex,
+            'id': flightData.id,
+            'hex': flightData.hex,
             'lat': flightData.lat,
             'lng': flightData.lng,
             'alt_baro': flightData.alt_baro,
@@ -243,7 +245,8 @@ class BackendConsumer(WebsocketConsumer):
         payload = {
             'type': 'updateFlight',
             'flight': flightData.flight,
-            'id': flightData.hex,
+            'id': flightData.id,
+            'hex': flightData.hex,
             'lat': flight.get("lat"),
             'lng': flight.get("lng"),
             'alt_baro': flight.get("alt_baro"),
@@ -258,6 +261,7 @@ class BackendConsumer(WebsocketConsumer):
             'progress': progress,
             'traveledKm': traveledKm,
             'remainingKm': remainingKm,
+            'simulationSpeedup': flight.get('simulationSpeedup'),
             'airportOrigin': {
                     'identifier': originData.identifier,
                     'name': originData.name,
@@ -337,6 +341,7 @@ class BackendConsumer(WebsocketConsumer):
                     }
             )
             markerObj, etc = Marker.objects.get_or_create(
+                id=flight.id,
                 type='aircraft',
                 flight = flight,
                 lat=marker.get('lat'),
@@ -356,6 +361,7 @@ class BackendConsumer(WebsocketConsumer):
                     }
             )
             markerObj, etc = Marker.objects.get_or_create(
+                id=airport.id,
                 type='airport',
                 airport=airport,
                 lat=marker.get('lat'),
@@ -434,30 +440,24 @@ class BackendConsumer(WebsocketConsumer):
             }
         )
 
-    # TODO: Standardize all IDs. Marker IDs should match Flight / Airport IDs
-    # TODO: Flight should use IDs like the rest and not hex
     # TODO: All marker functions should work for flights, landmarks, and airports
     def addPolyline(self, data):
-        # TODO Check if this is correct
-        aircraft = Flight.objects.get(hex=data['hex'])
+        aircraft = Flight.objects.get(id=data['aircraft'])
         airportOrigin = aircraft.airportOrigin
         airportDestination = aircraft.airportDestination
 
-        markerAircraft = Marker.objects.get(flight=aircraft)
-        markerOrigin = Marker.objects.get(airport=airportOrigin)
-        markerDest = Marker.objects.get(airport=airportDestination)
-
         polyLineData, created = Polyline.objects.update_or_create(
-            aircraftID=aircraft.hex,
+            aircraftID=aircraft.id,
             airportIDTo=airportDestination.id,
             airportIDFrom=airportOrigin.id,
         )
+
         polyLineData.save()
         payload = {
             'type': 'addPolyline',
-            'aircraftId': markerAircraft.id,
-            'airportIdTo': markerDest.id,
-            'airportIdFrom': markerOrigin.id,
+            'aircraftId': aircraft.id,
+            'airportIdTo': airportOrigin.id,
+            'airportIdFrom': airportDestination.id,
         }
 
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
@@ -468,14 +468,12 @@ class BackendConsumer(WebsocketConsumer):
         )
         
     def removePolyline(self, data):
-        # TODO Check if this is correct
-        polyline = Polyline.objects.get(data['id'])
+        polyline = Polyline.objects.get(aircraftID=data.get('id'))
         polyline.delete()
 
         payload = {
             'type': 'removePolyline',
-            'id': data['data'],
-            'param': 'polyline',
+            'id': data.get('id'),
         }
 
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, 
@@ -487,9 +485,9 @@ class BackendConsumer(WebsocketConsumer):
 
     def clearMap(self, data):
         # Delete from DB
-        Flight.objects.all().delete()
         Marker.objects.all().delete()
         Airport.objects.all().delete()
+        Polyline.objects.all().delete()
 
         # Tell front to delete from map
         payload = {

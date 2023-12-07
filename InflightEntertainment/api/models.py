@@ -68,6 +68,7 @@ class FlightRecord(models.Model):
         return f"{self.flight.flight} - {self.timestamp}"
 
 class Marker(models.Model):
+    id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=20)
     flight = models.ForeignKey(Flight, on_delete=models.SET_NULL, blank=True, null=True)
     airport = models.ForeignKey(Airport, on_delete=models.SET_NULL, blank=True, null=True)
