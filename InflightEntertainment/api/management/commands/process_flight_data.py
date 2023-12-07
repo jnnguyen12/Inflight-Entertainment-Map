@@ -29,7 +29,6 @@ class Command(BaseCommand):
         files = os.listdir(directory_path)
         for file_name in sorted(files):
             if file_name.endswith('00Z.json.gz', 4): # this will only consider 1-minute intervals
-            if file_name.endswith('00Z.json.gz', 4): # this will only consider 1-minute intervals
                 file_path = os.path.join(directory_path, file_name)
                 self.parse_and_save(file_path)
                 self.stdout.write(self.style.SUCCESS(f'Done with: {file_path}'))

@@ -25,18 +25,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c; // Distance in meters
 }
 
-interface PolyLineMaker {
-  aircraftId: string
-  airportIdTo: string
-  airportIdFrom: string
-}
-
-interface ExtendedMakeMaker extends MakeMaker {
-  speed: number;
-  prevTimestamp: string;
-  currentTimestamp: string;
-}
-
 //The map class
 class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
   private mapRef: React.RefObject<HTMLDivElement>;
@@ -366,8 +354,8 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     const distance = calculateDistance(startPosition.lat, startPosition.lng, endPosition.lat, endPosition.lng);
     
     // Convert speed from knots to meters per second
-    const speedInMetersPerSecond = speed * 0.514444;
-
+    const speedInMetersPerSecond = speed * 0.514444; 
+  
     // Calculate time to travel the distance at the given speed (time = distance / speed)
     const timeToTravel = distance / speedInMetersPerSecond;
     
@@ -386,15 +374,15 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
           lng: startPosition.lng + (endPosition.lng - startPosition.lng) * progress,
         };
         marker.setLatLng(currentPosition);
-
-        // Recalculate rotation based on the current position
-        const currentRotation = calculateRotation(currentPosition.lat, currentPosition.lng, endPosition.lat, endPosition.lng);
-        marker.setRotationAngle(currentRotation);
-
+        if (rotation !== undefined) {
+          marker.setRotationAngle(rotation);
+        }
         requestAnimationFrame(animate);
       } else {
         marker.setLatLng(endPosition);
-        marker.setRotationAngle(rotation);
+        if (rotation !== undefined) {
+          marker.setRotationAngle(rotation);
+        }
       }
     };
     requestAnimationFrame(animate);
@@ -445,33 +433,6 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
       </>
     );
   }
-}
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // Earth's radius in meters
-  const phi1 = lat1 * Math.PI / 180;
-  const phi2 = lat2 * Math.PI / 180;
-  const deltaPhi = (lat2 - lat1) * Math.PI / 180;
-  const deltaLambda = (lon2 - lon1) * Math.PI / 180;
-
-  const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-    Math.cos(phi1) * Math.cos(phi2) *
-    Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // Distance in meters
-}
-
-function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRadians = (degree: number) => degree * (Math.PI / 180);
-  const toDegrees = (radians: number) => radians * (180 / Math.PI);
-  const radLat1 = toRadians(lat1);
-  const radLat2 = toRadians(lat2);
-  const diffLng = toRadians(lng2 - lng1);
-  return (toDegrees(Math.atan2(
-    Math.sin(diffLng) * Math.cos(radLat2),
-    Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
-  )) + 360) % 360;
 }
 
 export default LeafletMap;
