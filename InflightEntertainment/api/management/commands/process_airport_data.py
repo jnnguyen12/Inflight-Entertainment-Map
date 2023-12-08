@@ -23,7 +23,7 @@ class Command(BaseCommand):
                     if row['id'] != '':
                         Airport.objects.create(
                             id=row['id'],
-                            ident=row['ident'],
+                            identifier=row['ident'],
                             name=row['name'],
                             lat=row['latitude_deg'],
                             lng=row['longitude_deg']

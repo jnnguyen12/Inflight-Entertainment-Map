@@ -517,32 +517,40 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
       const originDate = new Date(this.state.Flight.airportOrigin.time);
       const destinationDate = new Date(this.state.Flight.airportOrigin.time);
       // Initialize variables for formatted time strings
-      var originFormatted = "Invalid time";
-      var destFormatted = "Invalid time";
+      var originFormattedDate = "Invalid date";
+      var destFormattedDate = "Invalid date";
+      var originFormattedTime = "Invalid time";
+      var destFormattedTime = "Invalid time";
       // Check if timestamps are valid before formatting
       if (!isNaN(originDate.getTime()) && !isNaN(destinationDate.getTime())) {
         // Define formatting options for the Intl.DateTimeFormat
-        const options: Intl.DateTimeFormatOptions = {
+        const dateOptions: Intl.DateTimeFormatOptions = {
           year: 'numeric',
           month: 'numeric',
           day: 'numeric',
+        };
+        const timeOptions: Intl.DateTimeFormatOptions = {
           hour: 'numeric',
           minute: 'numeric',
-          hour12: true
+          hour12: true,
         };
         // Format the origin and destination times using the defined options
-        originFormatted = new Intl.DateTimeFormat('en-US', options).format(originDate);
-        destFormatted = new Intl.DateTimeFormat('en-US', options).format(destinationDate);
+        originFormattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(originDate);
+        destFormattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(destinationDate);
+        originFormattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(originDate);
+        destFormattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(destinationDate);
       }
       // Return JSX element with formatted times
       return (
         <div className="time d-flex justify-content-between align-items-center">
           <div>
-            <h4>{originFormatted}</h4>
+            <h4>{originFormattedDate}</h4>
+            <h4>{originFormattedTime}</h4>
             <small>Local time</small>
           </div>
           <div className="text-end">
-            <h4>{destFormatted}</h4>
+            <h4>{destFormattedDate}</h4>
+            <h4>{destFormattedTime}</h4>
             <small>Destination time</small>
           </div>
         </div>

@@ -18,51 +18,6 @@ function App() {
   );
 }
 
-// type Flight = {
-//   id: number;
-//   hex: string;
-//   flight: string;
-//   r: string;
-//   t: string;
-// };
-
-// type FlightRecord = {
-//   flight: Flight;
-//   timestamp: string;
-//   lat: number;
-//   lng: number;
-//   alt_baro: number | null;
-//   alt_geom: number | null;
-//   track: number | null;
-//   ground_speed: number;
-// };
-
-// const TestBackend = () => {
-//   const [flightRecords, setFlightRecords] = React.useState<FlightRecord[]>([]);
-
-//   const getFlightRecords = async () => {
-//     let response = await fetch('/api/flights/ASA184/simulate/');
-//     let data = await response.json();
-//     setFlightRecords(data);
-//   }
-
-//   React.useEffect(() => {
-//     getFlightRecords();
-//   }, []);
-
-//   return (
-//     <div className="flightRecords">
-//       {flightRecords.map((record) => (
-//         <div key={record.timestamp} className="flightRecord">
-//           <p>Timestamp: {record.timestamp}</p>
-//           <p>Latitude: {record.lat}</p>
-//           <p>lnggitude: {record.lng}</p>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
 // const TestWebsocket: React.FC = () => {
 //   const [flightRecords, setFlightRecords] = useState<FlightRecord[]>([]);
 //   const chatSocketRef = useRef<WebSocket | null>(null);
