@@ -361,7 +361,8 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     
     // Calculate animation duration using timestamps (in milliseconds)
     // simulationSpeedup is defined in record_demo. It adjusts for backend sending faster than realtime
-    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime()) / simulationSpeedup;
+    const speedFactor = 1.020;
+    const duration = Math.min(timeToTravel * 1000, new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime()) / (simulationSpeedup * speedFactor);
     const startTime = performance.now();
     // console.log("animateMarker\nduration: ", duration, "\ntimeToTravel: ", timeToTravel, "\nspeed: ", speedInMetersPerSecond, "\ndistance: ", distance);
     

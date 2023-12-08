@@ -24,7 +24,6 @@
     "localforage": "^1.10.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-rnd": "^10.4.1",
     "react-leaflet": "^4.2.1",
     "react-rnd": "^10.4.1",
     "react-scripts": "5.0.1",
@@ -38,11 +37,21 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": ["react-app"]
+    "extends": [
+      "react-app"
+    ]
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
