@@ -16,11 +16,16 @@ import api.routing
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "InflightEntertainment.settings")
 
+# Creating an ASGI application instance
+# ProtocolTypeRouter is used to route different types of communication protocols
 application = ProtocolTypeRouter({
+    # Configuring the application to serve HTTP requests
     "http": get_asgi_application(),
+    # Configuring WebSocket protocol with authentication middleware
     "websocket": AuthMiddlewareStack(
+        # URLRouter is used to route incoming WebSocket connections based on URL patterns
         URLRouter(
-            api.routing.websocket_urlpatterns
+            api.routing.websocket_urlpatterns # Using the URL patterns defined in 'api.routing'
         )
     )
 })
