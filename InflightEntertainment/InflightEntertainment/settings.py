@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # websocket support
     "daphne",
 
     "django.contrib.admin",
@@ -131,6 +132,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+# Adding the path to the static files directory needed for the backend to see the frontend's static files
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [

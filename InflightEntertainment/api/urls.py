@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 ### THESE ENDPOINTS ARE DEPRECATED 
 ### ALL FUNCTIONALITY IS CURRENTLY THROUGH WEBSOCKETS
 ### see routing.py for websocket url
+### Previous this was the endpoints for the REST API
 
 urlpatterns = [
     path('', views.getRoutes, name="routes"),

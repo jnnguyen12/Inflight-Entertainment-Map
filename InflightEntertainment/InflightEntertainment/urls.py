@@ -23,9 +23,15 @@ from django.views.generic import TemplateView
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# List of URL patterns for the application
 urlpatterns = [
+    # URL pattern for the Django admin interface
     path("admin/", admin.site.urls),
+    # URL pattern for the 'api' app, directing any URL starting with 'api/' to the 'api.urls' module
     path('api/',  include('api.urls')),
+    # Catch-all URL pattern for serving the frontend
+    # This pattern uses a regular expression to match any URL not caught by the above patterns
+    # It serves the index.html file from the frontend's build directory
     re_path(r'^(?:.*)/?$', serve, {
         'document_root': os.path.join(BASE_DIR, 'frontend/build'),
         'path': 'index.html',
