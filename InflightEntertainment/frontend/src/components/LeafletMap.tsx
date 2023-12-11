@@ -434,7 +434,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
           id="map"
           className="leaflet-map"
           onTouchMove={(e) => this.handleMapTouch(e)}
-          onPointerDown={() => {if (!this.state.fullScreen) this.map.dragging.disable()}}
+          // onPointerDown={() => {if (!this.state.fullScreen) this.map.dragging.disable()}}
           ref={this.mapRef}
         ></div>
       </>
