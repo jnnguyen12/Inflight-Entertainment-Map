@@ -488,17 +488,13 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
    */
   toggleLightMode() {
     this.setState({lightMode: !this.state.lightMode}, () => {
-      document.documentElement.style
-        .setProperty('--dark-mode-filter', this.state.lightMode ? 'none' : 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)');
-      document.documentElement.style
-        .setProperty('--aircraft-color', this.state.lightMode ? 'var(--bs-primary-text-emphasis)' : 'white');
-      document.documentElement.style
-        .setProperty('--airport-color', this.state.lightMode ? 'var(--bs-link-color)' : 'var(--bs-primary-border-subtle)');
-      document.documentElement.style
-        .setProperty('--btn-bg-color', this.state.lightMode ? 'var(--bs-blue)' : 'white');
-      document.documentElement.style
-        .setProperty('--btn-color', this.state.lightMode ? 'white' : 'var(--bs-blue)');
-
+      if (this.state.lightMode) {
+        document.body.classList.add("lightMode");
+        document.body.classList.remove("darkMode");
+      } else {
+        document.body.classList.add("darkMode");
+        document.body.classList.remove("lightMode");
+      }
     });
   }
 

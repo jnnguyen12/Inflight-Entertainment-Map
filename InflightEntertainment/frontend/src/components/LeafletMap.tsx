@@ -393,12 +393,18 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
    * Handles touch events on the map to enable/disable dragging based on the number of touches.
    * @param {React.TouchEvent<HTMLDivElement>} e - The touch event on the map container.
    */
-  handleMapTouch(e: React.TouchEvent<HTMLDivElement>) {
-    // Check if there is only one touch on the screen and the map is not in fullscreen mode
-    if (e.touches.length <= 1 && !this.state.fullScreen) {
-      if (this.map) this.map.dragging.disable(); // If true, disable dragging of the map
-    } else {
-      if (this.map) this.map.dragging.enable();  // If there are multiple touches or the map is in fullscreen mode, enable dragging
+  handleMapTouch(e: React.TouchEvent<HTMLDivElement> | React.MouseEvent<HTMLDivElement>) {
+    // Check if there is only one touch on the screen and the map is not in fullscreen mode, or if its mouseevent
+    if (this.map) {
+      if (e instanceof TouchEvent) {
+        if (e.touches.length <= 1 && !this.state.fullScreen) {
+          this.map.dragging.disable(); // If true, disable dragging of the map
+        }
+        else {
+          this.map.dragging.enable();  // If there are multiple touches or the map is in fullscreen mode, enable dragging
+        }
+      } 
+      else if (e instanceof MouseEvent) this.map.dragging.disable(); // If true, disable dragging of the map
     }
   }
 
@@ -429,6 +435,7 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
           id="map"
           className="leaflet-map"
           onTouchMove={(e) => this.handleMapTouch(e)}
+          onPointerDown={() => {if (!this.state.fullScreen) this.map.dragging.disable()}}
           ref={this.mapRef}
         ></div>
       </>

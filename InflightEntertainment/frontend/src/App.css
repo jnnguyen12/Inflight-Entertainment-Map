@@ -12,6 +12,22 @@ body {
   min-height: 100%; 
 }
 
+body.lightMode {
+  --dark-mode-filter: none;
+  --aircraft-color: var(--bs-primary-text-emphasis);
+  --airport-color: var(--bs-link-color);
+  --btn-color: white;
+  --btn-bg-color: var(--bs-blue);
+}
+
+body.darkMode {
+  --dark-mode-filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  --aircraft-color: white;
+  --airport-color: var(--bs-primary-border-subtle);
+  --btn-color: var(--bs-blue);
+  --btn-bg-color: white;
+}
+
 html, body {
   /* to prevent scrollbars or the content of the screen not completely fitting  */
   overflow-x: hidden;
