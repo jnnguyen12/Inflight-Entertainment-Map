@@ -51,17 +51,8 @@ export function BuildMarker(param: string, position: L.LatLngExpression, rotatio
       })
       break;
     case "airport":
-      // icon = new L.Icon({
-      //   iconUrl: airport,
-      //   iconSize: new L.Point(35, 46),
-      //   iconAnchor: new L.Point(17, 23),
-      //   iconStyle: 'transition: transform 0.5s ease;',
-      //   className: 'airport'
-      // })
       icon = new L.DivIcon({
         html: `<svg xmlns="http://www.w3.org/2000/svg" class="airport" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path opacity="1" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"/></svg>`,
-        iconSize: new L.Point(35, 46),
-        iconAnchor: new L.Point(17, 23)
       });
       break;
     case "landmark":
