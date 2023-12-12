@@ -69,13 +69,15 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   private mapRef = React.createRef<LeafletMap>();
   private socket: WebSocket | null = null; // WebSocket connection
   private defaultSpeed = 100;
+  private minRndWidth = 400;
+  private minRndHeight = 300;
   constructor(props) {
     super(props);
     this.state = {
       RndXPosition: 0,
       RndYPosition: 0,
-      RndWidth: 400,
-      RndHeight: 300,
+      RndWidth: this.minRndWidth,
+      RndHeight: this.minRndHeight,
       fullScreen: true,
       Flight: emptyFlight,
       matches: window.matchMedia("(max-width: 991px)").matches,
@@ -813,6 +815,8 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
               width: this.state.RndWidth,
               height: this.state.RndHeight,
             }}
+            minWidth={this.minRndWidth}
+            minHeight={this.minRndHeight}
             size={{ width: this.state.RndWidth, height: this.state.RndHeight }}
             position={{
               x: this.state.RndXPosition,
