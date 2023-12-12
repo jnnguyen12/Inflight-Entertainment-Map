@@ -9,6 +9,7 @@ import {
   PolyLineData,
   RemoveData,
   Wellness,
+  Airport,
 } from "./Interfaces";
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -271,6 +272,11 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     var polyline = await this.mapRef.current?.drawPolyLine({ aircraftId: flightData.id, airportIdTo: flightData.airportDestination.id, airportIdFrom: flightData.airportOrigin.id });
     // Update the state with the new polyline if created
     if (polyline) this.state.polylines[flightData.id] = polyline;
+
+    // automatically center the map to location of the plane and calculate the zoom
+    this.mapRef.current?.flyTo({
+      ...calculateMidPoint(this.state.Flight.airportOrigin.lat, this.state.Flight.airportOrigin.lng, this.state.Flight.airportDestination.lat, this.state.Flight.airportDestination.lng),
+      zoom: this.calculateZoom(this.state.Flight.airportOrigin.lng, this.state.Flight.airportDestination.lng)});
   }
 
   /**
@@ -479,6 +485,10 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     this.setState({ fullScreen: !this.state.fullScreen }, () => {
       // Update the map's state with the new fullscreen mode
       this.mapRef.current?.setState({ fullScreen: this.state.fullScreen });
+      // calculate the zoom level based on longtitude
+      this.mapRef.current?.flyTo({
+        ...calculateMidPoint(this.state.Flight.airportOrigin.lat, this.state.Flight.airportOrigin.lng, this.state.Flight.airportDestination.lat, this.state.Flight.airportDestination.lng),
+        zoom: this.calculateZoom(this.state.Flight.airportOrigin.lng, this.state.Flight.airportDestination.lng)});  
     });
   }
 
@@ -646,6 +656,10 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
         {altitudeElement}
       </>
     );
+  }
+
+  private calculateZoom(lng1, lng2) {
+    return 3 / Math.abs(lng1 - lng2) * (this.mapRef.current.maxZoom - this.mapRef.current.minZoom) + this.mapRef.current.minZoom;
   }
 
   /**
@@ -862,6 +876,23 @@ function calculateRotation(lat1: number, lng1: number, lat2: number, lng2: numbe
         Math.sin(diffLng) * Math.cos(radLat2),
         Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(diffLng)
     )) + 360) % 360;
+}
+
+function calculateMidPoint(lat1: number, lng1: number, lat2: number, lng2: number): {lat: number, lng: number} {
+  const toRadians = (degree: number) => degree * (Math.PI / 180);
+  const toDegrees = (radians: number) => radians * (180 / Math.PI);
+
+  const diffLng = toRadians(lng2 - lng1);
+  lat1 = toRadians(lat1);
+  lat2 = toRadians(lat2);
+  lng1 = toRadians(lng1);
+
+  const Bx = Math.cos(lat2) * Math.cos(diffLng);
+  const By = Math.cos(lat2) * Math.sin(diffLng);
+  const lat = toDegrees(Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By)));
+  const lng = toDegrees(lng1 + Math.atan2(By, Math.cos(lat1) + Bx));
+
+  return {lat, lng};
 }
 
 export default InteractiveMap;

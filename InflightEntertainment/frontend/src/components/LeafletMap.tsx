@@ -14,6 +14,7 @@ import { LeafletProps, LeafletMapState, FlyCameraTo, MarkerData, UpdateMarkerDat
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3; // Earth's radius in meters
+  // convert lat1 and 2 to radians
   const phi1 = lat1 * Math.PI / 180;
   const phi2 = lat2 * Math.PI / 180;
   const deltaPhi = (lat2 - lat1) * Math.PI / 180;
@@ -91,6 +92,13 @@ class LeafletMap extends React.Component<LeafletProps, LeafletMapState> {
     L.tileLayer('OFFLINE/{z}/{x}/{y}.png', {
        maxZoom: 7  // Set the maximum zoom level for the offline tile layer
     }).addTo(this.map);
+  }
+
+  get minZoom(): number {
+    return this.map.getMinZoom();
+  }
+  get maxZoom(): number {
+    return this.map.getMaxZoom();
   }
 
   /**
