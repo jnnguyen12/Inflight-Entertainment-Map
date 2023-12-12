@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import LeafletMap from "./LeafletMap";
 import {
   InteractiveMapStates,
@@ -115,31 +115,32 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
   demo = () => {
     const Airport1 = {
       id: "426",
-      name: "",
-      nameAbbreviated: "",
+      name: "whoo",
+      nameAbbreviated: "ert",
       lat: 45.358246,
       lng: -77.289603,
-      time: "",
+      time: "6:50",
     };
     const Airport2 = {
       id: "427",
-      name: "",
-      nameAbbreviated: "",
+      name: "huhhhh",
+      nameAbbreviated: "huh",
       lat: 44.833343,
       lng: -84.102887,
-      time: "",
+      time: "318",
     };
     const demoFlight: Flight = {
       id: "c07c7b",
-      flight: "",
+      flight: "WGV344",
       lat: 45.21199,
       lng: -79.815281,
       airportOrigin: Airport1,
       airportDestination: Airport2,
-      aircraftType: "",
-      progress: 50,
-      traveledKm: 0,
-      remainingKm: 0,
+      aircraftType: "boeing",
+      progress: 20,
+      traveledKm: 2345,
+      remainingKm: 23452,
+      estimatedTime: "2h30"
     };
     this.handleSetFlight(demoFlight)
   }; 
@@ -677,7 +678,6 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
     // Helper variables for controlling UI responsiveness
     const collapseOrientation = !this.state.matches && "collapse-horizontal";
     const flexOrientation = this.state.matches && "flex-column";
-
     
     if (this.state.fullScreen) {
       // Render full-screen view
@@ -844,10 +844,10 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
             className="UI-container"
             style={{
               position: "absolute",
-              left: this.state.RndXPosition + this.state.RndWidth - 16,
+              left: this.state.RndXPosition,
               top: this.state.RndYPosition,
-              width: "16px",
-              height: "16px",
+              width: this.state.RndWidth,
+              height: this.state.RndHeight,
             }}
           >
             <div className="buttonDock">
@@ -861,6 +861,10 @@ class InteractiveMap extends React.Component<{}, InteractiveMapStates> {
                 icon={faExpand}
                 onClick={this.toggleFullscreen.bind(this)}
               />
+            </div>
+
+            <div className="small-info">
+              Est. time remaining: {this.state.Flight.estimatedTime}
             </div>
           </div>
         </div>

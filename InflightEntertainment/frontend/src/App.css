@@ -5,6 +5,8 @@
   --airport-color: var(--bs-primary-border-subtle);
   --btn-color: var(--bs-blue);
   --btn-bg-color: white;
+  --info-tab-bg: rgba(255, 255, 255, 0.6);
+  --info-tab-color: black;
 }
 
 body {
@@ -18,6 +20,8 @@ body.lightMode {
   --airport-color: var(--bs-link-color);
   --btn-color: white;
   --btn-bg-color: var(--bs-blue);
+  --info-tab-bg: rgba(0, 0, 0, 0.4);
+  --info-tab-color: var(--bs-gray-200);
 }
 
 body.darkMode {
@@ -26,6 +30,8 @@ body.darkMode {
   --airport-color: var(--bs-primary-border-subtle);
   --btn-color: var(--bs-blue);
   --btn-bg-color: white;
+  --info-tab-bg: rgba(255, 255, 255, 0.6);
+  --info-tab-color: black;
 }
 
 html, body {
@@ -118,6 +124,22 @@ img.leaflet-marker-icon:not(:has(~ img ~ img)) {
   display: flex;
   justify-content: space-around;
   align-items: center;
+}
+
+/*
+* small info panel in small rnd component
+*/
+.small-info {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  z-index: 1;
+  pointer-events: auto;
+  background-color: var(--info-tab-bg);
+  color: var(--info-tab-color);
+  backdrop-filter: blur(5px) ;
+  border-radius: var(--pill-radius);
+  padding: 0.3rem 0.7rem;
 }
 
 svg.round-button {
